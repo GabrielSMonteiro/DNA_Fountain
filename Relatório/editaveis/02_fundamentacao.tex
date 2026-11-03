@@ -1,0 +1,278 @@
+% !TEX root = ../main.tex
+\chapter{Theoretical Foundation}
+\label{chap:theoretical_foundation}
+
+Esse capítulo apresenta os fundamentos teóricos necessários para a compreensão do trabalho. São abordados os conceitos de armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os tipos de erros e restrições biológicas envolvidos, os códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain proposta por Erlich e Zielinski, e as métricas de avaliação utilizadas ao longo dos experimentos.
+
+\section{DNA Data Storage}
+\label{sec:dna_data_storage}
+
+A molécula de ácido desoxirribonucleico (DNA) é a estrutura biológica responsável pelo armazenamento da informação genética em organismos vivos. Cada fita de DNA é composta por uma sequência de nucleotídeos, que são unidades formadas por um grupo fosfato, uma desoxirribose e uma base nitrogenada. As quatro bases nitrogenadas presentes no DNA são adenina (A), citosina (C), guanina (G) e timina (T), e a sequência dessas bases ao longo da fita constitui o código genético~\cite{compeau2018}.
+
+Do ponto de vista da teoria da informação, cada nucleotídeo pode representar dois bits de dados digitais, já que existem quatro bases possíveis ($\log_2 4 = 2$). Essa característica dá ao DNA uma densidade informacional teórica de até aproximadamente 455 exabytes por grama~\cite{church2012}, valor expressivamente superior ao de mídias magnéticas ou ópticas.
+
+Além da alta densidade, o DNA apresenta vantagens em durabilidade: em condições adequadas de temperatura e umidade, moléculas de DNA podem preservar informações por milhares de anos sem degradação relevante. Diferentemente dos discos rígidos magnéticos, cuja vida útil média varia entre 5 e 10 anos exigindo migrações periódicas de dados, o DNA dispensa alimentação energética contínua durante o armazenamento~\cite{ceze2019}.
+
+Contudo, o armazenamento de dados em DNA também enfrenta desafios significativos. O processo de síntese química de oligonucleotídeos, que consiste na fabricação artificial de sequências curtas de DNA (tipicamente entre 100 e 300 nucleotídeos), apresenta custos elevados e é sujeito a erros. Da mesma forma, o processo de sequenciamento, que realiza a leitura das bases a partir de um pool de moléculas, introduz ruídos e imperfeições na recuperação dos dados. Tecnologias modernas de sequenciamento de nova geração (\emph{Next-Generation Sequencing} --- NGS) e sequenciamento por nanoporos (\emph{Nanopore}) têm reduzido progressivamente esses custos, mas a viabilidade econômica do DNA como mídia de uso geral ainda depende de avanços futuros~\cite{ceze2019}.
+
+O ciclo de vida completo do armazenamento de dados em DNA pode ser descrito em cinco etapas: (1)~codificação digital, na qual o arquivo binário é convertido em sequências de nucleotídeos; (2)~síntese química, na qual as sequências são fabricadas em laboratório; (3)~armazenamento físico do pool de oligonucleotídeos em condições controladas; (4)~sequenciamento, no qual as moléculas são lidas por um dispositivo de sequenciamento; e (5)~decodificação computacional, na qual as leituras obtidas são processadas para reconstruir o arquivo original.
+
+\section{Digital to DNA Encoding}
+\label{sec:digital_to_dna_encoding}
+
+A primeira etapa do armazenamento de dados em DNA consiste em converter um arquivo binário em uma representação compatível com as quatro bases nitrogenadas. Para isso, o arquivo de entrada é inicialmente tratado como uma sequência contínua de bytes, que é então dividida em blocos de tamanho fixo $L$ (em bytes). Caso o último bloco não possua exatamente $L$ bytes, é realizado um preenchimento determinístico com bytes nulos (\texttt{0x00}), técnica conhecida como \emph{zero-padding}.
+
+Com os blocos definidos, cada byte é convertido em uma sequência de quatro nucleotídeos por meio de um mapeamento direto de pares de bits para bases. O esquema de mapeamento utilizado nesse trabalho é apresentado na Tabela~\ref{tab:mapeamento_bits_dna}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Mapeamento de pares de bits para bases nitrogenadas.}
+    \label{tab:mapeamento_bits_dna}
+    \begin{tabular}{cc}
+        \hline
+        \textbf{Par de bits} & \textbf{Base} \\
+        \hline
+        00 & A \\
+        01 & C \\
+        10 & G \\
+        11 & T \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, e a capacidade de codificação é de 2 bits por base, o que se aproxima do limite teórico de Shannon para um alfabeto de quatro símbolos~\cite{shannon1948}. Esse mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
+
+A simplicidade desse esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
+
+\section{Errors and Biological Constraints}
+\label{sec:errors_and_biological_constraints}
+
+Ao longo do ciclo de vida do armazenamento em DNA, duas classes distintas de fenômenos impactam a integridade dos dados: as falhas físicas geradas pelas etapas de síntese e sequenciamento (erros de canal) e as restrições biológicas de aceitabilidade, que definem se uma sequência pode ou não ser sintetizada e amplificada com estabilidade.
+
+\subsection{Erros do Canal}
+
+Os erros do canal ocorrem durante os processos físicos de síntese e sequenciamento, e podem ser classificados em quatro categorias principais:
+
+\begin{itemize}
+    \item \textbf{Substituições}: uma base é incorretamente lida ou sintetizada como outra base. Por exemplo, um nucleotídeo G é registrado como A pelo sequenciador.
+    
+    \item \textbf{Inserções}: uma base adicional é introduzida na sequência durante a síntese ou o sequenciamento, deslocando todas as bases subsequentes.
+    
+    \item \textbf{Deleções}: uma base é omitida durante a leitura ou a síntese, causando um deslocamento no sentido oposto ao das inserções.
+    
+    \item \textbf{Apagamentos (\emph{erasures})}: um oligonucleotídeo inteiro é perdido durante o processo, seja por degradação física, cobertura insuficiente no sequenciamento ou falha completa na síntese de uma sequência. Nesse caso, o receptor simplesmente não recebe a sequência, mas sabe que ela está ausente.
+\end{itemize}
+
+No contexto desse trabalho, o canal biológico é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
+
+\subsection{Restrições Biológicas de Aceitabilidade}
+
+Independentemente dos erros do canal, nem todas as sequências de DNA podem ser sintetizadas e sequenciadas com a mesma confiabilidade. Certas propriedades da sequência afetam diretamente a eficiência dos processos biológicos, e sequências que violam essas restrições devem ser descartadas antes da síntese. As duas restrições mais relevantes para o DNA Fountain são:
+
+\begin{itemize}
+    \item \textbf{Conteúdo GC}: a proporção de bases G e C em relação ao comprimento total da sequência deve estar dentro de uma faixa aceitável, tipicamente entre 40\% e 60\%. Sequências com conteúdo GC muito baixo ou muito alto apresentam temperaturas de desnaturação (\emph{melting temperature}) atípicas, o que dificulta a amplificação por PCR (\emph{Polymerase Chain Reaction}) e introduz viés no sequenciamento~\cite{erlich2017}.
+    
+    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Nesse trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por Erlich e Zielinski~\cite{erlich2017}.
+\end{itemize}
+
+Essas restrições biológicas \textbf{não constituem erros físicos de canal}, mas sim filtros de aceitabilidade aplicados ainda na etapa de codificação. Quando um droplet gerado viola os limites de GC ou homopolímeros no \emph{screening}, ele é descartado antes do envio e outro droplet é gerado em seu lugar. Essa distinção entre erros estocásticos do canal e critérios de filtragem é essencial para a compreensão do sistema.
+
+\section{Erasure Codes and Fountain Codes}
+\label{sec:erasure_codes_and_fountain_codes}
+
+Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessário utilizar alguma forma de codificação redundante que permita a recuperação dos dados mesmo quando parte das sequências é perdida. Nesse contexto, os \textbf{códigos de apagamento} (\emph{erasure codes}) são a classe de códigos corretores de erros adequada ao problema.
+
+Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Nesse tipo de código, o transmissor gera exatamente $N$ pacotes codificados a partir de $K$ pacotes de dados originais, com uma taxa de codificação $R = K/N$ definida previamente. O receptor precisa receber pelo menos $K$ pacotes quaisquer dentre os $N$ transmitidos para reconstruir a mensagem original. Contudo, se a taxa de perda do canal exceder $1 - R$, a decodificação falha e não há mecanismo para solicitar pacotes adicionais~\cite{mackay2003}.
+
+Os \textbf{\emph{fountain codes}} (códigos fonte), por outro lado, são códigos de \textbf{taxa variável} (\emph{rateless codes}). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
+
+\begin{itemize}
+    \item O transmissor pode gerar um número potencialmente infinito de pacotes codificados a partir dos $K$ blocos originais, sem necessidade de conhecer previamente a taxa de perda do canal.
+    
+    \item O receptor precisa receber apenas $K(1 + \epsilon)$ pacotes quaisquer, onde $\epsilon > 0$ é uma pequena fração de overhead, independentemente de quais pacotes específicos foram perdidos.
+    
+    \item Não há necessidade de canal de retorno (\emph{feedback}) entre receptor e transmissor.
+\end{itemize}
+
+Essas propriedades tornam os \emph{fountain codes} particularmente adequados ao cenário de armazenamento em DNA, no qual o número exato de oligonucleotídeos que sobreviverão aos processos de síntese, armazenamento e sequenciamento não pode ser determinado com antecedência~\cite{erlich2017}.
+
+\section{LT Codes}
+\label{sec:lt_codes}
+
+Os códigos LT (\emph{Luby Transform}), propostos por Michael Luby em 2002~\cite{luby2002}, foram os primeiros \emph{fountain codes} práticos. A ideia central dos códigos LT é gerar cada pacote codificado --- chamado de \textbf{droplet} --- por meio da combinação de um subconjunto aleatório dos blocos originais utilizando a operação de ou-exclusivo (XOR) sobre o corpo finito binário $GF(2)$.
+
+O processo de geração de um droplet segue três passos:
+
+\begin{enumerate}
+    \item \textbf{Amostragem do grau}: um valor inteiro $d$ é sorteado de acordo com uma distribuição de probabilidade sobre os graus $\{1, 2, \ldots, K\}$. Esse valor determina quantos blocos fonte serão combinados para formar o droplet.
+    
+    \item \textbf{Seleção dos blocos}: $d$ blocos distintos são selecionados uniformemente ao acaso dentre os $K$ blocos fonte disponíveis. Os índices dos blocos selecionados são chamados de \textbf{vizinhos} do droplet.
+    
+    \item \textbf{Combinação XOR}: o payload do droplet é calculado como a soma XOR dos $d$ blocos selecionados:
+    
+    \begin{equation}
+        \label{eq:xor_droplet}
+        y = b_{i_1} \oplus b_{i_2} \oplus \cdots \oplus b_{i_d}
+    \end{equation}
+
+    onde $b_{i_j}$ denota o $j$-ésimo bloco fonte selecionado e $\oplus$ representa a operação XOR bit a bit.
+\end{enumerate}
+
+Esse processo pode ser representado por meio de um \textbf{grafo bipartido}, no qual os $K$ blocos fonte ocupam uma partição (nós de entrada) e os $N$ droplets gerados ocupam a outra partição (nós de saída). Uma aresta conecta um bloco fonte $b_i$ a um droplet $y_j$ se e somente se $b_i$ participou da combinação XOR que gerou $y_j$. O grau de um droplet no grafo corresponde ao número de arestas incidentes, ou seja, ao número de blocos que o compõem.
+
+A escolha da distribuição de probabilidade para o grau $d$ é o fator determinante para o desempenho dos códigos LT. Uma distribuição mal calibrada pode gerar excesso de droplets de alto grau (inúteis nas primeiras iterações da decodificação) ou excesso de droplets de grau 1 (que não contribuem para a diversidade de combinações). A seção seguinte formaliza as distribuições utilizadas.
+
+\section{Robust Soliton Distribution}
+\label{sec:robust_soliton_distribution}
+
+A distribuição de probabilidade utilizada para sortear o grau dos droplets é o componente teórico central dos códigos LT. Luby~\cite{luby2002} propôs inicialmente a \textbf{Distribuição Ideal de Soliton} $\rho(d)$, definida como:
+
+\begin{equation}
+    \label{eq:ideal_soliton}
+    \rho(d) = \begin{cases}
+        \dfrac{1}{K}, & \text{se } d = 1 \\[10pt]
+        \dfrac{1}{d(d-1)}, & \text{se } d = 2, 3, \ldots, K
+    \end{cases}
+\end{equation}
+
+A distribuição ideal foi projetada de modo que, em expectativa, exatamente um droplet de grau 1 esteja disponível a cada passo da decodificação. Contudo, na prática, a variância estocástica do processo faz com que o número de droplets de grau 1 disponíveis flutue significativamente, levando com alta probabilidade à interrupção prematura da decodificação.
+
+Para corrigir esse problema, Luby propôs a \textbf{Distribuição Robusta de Soliton} $\mu(d)$, que adiciona à distribuição ideal uma função auxiliar $\tau(d)$ com o objetivo de garantir uma quantidade mínima esperada de droplets de baixo grau. A função $\tau(d)$ é definida como:
+
+\begin{equation}
+    \label{eq:tau}
+    \tau(d) = \begin{cases}
+        \dfrac{R}{d \cdot K}, & \text{se } d = 1, 2, \ldots, \left\lfloor\dfrac{K}{R}\right\rfloor - 1 \\[10pt]
+        \dfrac{R \cdot \ln\!\left(\dfrac{R}{\delta}\right)}{K}, & \text{se } d = \left\lfloor\dfrac{K}{R}\right\rfloor \\[10pt]
+        0, & \text{se } d > \left\lfloor\dfrac{K}{R}\right\rfloor
+    \end{cases}
+\end{equation}
+
+onde o parâmetro $R$ é definido por:
+
+\begin{equation}
+    \label{eq:R}
+    R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}
+\end{equation}
+
+Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam o comportamento da distribuição robusta e possuem interpretações práticas bem definidas:
+
+\begin{itemize}
+    \item O parâmetro $c$ controla a magnitude de $R$ e, consequentemente, a quantidade esperada de droplets de baixo grau. Valores maiores de $c$ produzem distribuições com mais massa nos graus baixos, o que favorece a manutenção do ripple durante a decodificação, porém eleva o grau médio dos droplets e, portanto, o número de operações XOR necessárias.
+    
+    \item O parâmetro $\delta$ representa um limite superior para a probabilidade de falha na decodificação. Valores menores de $\delta$ tornam a distribuição mais conservadora, concentrando mais massa nos graus baixos para reduzir a probabilidade de falha, ao custo de maior redundância.
+\end{itemize}
+
+A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rho(d)$ e $\tau(d)$, dividida pela constante de normalização $\beta$:
+
+\begin{equation}
+    \label{eq:mu}
+    \mu(d) = \frac{\rho(d) + \tau(d)}{\beta}, \quad \text{onde} \quad \beta = \sum_{d=1}^{K} \left[\rho(d) + \tau(d)\right]
+\end{equation}
+
+A distribuição resultante $\mu(d)$ satisfaz $\sum_{d=1}^{K} \mu(d) = 1$ e é utilizada para sortear o grau de cada droplet durante a codificação. O grau médio esperado de um droplet sob essa distribuição é dado por:
+
+\begin{equation}
+    \label{eq:grau_medio}
+    \bar{d} = \sum_{d=1}^{K} d \cdot \mu(d)
+\end{equation}
+
+Na implementação do simulador, a amostragem de um grau é realizada por meio da função de distribuição acumulada (CDF) de $\mu(d)$: um valor uniforme $u \sim \mathcal{U}(0,1)$ é gerado e o grau $d$ é determinado como o menor valor tal que $\text{CDF}(d) \geq u$. Essa técnica garante que a frequência empírica dos graus sorteados convirja para a distribuição $\mu(d)$ à medida que o número de amostras aumenta.
+
+\section{Peeling Decoder and Ripple}
+\label{sec:peeling_decoder_and_ripple}
+
+O \textbf{\emph{peeling decoder}} é o algoritmo de decodificação utilizado nos códigos LT para reconstruir os blocos fonte originais a partir dos droplets recebidos. Trata-se de um algoritmo iterativo baseado em propagação de crença (\emph{belief propagation}) sobre o grafo bipartido, que opera exclusivamente com operações XOR no corpo finito binário $GF(2)$.
+
+O princípio de funcionamento do \emph{peeling decoder} pode ser descrito intuitivamente da seguinte forma: se um droplet possui grau 1, ou seja, se ele é a combinação XOR de um único bloco fonte, então seu payload é exatamente igual ao valor desse bloco. Uma vez que o valor de um bloco é descoberto, ele pode ser ``removido'' (por XOR) de todos os demais droplets que o continham, reduzindo o grau desses droplets em uma unidade. Se algum desses droplets atinge grau 1 após a remoção, um novo bloco é descoberto, e o processo se repete.
+
+O algoritmo pode ser formalizado nos seguintes passos:
+
+\begin{enumerate}
+    \item \textbf{Inicialização}: Construir o grafo bipartido a partir dos droplets recebidos. Identificar todos os droplets com grau $d = 1$ e inseri-los em uma fila de processamento.
+    
+    \item \textbf{Iteração}: Enquanto a fila não estiver vazia:
+    \begin{enumerate}
+        \item Retirar um droplet $y$ de grau 1 da fila.
+        \item Identificar o bloco fonte $b_i$ associado a $y$ e registrar $b_i = y$ como bloco descoberto.
+        \item Para cada droplet $y'$ que contém $b_i$ em seus vizinhos:
+        \begin{enumerate}
+            \item Atualizar o payload de $y'$: $y' \leftarrow y' \oplus b_i$.
+            \item Remover $b_i$ da lista de vizinhos de $y'$, reduzindo seu grau em 1.
+            \item Se o grau de $y'$ se tornar igual a 1, inserir $y'$ na fila.
+        \end{enumerate}
+    \end{enumerate}
+    
+    \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, houve falha por informação insuficiente.
+\end{enumerate}
+
+O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Ele consiste no conjunto de droplets que possuem grau 1 em determinado instante do processo, estando prontos para resolver um bloco fonte pendente. A cada passo, um droplet é retirado do ripple, mas a remoção do bloco descoberto dos demais pacotes pode gerar novos droplets de grau 1, mantendo o processo ativo.
+
+A decodificação é bem-sucedida quando o ripple se mantém não vazio durante todas as $K$ iterações necessárias. Se o ripple esvazia antes que todos os blocos tenham sido recuperados, ocorre o fenômeno conhecido como \textbf{morte do ripple} (\emph{ripple die-out}), que resulta na falha da decodificação. A distribuição robusta de soliton, descrita na seção anterior, foi projetada precisamente para manter o tamanho esperado do ripple em torno de $R = c \ln(K/\delta)\sqrt{K}$ durante todo o processo, minimizando a probabilidade de estagnação.
+
+O monitoramento do tamanho do ripple ao longo dos passos de decodificação é uma das métricas mais informativas para analisar o comportamento do sistema, pois permite visualizar diretamente se a distribuição de graus está produzindo droplets de baixo grau em quantidade suficiente para sustentar a decodificação completa.
+
+\section{DNA Fountain Architecture}
+\label{sec:dna_fountain_architecture}
+
+A arquitetura \textbf{DNA Fountain}, proposta por Erlich e Zielinski em 2017~\cite{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original. Essa arquitetura se diferencia de abordagens anteriores~\cite{church2012, goldman2013} por atingir uma densidade de armazenamento de 1,57 bits por nucleotídeo, próxima ao limite teórico de 1,98 bits por nucleotídeo.
+
+O pipeline do DNA Fountain, conforme modelado nesse trabalho, opera da seguinte forma:
+
+\begin{enumerate}
+    \item \textbf{Segmentação}: O arquivo binário de entrada é dividido em $K$ blocos de tamanho fixo $L$ bytes. O último bloco recebe \emph{zero-padding} caso não possua $L$ bytes completos.
+    
+    \item \textbf{Geração de droplets}: Para cada droplet a ser gerado, uma \emph{seed} inteira é utilizada como entrada de um gerador pseudoaleatório (PRNG), que determina o grau $d$ (amostrado da distribuição robusta de soliton) e os $d$ índices dos blocos fonte a serem combinados por XOR. A mesma \emph{seed} permite regenerar os mesmos índices durante a decodificação, sem necessidade de transmitir a lista de índices explicitamente.
+    
+    \item \textbf{Cabeçalho}: Cada droplet recebe um cabeçalho contendo a \emph{seed} codificada, que é a única informação necessária para que o decodificador reconstrua os índices dos blocos associados. A \emph{seed} é armazenada em um número fixo de bytes no início do oligonucleotídeo.
+    
+    \item \textbf{Conversão para DNA}: O conjunto cabeçalho + payload é convertido em uma sequência de nucleotídeos utilizando o mapeamento binário descrito na Seção~\ref{sec:digital_to_dna_encoding}.
+    
+    \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível. Esse processo de descarte e re-sorteio é transparente ao decodificador.
+    
+    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal biológico, modelado nesse trabalho como um canal de apagamento com probabilidade de perda $p_{\text{loss}}$.
+    
+    \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados a cada droplet e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
+\end{enumerate}
+
+Um aspecto central da arquitetura DNA Fountain é o papel da \emph{seed}. Ao utilizar um PRNG determinístico inicializado com a \emph{seed}, tanto o codificador quanto o decodificador podem calcular independentemente o grau e os índices dos blocos associados a cada droplet. Isso elimina a necessidade de transmitir metadados adicionais sobre a estrutura do grafo bipartido, reduzindo significativamente o overhead de informação lateral.
+
+\section{Evaluation Metrics}
+\label{sec:evaluation_metrics}
+
+Para avaliar quantitativamente o desempenho do simulador sob diferentes configurações, esse trabalho utiliza um conjunto de métricas formais que capturam aspectos distintos do processo de codificação e decodificação. As métricas adotadas são:
+
+\begin{itemize}
+    \item \textbf{Taxa de sucesso na decodificação} ($P_{\text{succ}}$): a proporção de execuções em que o \emph{peeling decoder} conseguiu recuperar todos os $K$ blocos fonte. Calculada como:
+    
+    \begin{equation}
+        \label{eq:taxa_sucesso}
+        P_{\text{succ}} = \frac{\text{número de decodificações completas}}{\text{número total de execuções}}
+    \end{equation}
+    
+    \item \textbf{Overhead relativo} ($\epsilon$): a fração de droplets adicionais em relação ao número mínimo teórico $K$. Definido como:
+    
+    \begin{equation}
+        \label{eq:overhead}
+        \epsilon = \frac{N - K}{K}
+    \end{equation}
+    
+    onde $N$ é o número total de droplets gerados (ou recebidos, dependendo do contexto). Um overhead de $\epsilon = 0{,}10$ significa que foram gerados 10\% mais droplets do que o número de blocos fonte.
+    
+    \item \textbf{Taxa de rejeição no screening} ($R_{\text{screen}}$): a proporção de droplets gerados que foram descartados por violar as restrições biológicas de conteúdo GC ou homopolímeros:
+    
+    \begin{equation}
+        \label{eq:rejeicao}
+        R_{\text{screen}} = \frac{\text{droplets rejeitados}}{\text{droplets gerados (total)}}
+    \end{equation}
+    
+    \item \textbf{Número de operações XOR}: a contagem total de operações XOR realizadas durante o processo de decodificação por \emph{peeling}. Essa métrica é um indicador direto do custo computacional da decodificação, independente da plataforma de hardware.
+    
+    \item \textbf{Tamanho do ripple}: registrado ao longo dos passos de decodificação, tanto o valor máximo quanto o valor médio. A trajetória do ripple permite analisar a estabilidade da decodificação e identificar pontos de estagnação.
+    
+    \item \textbf{Blocos recuperados}: o número de blocos fonte efetivamente reconstruídos ao final da decodificação. Em casos de falha, essa métrica indica o quanto o sistema se aproximou da decodificação completa.
+    
+    \item \textbf{Tempo de processamento}: medido separadamente para as etapas de codificação e decodificação, em milissegundos. Essa métrica permite avaliar a escalabilidade do simulador em função do número de blocos $K$.
+\end{itemize}
+
+Essas métricas são coletadas automaticamente pelo simulador a cada execução e consolidadas em arquivos CSV para análise estatística posterior, conforme detalhado no Capítulo~\ref{chap:experimental_methodology}.
