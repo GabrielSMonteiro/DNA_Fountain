@@ -33,15 +33,17 @@ print(f'Total de registros carregados: {len(rows)}')
 # -------------------------------------------------------------
 # FIGURA 1: Dinâmica do Ripple (Passo a Passo)
 # -------------------------------------------------------------
+import random
 from dna_fountain.config import DNAFountainConfig
-from dna_fountain.preprocessing import MessageProcessor
 from dna_fountain.soliton import RobustSoliton
 from dna_fountain.lt_codec import DNAFountainEncoder, DNAFountainDecoder
 
-msg = "Demonstracao experimental de decodificacao peeling para DNA Fountain simulando dinamica de ripple."
+K = 32
+L = 4
 cfg = DNAFountainConfig()
-proc = MessageProcessor(cfg)
-_, blocos, K = proc.preprocessar(msg)
+cfg.tamanho_bloco_l = L
+rng_bl = random.Random(42)
+blocos = [bytes(rng_bl.getrandbits(8) for _ in range(L)) for _ in range(K)]
 
 # Caso 1: c=0.1, delta=0.1 (estavel)
 cfg.soliton_c = 0.1
@@ -66,13 +68,13 @@ desc2, met2 = dec2.decodificar([o["dna"] for o in oligos2], sol2)
 hist_ripple2 = met2["ripple_historico"]
 
 fig, ax = plt.subplots(figsize=(6.5, 3.8))
-ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', color='#1f77b4', label=f'Parametrização Ótima ($c=0.1$, $\\delta=0.1$) - Sucesso: {len(desc1)}/{K}')
+ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', markersize=4, color='#1f77b4', label=f'Configuração Recomendada ($c=0.1$, $\\delta=0.10$) - Recuperados: {len(desc1)}/{K}')
 if hist_ripple2:
-    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', color='#d62728', linestyle='--', label=f'Parametrização Degenerada ($c=0.5$, $\\delta=0.1$) - Recuperados: {len(desc2)}/{K}')
+    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', markersize=4, color='#d62728', linestyle='--', label=f'Configuração Degenerada ($c=0.5$, $\\delta=0.10$) - Recuperados: {len(desc2)}/{K}')
 
 ax.set_xlabel('Passo de Processamento do Peeling')
 ax.set_ylabel('Tamanho da Fila do Ripple')
-ax.set_title('Evolução do Tamanho do Ripple Durante a Decodificação ($K=32$, $\\epsilon=1.0$)')
+ax.set_title('Evolução do Tamanho da Fila do Ripple ($K=32$, $\\epsilon=1.00$, $p_{\\text{loss}}=0.0$)')
 ax.legend(loc='upper right', frameon=True)
 ax.grid(True, linestyle=':', alpha=0.6)
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.pdf'))
@@ -196,19 +198,18 @@ print('Figura 4 (grafico_resiliencia) gerada.')
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
 
 ks_num = [16, 32, 64]
-tempos_med = [1.37, 2.34, 3.84]
-tempos_min = [0.86, 0.96, 1.83]
-tempos_max = [2.27, 4.63, 8.29]
-erros_inf = [m - mi for m, mi in zip(tempos_med, tempos_min)]
-erros_sup = [ma - m for m, ma in zip(tempos_med, tempos_max)]
+tempos_med = [2.05, 4.57, 7.45]
+tempos_std = [0.58, 0.67, 1.11]
+tempos_min = [1.29, 2.54, 5.25]
+tempos_max = [4.49, 5.74, 9.89]
 
 xors_totais = [107.6, 270.8, 688.4]
 xors_por_bloco = [107.6 / 16, 270.8 / 32, 688.4 / 64]
 
 # Painel 1: Tempo
-ax1.errorbar(ks_num, tempos_med, yerr=[erros_inf, erros_sup], fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Tempo Médio (com mín./máx.)')
+ax1.errorbar(ks_num, tempos_med, yerr=tempos_std, fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Tempo Médio (±1 desvio-padrão)')
 ax1.set_title('Tempo de Decodificação (ms)')
-ax1.set_xlabel('Número de Blocos Fonte ($K$)')
+ax1.set_xlabel('Quantidade de Blocos Fonte ($K$)')
 ax1.set_ylabel('Tempo (ms)')
 ax1.set_xticks(ks_num)
 ax1.grid(True, linestyle=':', alpha=0.6)
