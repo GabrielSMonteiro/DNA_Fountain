@@ -1,0 +1,80 @@
+% !TEX root = ../main.tex
+\chapter{Introduction}
+\label{chap:introduction}
+
+\section{Contextualization}
+Com o contínuo crescimento do uso de tecnologia no mundo, a dependência de armazenamento de grande quantidade de dados também se expande exponencialmente. Nesse contexto, a busca por alternativas de armazenamento de dados tem se tornado cada vez mais importante, dado que o armazenamento magnético que utilizamos hoje em dia tem limitações de espaço físico, consumo de energia e tempo de vida útil~\cite{ceze2019}.
+
+Uma alternativa promissora é o DNA sintético, que tem se mostrado como uma tecnologia viável para o armazenamento de dados de longo prazo, devido à sua alta densidade de armazenamento, baixo consumo de energia e longa vida útil, como apresentado nos Estados Unidos em 1988, pelo bioartista Joe Davis em colaboração com pesquisadores da Universidade de Harvard~\cite{church2012}. Contudo, durante várias décadas o armazenamento em DNA enfrentou diversas dificuldades, como formatar dados digitais em sequências de DNA, sintetizar DNA em grande escala e sequenciar DNA com alta precisão. Recentemente, houve avanços significativos em todas essas áreas, tornando o armazenamento em DNA uma tecnologia viável~\cite{ceze2019}.
+
+Assim, em 2017 a revista Science publicou o artigo ``DNA Fountain enables a robust and efficient storage architecture'' de Yaniv Erlich e Dina Zielinski~\cite{erlich2017}, que apresentou uma nova arquitetura para o armazenamento de dados em DNA, o DNA Fountain, sendo esse a base desse trabalho de conclusão de curso e a alternativa para os problemas mencionados anteriormente. Por fim, esse trabalho visa implementar um simulador modular do pipeline do DNA Fountain e analisar os parâmetros que compõem o processo de armazenamento e recuperação de dados.
+
+\section{Motivation}
+
+Apaixonado pela área de biologia desde cedo, posso dizer que minha maior motivação para essa pesquisa é a curiosidade. Em 2021, durante minha aula de biologia com o professor Frambolz, foi mencionada a possibilidade de armazenar dados em DNA, e fiquei fascinado com essa ideia. Na época, achei que era algo muito distante da nossa realidade, mas com o passar do tempo, durante a minha graduação em Engenharia de Software, percebi o quanto o armazenamento de dados é um problema recorrente em diversas áreas, e que aquela ideia que havia ouvido há anos poderia ser uma solução para esse problema.
+
+Assim, motivado pelo problema identificado, pela oportunidade de investigar essa abordagem e pelo desafio de aplicar conceitos de engenharia de software em uma área ainda pouco difundida no Brasil, nasceu a minha vontade de desenvolver esse trabalho.
+
+\section{Research Problem}
+
+No contexto apresentado, embora o armazenamento de dados em DNA tenha avançado significativamente nos últimos anos, ainda há uma carência de ferramentas didáticas, modulares e facilmente extensíveis voltadas à análise integrada dos parâmetros do pipeline DNA Fountain em contexto acadêmico de experimentação. Nesse cenário, surge a necessidade de uma infraestrutura de software reprodutível que permita testar hipóteses sobre o comportamento do sistema sob diferentes configurações.
+
+Com isso, o problema de pesquisa desse trabalho pode ser definido da seguinte forma: como projetar e validar um simulador modular do pipeline DNA Fountain que represente codificação LT, restrições biológicas, perdas por apagamento e decodificação por peeling, permitindo analisar experimentalmente o impacto de parâmetros como $c$, $\delta$, tamanho do bloco, taxa de perda e overhead sobre a taxa de recuperação e o custo computacional?
+
+\section{Objectives}
+
+O objetivo geral desse trabalho é desenvolver e avaliar um simulador modular do pipeline DNA Fountain, capaz de representar as etapas de segmentação, geração de droplets, aplicação de restrições biológicas, simulação de perdas e decodificação por peeling, com o propósito de analisar experimentalmente a influência de seus principais parâmetros.
+
+Os objetivos específicos são:
+
+\begin{enumerate}
+    \item Formalizar os fundamentos de códigos LT, distribuição robusta de soliton e \emph{peeling decoder} no contexto de armazenamento em DNA.
+    
+    \item Modelar computacionalmente as etapas essenciais do pipeline DNA Fountain, incluindo segmentação, geração de droplets, cabeçalho baseado em seed e reconstrução dos índices durante a decodificação.
+    
+    \item Implementar um simulador modular em Python com separação clara de responsabilidades entre distribuição, codificação, canal, screening biológico, decodificação e métricas.
+    
+    \item Representar restrições biológicas, como conteúdo GC e limitação de homopolímeros, por meio de um módulo de screening configurável.
+    
+    \item Simular canais de apagamento e leituras inválidas tratadas como perdas, em coerência com o escopo já delimitado no material preliminar.
+    
+    \item Medir taxa de sucesso, overhead efetivo, taxa de rejeição no screening, número de operações XOR, comportamento do ripple e tempo de processamento.
+    
+    \item Avaliar experimentalmente o impacto de $c$, $\delta$, $K$, tamanho de bloco, overhead e probabilidade de perda.
+    
+    \item Garantir reprodutibilidade por meio de controle de seeds, organização em experimentos em lote e documentação das configurações usadas em cada cenário.
+\end{enumerate}
+
+\section{Delimitation of Scope}
+
+Esse trabalho se delimita como uma investigação de Engenharia de Software aplicada ao estudo computacional de Fountain codes para armazenamento de dados em DNA. Nesse sentido, o trabalho não pretende derivar toda a teoria assintótica dos códigos LT nem reproduzir, em nível físico, os processos reais de síntese e sequenciamento, de forma a manter o escopo compatível com um TCC de Engenharia de Software.
+
+Dessa forma, os seguintes limites são declarados explicitamente:
+
+\begin{itemize}
+    \item O canal biológico será modelado de forma simplificada, principalmente como apagamento e descarte de leituras inválidas.
+    
+    \item Não será feita validação laboratorial com DNA real, síntese química ou sequenciamento físico.
+    
+   \end{itemize}
+
+Como possível continuação do projeto, a implementação de um núcleo restrito do \emph{peeling decoder} em uma FPGA Digilent Basys 3 poderá ser investigada. Essa etapa teria como objetivo avaliar a aceleração das operações de decodificação utilizando hardware reconfigurável, com base em instâncias geradas pelo simulador desenvolvido nesse trabalho. Contudo, essa possível continuação não altera o escopo do TCC I, que permanece focado na modelagem, implementação do simulador e análise experimental em software.
+
+\section{Organization of the Work}
+\label{sec:organization}
+
+Esse trabalho está organizado em oito capítulos, incluindo essa introdução. A seguir, é apresentada uma breve descrição de cada um dos capítulos restantes.
+
+O \textbf{Capítulo~\ref{chap:theoretical_foundation} --- Theoretical Foundation} apresenta a base teórica necessária para a compreensão do trabalho, abordando o armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os erros e restrições biológicas do canal, os conceitos de códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain e as métricas de avaliação utilizadas nos experimentos.
+
+O \textbf{Capítulo~\ref{chap:related_work} --- Related Work} apresenta o estado da arte em armazenamento de dados em DNA com ênfase no DNA Fountain, levanta os simuladores e frameworks existentes na literatura e identifica a lacuna que esse trabalho se propõe a preencher, posicionando o simulador desenvolvido em relação às iniciativas anteriores.
+
+O \textbf{Capítulo~\ref{chap:software_architecture} --- Software Architecture and Engineering} detalha a contribuição central de Engenharia de Software desse trabalho, formalizando os requisitos funcionais e não-funcionais do sistema, as decisões arquiteturais tomadas, a organização modular do código-fonte, os modelos de dados, o fluxo completo do pipeline em dez etapas, as decisões de implementação relevantes e a suíte de testes e validação interna.
+
+O \textbf{Capítulo~\ref{chap:experimental_methodology} --- Experimental Methodology} define o protocolo experimental adotado, descrevendo o ambiente de execução, as variáveis independentes, dependentes e controladas, os cinco cenários experimentais propostos, o número de repetições com análise estatística e as medidas de reprodutibilidade adotadas.
+
+O \textbf{Capítulo~\ref{chap:results} --- Results and Discussion} apresenta e discute os resultados obtidos, incluindo a validação funcional do simulador, o efeito do screening biológico sobre a distribuição de graus, o comportamento do ripple durante a decodificação, a relação entre overhead e taxa de sucesso, o impacto dos parâmetros $c$ e $\delta$, a resiliência do sistema sob diferentes taxas de perda, o custo computacional e as limitações dos resultados.
+
+O \textbf{Capítulo~\ref{chap:conclusion} --- Conclusion} retoma os objetivos propostos, confronta-os com os resultados experimentais obtidos e apresenta as considerações finais do trabalho.
+
+Por fim, o \textbf{Capítulo~\ref{chap:future_work} --- Future Work} indica as direções naturais de evolução do projeto, como a modelagem de canais com inserções e deleções, a integração de mecanismos adicionais de correção de erros e a possibilidade de aceleração do \emph{peeling decoder} em hardware reconfigurável.
