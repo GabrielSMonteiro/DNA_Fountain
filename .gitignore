@@ -30,6 +30,7 @@ venv/
 *.backup
 *~
 Relatório/main.pdf
+cronograma.md
 
 # OS files
 .DS_Store
