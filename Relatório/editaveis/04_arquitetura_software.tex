@@ -65,19 +65,17 @@ Os requisitos não-funcionais estabelecem as restrições de qualidade e arquite
 
     \item \textbf{RNF03 --- Extensibilidade}: Todos os hiperparâmetros do pipeline devem ser centralizados em uma estrutura unificada e tipada, facilitando a adição de novos canais ou distribuições sem modificar o núcleo do sistema.
 
-    \item \textbf{RNF04 --- Desempenho Computacional}: A decodificação deve utilizar estruturas de dados indexadas com acesso em tempo constante $O(1)$ para a propagação de atualizações no \emph{peeling decoder}, evitando varreduras lineares redundantes.
+    \item \textbf{RNF04 --- Desempenho Computacional}: A decodificação deve utilizar estruturas de dados indexadas com busca em tempo constante $O(1)$ na tabela de adjacência reversa, evitando varreduras lineares redundantes, enquanto o custo de propagação por XOR permanece proporcional aos graus dos nós conectados.
 
     \item \textbf{RNF05 --- Legibilidade de Código}: O código-fonte deve seguir as convenções do PEP~8, utilizar \emph{type hints} para tipagem estática opcional e incluir documentação contextual, atendendo ao propósito didático do trabalho.
 
-    \item \textbf{RNF06 --- Testabilidade Unitária}: Cada módulo deve ser testável de forma isolada, com testes unitários que verifiquem a corretude das operações fundamentais (conversão bytes/DNA, amostragem da distribuição, screening, decodificação).
+    \item \textbf{RNF06 --- Testabilidade Unitária}: Cada módulo deve ser testável de forma isolada, com testes unitários determinísticos que verifiquem a corretude das operações fundamentais (conversão bytes/DNA, amostragem da distribuição, screening, decodificação).
 \end{itemize}
 
 \section{Architectural Decisions}
 \label{sec:architectural_decisions}
 
-O desenvolvimento do simulador passou por uma transição arquitetural deliberada. As implementações disponíveis na literatura, inclusive o código original de Erlich e Zielinski~\cite{erlich2017}, caracterizavam-se por scripts procedurais monolíticos nos quais a segmentação, a geração de números pseudoaleatórios, o filtro biológico e a decodificação compartilhavam o mesmo espaço de variáveis globais. Essa estrutura dificultava testes unitários, inviabilizava a parametrização dinâmica e comprometia a manutenibilidade.
-
-Para solucionar essas limitações, adotou-se uma arquitetura modular em Python orientada a objetos, estruturada sob duas diretrizes principais:
+O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de Erlich e Zielinski~\cite{erlich2017}) empregam extensões em Cython e pacotes especializados em C para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
 
 \begin{enumerate}
     \item \textbf{Isolamento de Responsabilidades}: Cada fase lógica do pipeline foi encapsulada em uma classe ou módulo independente, com interfaces bem definidas. O codificador (\texttt{DNAFountainEncoder}) desconhece o algoritmo de reconstrução do decodificador (\texttt{DNAFountainDecoder}), e o canal (\texttt{ErasureChannel}) opera de forma autocontida, sem acesso a metadados internos dos droplets.
@@ -213,13 +211,19 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 
     \item \textbf{PRNG do Canal (Eventos de Apagamento)}: O canal de apagamento utiliza uma instância separada de \texttt{random.Random}, inicializada com a \emph{seed} global do experimento (\texttt{seed\_experimento}). Essa separação garante que os sorteios de perda do canal não interfiram na sequência de números pseudoaleatórios utilizada pela codificação.
 
-    \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que controla toda a aleatoriedade do cenário experimental, incluindo a geração dos blocos sintéticos e a inicialização do canal. Quando \texttt{seed\_base} é fixada, todas as $n$ repetições de um cenário produzem resultados idênticos, assegurando a reprodutibilidade completa dos experimentos.
+    \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios em qualquer plataforma Python~3.12, garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
 \end{enumerate}
 
 \section{Testing and Internal Validation}
 \label{sec:testing_and_validation}
 
-A corretude do simulador foi validada por meio de testes unitários e verificações funcionais abrangendo os módulos críticos do sistema. A Tabela~\ref{tab:suite_testes} sintetiza a suíte de testes implementada.
+A validação da infraestrutura de software adotou uma distinção metodológica explícita entre duas categorias de ensaios:
+\begin{enumerate}
+    \item \textbf{Validação Determinística de Corretude}: Testes unitários construídos sobre instâncias com gabarito formalmente conhecido, projetados para verificar a ausência de defeitos de implementação em componentes individuais (como a inversão exata de bases, a preservação da soma unitária da distribuição e o corte de filtros biológicos);
+    \item \textbf{Avaliação Probabilística de Desempenho}: Experimentos estocásticos sobre grafos aleatórios amostrados da DRS, nos quais falhas ocasionais de recuperação refletem a natureza probabilística dos códigos LT em blocos finitos, e não erros de programação.
+\end{enumerate}
+
+A Tabela~\ref{tab:suite_testes} sintetiza a suíte de testes de validação determinística implementada.
 
 \subsection{Reversibilidade da Conversão Binário $\to$ DNA $\to$ Binário}
 
@@ -235,7 +239,7 @@ A implementação da distribuição robusta de soliton foi verificada analiticam
 \begin{equation}
     \sum_{d=1}^{K} \mu(d) = 1{,}0
 \end{equation}
-para diferentes combinações de $K$, $c$ e $\delta$. Adicionalmente, a amostragem empírica via CDF foi testada gerando $10^5$ amostras para $K = 50$, $c = 0{,}1$ e $\delta = 0{,}05$, verificando que o histograma de frequências convergiu para os valores analíticos de $\mu(d)$ com erro relativo inferior a $0{,}4\%$.
+para diferentes combinações de $K$, $c$ e $\delta$, aplicando-se as salvaguardas de fronteira para $m$ e $\tau(m)$. Adicionalmente, a amostragem empírica via CDF foi testada gerando $10^5$ amostras para $K = 50$, $c = 0{,}1$ e $\delta = 0{,}05$, verificando que o histograma de frequências convergiu para os valores analíticos de $\mu(d)$ com erro relativo inferior a $0{,}4\%$.
 
 \subsection{Testes de Limites do Screening Biológico}
 
@@ -245,9 +249,9 @@ O componente \texttt{BiologicalScreening} foi submetido a sequências de DNA pro
     \item Sequências contendo homopolímeros de tamanho 2 e 3 foram aceitas, enquanto homopolímeros de tamanho $\geq 4$ foram rejeitados, confirmando o limiar de $H_{\max} = 3$.
 \end{itemize}
 
-\subsection{Teste Funcional do Peeling Decoder em Canal Ideal}
+\subsection{Teste Funcional Determinístico do Peeling Decoder}
 
-Como teste de regressão, o pipeline completo foi executado em cenário sem perdas ($p_{\text{loss}} = 0$) com overhead suficiente ($\epsilon \geq 0{,}20$). Para todas as mensagens testadas, o \emph{peeling decoder} reconstruiu a totalidade dos $K$ blocos fonte, produzindo uma saída idêntica à mensagem original.
+Para comprovar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Em todas as configurações de prova, o algoritmo recuperou $100\%$ dos blocos originais, confirmando que as operações XOR de vizinhança e a remoção de arestas operam sem falhas algorítmicas.
 
 \begin{table}[htbp]
     \centering
