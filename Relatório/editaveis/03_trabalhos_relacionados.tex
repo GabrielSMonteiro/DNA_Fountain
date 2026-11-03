@@ -87,48 +87,45 @@ Chandak et al.~\cite{chandak2019} investigaram o uso de códigos LDPC (\emph{Low
 
 Antkowiak et al.~\cite{antkowiak2020} propuseram uma abordagem de baixo custo combinando síntese por fotolitografia com algoritmos avançados de reconstrução. O software de reconstrução desenvolvido incluía mecanismos sofisticados de alinhamento e correção, mas era especializado para o pipeline específico descrito no artigo e não oferecia modularidade para substituição de componentes individuais.
 
-Erlich e Zielinski~\cite{erlich2017}, embora tenham disponibilizado o código-fonte do DNA Fountain em repositório público, desenvolveram a implementação como um script monolítico voltado à reprodução dos resultados do artigo. O código original não foi concebido como uma ferramenta de experimentação parametrizada: os parâmetros estavam fixos no código, os módulos não possuíam interfaces bem definidas e não havia infraestrutura para execução de experimentos em lote com coleta automatizada de métricas.
+Erlich e Zielinski~\cite{erlich2017} disponibilizaram o código-fonte de sua implementação em repositório público aberto sob licença MIT. O software original foi estruturado como um pipeline de alto rendimento composto por módulos em Python 2 e rotinas de desempenho compiladas em Cython (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} e \texttt{receiver.py}). A ferramenta oferece interface de linha de comando que expõe parâmetros como tamanho do bloco, limites de GC, probabilidade $\delta$, constante $c$ e quantidade de oligonucleotídeos a gerar. Contudo, essa base foi concebida como artefato de acompanhamento do artigo científico para viabilizar o experimento laboratorial em larga escala (empacotando arquivos de megabytes com códigos externos de Reed-Solomon e cabeçalhos de 32 bits), não tendo como objetivo pedagógico a instrumentação didática passo a passo da dinâmica interna do ripple, o desacoplamento puro em biblioteca padrão ou a execução automatizada de matrizes paramétricas em lote com persistência de métricas detalhadas.
 
-De forma geral, observa-se que as implementações existentes na literatura compartilham uma característica comum: foram projetadas como artefatos de reprodução de resultados específicos, e não como plataformas de experimentação. Cada implementação é fortemente acoplada às decisões do artigo correspondente, o que dificulta a reutilização, a comparação entre abordagens e a análise sistemática do impacto de parâmetros individuais.
+Schwarz e Freisleben~\cite{schwarz2021} apresentaram o \textbf{NOREC4DNA}, um framework moderno de código aberto desenvolvido em Python voltado à exploração de códigos de apagamento sem taxa para armazenamento em DNA. O NOREC4DNA introduziu suporte comparativo não apenas aos códigos LT clássicos, mas também a códigos mais avançados da família de fontes inesgotáveis, como os códigos Raptor e Online. A ferramenta inclui representação de restrições biológicas, simulação de canais ruidosos e interfaces de análise. Trata-se de uma contribuição de grande relevância para a área, focada em fornecer uma plataforma abrangente para avaliação de códigos de alto desempenho.
 
-\section{Identified Gap}
+\section{Identified Gap and Work Positioning}
 \label{sec:identified_gap}
 
-A análise dos trabalhos relacionados evidencia uma lacuna na literatura que esse trabalho se propõe a preencher. Embora existam múltiplos esquemas de codificação para armazenamento em DNA e algumas implementações de referência, não foi identificada na literatura uma ferramenta que combine simultaneamente as seguintes características:
+A revisão do estado da arte evidencia que as soluções existentes se dividem entre artefatos de replicação laboratorial em larga escala (como o DNA Fountain original) e frameworks voltados à comparação de códigos de canal avançados (como o NOREC4DNA). Permanece, contudo, um espaço relevante para abordagens voltadas à Engenharia de Software didática e à experimentação controlada em regimes de blocos finitos.
+
+Nesse cenário, a contribuição central desse trabalho não pretende competir em vazão assintótica com implementações em Cython ou frameworks com códigos Raptor, mas sim:
 
 \begin{enumerate}
-    \item \textbf{Modularidade}: separação clara de responsabilidades entre os componentes do pipeline (distribuição de graus, codificação LT, screening biológico, canal de apagamento, decodificação por peeling e coleta de métricas), permitindo a substituição ou extensão independente de cada módulo.
+    \item \textbf{Implementação Didática e Autocontida}: Construir uma implementação orientada a objetos em Python~3 contemporâneo que depende exclusivamente da biblioteca padrão (sem exigir extensões compiladas em C ou Cython), viabilizando execução imediata e reprodutível em qualquer ambiente;
     
-    \item \textbf{Parametrização}: exposição dos principais parâmetros do sistema ($c$, $\delta$, $K$, $L$, $p_{\text{loss}}$, overhead, limites de GC e homopolímeros) como variáveis configuráveis, permitindo a exploração sistemática do espaço de parâmetros.
+    \item \textbf{Instrumentação Analítica Fina}: Expor detalhadamente a mecânica interna do \emph{peeling decoder}, registrando o histórico temporal da fila do \emph{ripple}, a contagem exata de operações XOR por bloco e o comportamento do grafo iterativo;
     
-    \item \textbf{Reprodutibilidade}: controle determinístico de todas as fontes de aleatoriedade por meio de seeds, garantindo que qualquer experimento possa ser reproduzido com resultados idênticos.
+    \item \textbf{Investigação do Regime de Poucos Blocos ($K \le 64$)}: Caracterizar empiricamente os efeitos de tamanho finito, nos quais a DRS clássica sofre deslocamento de pico e potenciais degenerações, fornecendo dados para o entendimento de pequenas mensagens e arquivos fragmentados;
     
-    \item \textbf{Experimentação em lote}: infraestrutura para a execução automatizada de cenários experimentais com múltiplas repetições, coleta padronizada de métricas e exportação de resultados em formato estruturado para análise estatística.
-    
-    \item \textbf{Acessibilidade didática}: implementação em linguagem de alto nível (Python), com código documentado e organização que permita a compreensão do pipeline por estudantes de graduação em Engenharia de Software ou áreas afins.
+    \item \textbf{Infraestrutura Experimental em Lote}: Disponibilizar scripts padronizados para execução de matrizes multidimensionais de parâmetros com controle determinístico de sementes e exportação estruturada em CSV.
 \end{enumerate}
 
-A Tabela~\ref{tab:comparacao_trabalhos} sintetiza a comparação entre os principais trabalhos identificados e o simulador proposto nesse trabalho, segundo os critérios enumerados acima.
+A Tabela~\ref{tab:comparacao_especificacao} compara as decisões técnicas do DNA Fountain original de Erlich e Zielinski~\cite{erlich2017} com a especificação do simulador desenvolvido nesse trabalho.
 
 \begin{table}[htbp]
     \centering
-    \caption{Comparação entre os trabalhos relacionados e o simulador proposto.}
-    \label{tab:comparacao_trabalhos}
-    \begin{tabular}{lccccc}
-        \hline
-        \textbf{Trabalho} & \textbf{Modular} & \textbf{Param.} & \textbf{Reprod.} & \textbf{Lote} & \textbf{Didático} \\
-        \hline
-        Church et al.~\cite{church2012}       & ---  & ---  & ---  & ---  & ---  \\
-        Goldman et al.~\cite{goldman2013}      & ---  & ---  & ---  & ---  & ---  \\
-        Grass et al.~\cite{grass2015}          & ---  & Parcial & ---  & ---  & ---  \\
-        Bornholt et al.~\cite{bornholt2016}    & Parcial & ---  & ---  & ---  & ---  \\
-        Erlich e Zielinski~\cite{erlich2017}   & ---  & ---  & Parcial & ---  & ---  \\
-        Press et al.~\cite{press2020}          & Parcial & Parcial & Sim  & ---  & ---  \\
-        Chandak et al.~\cite{chandak2019}      & Parcial & Parcial & Sim  & ---  & ---  \\
-        Antkowiak et al.~\cite{antkowiak2020}  & ---  & ---  & Parcial & ---  & ---  \\
-        \textbf{Esse trabalho}                 & \textbf{Sim} & \textbf{Sim} & \textbf{Sim} & \textbf{Sim} & \textbf{Sim} \\
-        \hline
+    \small
+    \caption{Comparação técnica entre o DNA Fountain original e o simulador deste trabalho.}
+    \label{tab:comparacao_especificacao}
+    \begin{tabular}{lp{5.5cm}p{5.5cm}}
+        \toprule
+        \textbf{Característica} & \textbf{DNA Fountain Original~\cite{erlich2017}} & \textbf{Simulador Deste Trabalho} \\
+        \midrule
+        Linguagem & Python 2.7 e Cython (módulos C) & Python 3.12 puro (biblioteca padrão) \\
+        Código externo & Reed-Solomon RS(255, 223) & Validação complementar por CRC-8 \\
+        Tamanho da seed & 32 bits (4 bytes) no cabeçalho & 16 bits (2 bytes) com máscara XOR \\
+        Regime alvo ($K$) & Larga escala ($K \approx 72.000$ blocos) & Blocos finitos ($K \in \{16, 32, 64\}$) \\
+        Tratamento do payload & Scrambler LFSR e primers PCR & Scrambler aritmético e mapeamento direto \\
+        Propósito central & Pipeline laboratorial de síntese real & Instrumentação analítica e didática \\
+        Métricas coletadas & Reconstrução do arquivo de entrada & XORs, fila do ripple, tempos e perdas \\
+        \bottomrule
     \end{tabular}
 \end{table}
-
-A lacuna identificada reside, portanto, na ausência de um simulador modular, parametrizado e reprodutível que modele o pipeline completo do DNA Fountain com orientação didática e infraestrutura para experimentação controlada. Esse trabalho se propõe a preencher essa lacuna, desenvolvendo um simulador em Python que implementa cada etapa do pipeline como um módulo independente, conforme detalhado no Capítulo~\ref{chap:software_architecture}, e que permite a análise sistemática do impacto dos parâmetros sobre o desempenho do sistema, conforme apresentado nos Capítulos~\ref{chap:experimental_methodology} e~\ref{chap:results}.
