@@ -1,0 +1,22 @@
+% !TEX root = ../main.tex
+\chapter{Conclusion}
+\label{chap:conclusion}
+
+Esse trabalho apresentou o projeto, a implementação e a avaliação experimental de um simulador modular do pipeline DNA Fountain, voltado ao estudo do armazenamento de dados digitais em moléculas de DNA sintético. A pesquisa combinou princípios de Engenharia de Software, teoria da informação e bioinformática para construir um ambiente computacional controlado, extensível e totalmente reprodutível.
+
+O objetivo geral estabelecido no Capítulo~\ref{chap:introduction} foi plenamente alcançado. O simulador desenvolvido modela com fidelidade as dez etapas do pipeline, desde a ingestão da carga útil binária e segmentação em blocos fonte até a codificação com códigos LT, mapeamento em nucleotídeos, filtragem por critérios biológicos de síntese, transmissão em canal de apagamento estocástico e reconstrução dos dados originais pelo algoritmo de \emph{peeling}.
+
+Em relação aos objetivos específicos, cada uma das metas delineadas foi concretizada:
+
+\begin{enumerate}
+    \item \textbf{Fundamentação Teórica}: Os conceitos de códigos de fonte sem taxa, distribuição robusta de soliton e decodificação por peeling incremental foram formalizados matematicamente no Capítulo~\ref{chap:theoretical_foundation}, fornecendo a base para o desenvolvimento do software;
+    \item \textbf{Modelagem Computacional}: As entidades de dados centrais (\texttt{Segment}, \texttt{Droplet}, \texttt{ExperimentConfig} e \texttt{ExperimentResult}) foram estruturadas de forma coesa, com regras determinísticas para geração de sementes, conversão nucleotídica e preenchimento por zero-padding;
+    \item \textbf{Arquitetura Modular de Software}: O simulador foi construído em Python 3.12 orientado a objetos, com arquitetura dividida em módulos especializados (\texttt{config}, \texttt{soliton}, \texttt{lt\_codec}, \texttt{screening}, \texttt{channel}, \texttt{experiments}), alcançando baixo acoplamento e independência de bibliotecas externas proprietárias;
+    \item \textbf{Screening Biológico Configurável}: Foram implementadas restrições físico-químicas de conteúdo GC ($40\%$ a $60\%$) e limite de homopolímeros ($\le 3$ bases). Os experimentos comprovaram que o screening rejeita aproximadamente $41{,}2\%$ dos candidatos aleatórios sem distorcer a distribuição de graus teórica dos droplets aceitos;
+    \item \textbf{Simulação de Canais Estocásticos}: O canal de apagamento com probabilidade de perda $p_{\text{loss}}$ permitiu simular a perda de oligos decorrente de ineficiências de síntese, decaimento molecular e amostragem no sequenciamento;
+    \item \textbf{Métricas e Instrumentação}: A suíte experimental coletou métricas de taxa de sucesso, graus médios, dinâmica do \emph{ripple} (máximo e mínimo), número de operações XOR e tempos de execução;
+    \item \textbf{Avaliação Experimental Abrangente}: Foram conduzidas 21.600 simulações cobrindo 216 configurações paramétricas. Os resultados revelaram que, para mensagens pequenas ($K \le 64$), valores conservadores de $c \ge 0{,}5$ provocam a degeneração da DRS ao concentrarem excessivamente a probabilidade no grau 1, enquanto a parametrização $c = 0{,}1$ e $\delta = 0{,}10$ assegura estabilidade com 100\% de recuperação para overhead $\epsilon = 1{,}00$;
+    \item \textbf{Garantia de Reprodutibilidade}: O isolamento de três domínios estocásticos distintos (gerador de índices por seed de 16 bits, gerador de apagamentos no canal e semente mestre dos experimentos em lote) assegurou rastreabilidade e repetibilidade determinística dos resultados.
+\end{enumerate}
+
+Em conclusão, a principal contribuição desse trabalho é a construção de uma base de software aberta, modular e didática para a comunidade acadêmica de Engenharia de Software e Bioinformática. Ao detalhar o funcionamento interno do DNA Fountain e comprovar o impacto das escolhas paramétricas em regime de blocos finitos, esse trabalho fornece uma plataforma sólida para pesquisas futuras em codificação e recuperação de dados biológicos.
