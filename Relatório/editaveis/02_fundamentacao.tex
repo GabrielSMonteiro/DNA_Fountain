@@ -40,7 +40,7 @@ Com os blocos definidos, cada byte é convertido em uma sequência de quatro nuc
     \end{tabular}
 \end{table}
 
-Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, e a capacidade de codificação é de 2 bits por base, o que se aproxima do limite teórico de Shannon para um alfabeto de quatro símbolos~\cite{shannon1948}. Esse mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
+Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$)~\cite{shannon1948}. Contudo, sob restrições físico-químicas de viabilidade biológica (como conteúdo GC entre 45\% e 55\% e ausência de homopolímeros com mais de 3 bases), a capacidade informacional do canal de DNA restrito cai para aproximadamente $1{,}98$ bits por nucleotídeo~\cite{erlich2017}. A densidade líquida pioneira de $1{,}57$ bits/nt alcançada por Erlich e Zielinski representa cerca de $78{,}5\%$ do limite não restrito de 2 bits/nt e $79{,}3\%$ da capacidade de Shannon sob restrições biológicas. Esse mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
 
 A simplicidade desse esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
 
@@ -84,12 +84,12 @@ Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessári
 
 Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Nesse tipo de código, o transmissor gera exatamente $N$ pacotes codificados a partir de $K$ pacotes de dados originais, com uma taxa de codificação $R = K/N$ definida previamente. O receptor precisa receber pelo menos $K$ pacotes quaisquer dentre os $N$ transmitidos para reconstruir a mensagem original. Contudo, se a taxa de perda do canal exceder $1 - R$, a decodificação falha e não há mecanismo para solicitar pacotes adicionais~\cite{mackay2003}.
 
-Os \textbf{\emph{fountain codes}} (códigos fonte), por outro lado, são códigos de \textbf{taxa variável} (\emph{rateless codes}). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
+Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgotável), por outro lado, pertencem à classe de códigos de canal para canais de apagamento de \textbf{taxa variável} (\emph{rateless codes}), não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
 
 \begin{itemize}
-    \item O transmissor pode gerar um número potencialmente infinito de pacotes codificados a partir dos $K$ blocos originais, sem necessidade de conhecer previamente a taxa de perda do canal.
+    \item O transmissor pode gerar um fluxo potencialmente ilimitado de pacotes codificados a partir dos $K$ blocos originais, sem necessidade de conhecer previamente a taxa de perda do canal.
     
-    \item O receptor precisa receber apenas $K(1 + \epsilon)$ pacotes quaisquer, onde $\epsilon > 0$ é uma pequena fração de overhead, independentemente de quais pacotes específicos foram perdidos.
+    \item O decodificador é capaz de reconstruir a mensagem com alta probabilidade ao coletar uma quantidade moderada de pacotes válidos, tipicamente $N = K(1 + \epsilon)$, com $\epsilon > 0$. Ao contrário de códigos MDS determinísticos (como Reed-Solomon), a recuperação pelo \emph{peeling decoder} é probabilística e depende da conectividade do grafo estocasticamente formado pelos pacotes recebidos.
     
     \item Não há necessidade de canal de retorno (\emph{feedback}) entre receptor e transmissor.
 \end{itemize}
@@ -148,19 +148,25 @@ Para corrigir esse problema, Luby propôs a \textbf{Distribuição Robusta de So
     \end{cases}
 \end{equation}
 
-onde o parâmetro $R$ é definido por:
+onde o parâmetro $R$ e o índice de pico $m$ são definidos por:
 
 \begin{equation}
     \label{eq:R}
-    R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}
+    R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}, \qquad m = \left\lfloor\frac{K}{R}\right\rfloor
 \end{equation}
 
-Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam o comportamento da distribuição robusta e possuem interpretações práticas bem definidas:
+Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores elevados de $c$ ou reduzidos de $\delta$ podem fazer com que $R$ se aproxime ou supere $K$, levando a $\lfloor K/R \rfloor \le 0$ ou $R < \delta$. Para manter a integridade numérica da amostragem em software, a implementação desenvolvida adota explicitamente as seguintes salvaguardas de fronteira:
+\begin{equation}
+    \label{eq:m_adaptado}
+    m = \max\left(1, \min\left(K, \left\lfloor\frac{K}{R}\right\rfloor\right)\right), \qquad \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
+\end{equation}
+
+Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
 
 \begin{itemize}
-    \item O parâmetro $c$ controla a magnitude de $R$ e, consequentemente, a quantidade esperada de droplets de baixo grau. Valores maiores de $c$ produzem distribuições com mais massa nos graus baixos, o que favorece a manutenção do ripple durante a decodificação, porém eleva o grau médio dos droplets e, portanto, o número de operações XOR necessárias.
+    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o pico $m$ para graus muito baixos ($m=1$ ou $m=2$). Isso faz com que a distribuição colapse, concentrando quase toda a probabilidade em graus unitários e reduzindo o grau médio amostrado $\bar{d}$, o que impede a formação de arestas intermediárias no grafo. O efeito de $c$ sobre $\bar{d}$ não é, portanto, monotonicamente crescente.
     
-    \item O parâmetro $\delta$ representa um limite superior para a probabilidade de falha na decodificação. Valores menores de $\delta$ tornam a distribuição mais conservadora, concentrando mais massa nos graus baixos para reduzir a probabilidade de falha, ao custo de maior redundância.
+    \item O parâmetro $\delta$ é uma probabilidade de falha teórica que orienta o dimensionamento assintótico da cauda da distribuição. Ele não constitui uma garantia determinística incondicional de que a taxa de erro empírica será $\le \delta$ para qualquer valor de $K$ e overhead finito, servindo como balizador formal de robustez.
 \end{itemize}
 
 A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rho(d)$ e $\tau(d)$, dividida pela constante de normalização $\beta$:
@@ -203,36 +209,34 @@ O algoritmo pode ser formalizado nos seguintes passos:
         \end{enumerate}
     \end{enumerate}
     
-    \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, houve falha por informação insuficiente.
+    \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, o processo de peeling é interrompido sem recuperar a totalidade dos blocos por ausência de equações residuais de grau 1 na fila (o que não exclui a possibilidade de resolução por eliminação gaussiana sobre $GF(2)$, embora o algoritmo de peeling linear tenha estagnado).
 \end{enumerate}
 
-O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Ele consiste no conjunto de droplets que possuem grau 1 em determinado instante do processo, estando prontos para resolver um bloco fonte pendente. A cada passo, um droplet é retirado do ripple, mas a remoção do bloco descoberto dos demais pacotes pode gerar novos droplets de grau 1, mantendo o processo ativo.
+O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Conceitualmente, ele representa o conjunto de equações ativas de grau 1 disponíveis para resolver blocos pendentes. Na implementação do software, o ripple monitorado corresponde operacionalmente ao tamanho da fila de processamento (\texttt{collections.deque}) registrado no início de cada passo do laço de peeling. Cabe destacar que essa fila pode conter múltiplos droplets redundantes cobrindo um bloco já descoberto, os quais são descartados sem gerar novas soluções.
 
-A decodificação é bem-sucedida quando o ripple se mantém não vazio durante todas as $K$ iterações necessárias. Se o ripple esvazia antes que todos os blocos tenham sido recuperados, ocorre o fenômeno conhecido como \textbf{morte do ripple} (\emph{ripple die-out}), que resulta na falha da decodificação. A distribuição robusta de soliton, descrita na seção anterior, foi projetada precisamente para manter o tamanho esperado do ripple em torno de $R = c \ln(K/\delta)\sqrt{K}$ durante todo o processo, minimizando a probabilidade de estagnação.
-
-O monitoramento do tamanho do ripple ao longo dos passos de decodificação é uma das métricas mais informativas para analisar o comportamento do sistema, pois permite visualizar diretamente se a distribuição de graus está produzindo droplets de baixo grau em quantidade suficiente para sustentar a decodificação completa.
+A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
 
 \section{DNA Fountain Architecture}
 \label{sec:dna_fountain_architecture}
 
-A arquitetura \textbf{DNA Fountain}, proposta por Erlich e Zielinski em 2017~\cite{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original. Essa arquitetura se diferencia de abordagens anteriores~\cite{church2012, goldman2013} por atingir uma densidade de armazenamento de 1,57 bits por nucleotídeo, próxima ao limite teórico de 1,98 bits por nucleotídeo.
+A arquitetura \textbf{DNA Fountain}, proposta por Erlich e Zielinski em 2017~\cite{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original.
 
 O pipeline do DNA Fountain, conforme modelado nesse trabalho, opera da seguinte forma:
 
 \begin{enumerate}
-    \item \textbf{Segmentação}: O arquivo binário de entrada é dividido em $K$ blocos de tamanho fixo $L$ bytes. O último bloco recebe \emph{zero-padding} caso não possua $L$ bytes completos.
+    \item \textbf{Segmentação}: O arquivo binário de entrada é dividido em $K$ blocos de tamanho fixo $L$ bytes. O último bloco recebe \emph{zero-padding} determinístico com bytes nulos caso não possua $L$ bytes completos.
     
-    \item \textbf{Geração de droplets}: Para cada droplet a ser gerado, uma \emph{seed} inteira é utilizada como entrada de um gerador pseudoaleatório (PRNG), que determina o grau $d$ (amostrado da distribuição robusta de soliton) e os $d$ índices dos blocos fonte a serem combinados por XOR. A mesma \emph{seed} permite regenerar os mesmos índices durante a decodificação, sem necessidade de transmitir a lista de índices explicitamente.
+    \item \textbf{Geração de droplets}: Para cada droplet, uma \emph{seed} inteira é utilizada como entrada de um PRNG determinístico, que gera o grau $d$ (amostrado de $\mu(d)$) e os $d$ índices dos blocos fonte a serem combinados por XOR.
     
-    \item \textbf{Cabeçalho}: Cada droplet recebe um cabeçalho contendo a \emph{seed} codificada, que é a única informação necessária para que o decodificador reconstrua os índices dos blocos associados. A \emph{seed} é armazenada em um número fixo de bytes no início do oligonucleotídeo.
+    \item \textbf{Cabeçalho}: Cada droplet recebe um cabeçalho contendo a \emph{seed} codificada. A \emph{seed} atua como o identificador pseudoaleatório compacto que permite regenerar deterministicamente o grau e os índices no decodificador, desde que ambos compartilhem os mesmos parâmetros de protocolo ($K$, algoritmo de PRNG e parametrização da DRS).
     
     \item \textbf{Conversão para DNA}: O conjunto cabeçalho + payload é convertido em uma sequência de nucleotídeos utilizando o mapeamento binário descrito na Seção~\ref{sec:digital_to_dna_encoding}.
     
-    \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível. Esse processo de descarte e re-sorteio é transparente ao decodificador.
+    \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível.
     
     \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal biológico, modelado nesse trabalho como um canal de apagamento com probabilidade de perda $p_{\text{loss}}$.
     
-    \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados a cada droplet e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
+    \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
 \end{enumerate}
 
 Um aspecto central da arquitetura DNA Fountain é o papel da \emph{seed}. Ao utilizar um PRNG determinístico inicializado com a \emph{seed}, tanto o codificador quanto o decodificador podem calcular independentemente o grau e os índices dos blocos associados a cada droplet. Isso elimina a necessidade de transmitir metadados adicionais sobre a estrutura do grafo bipartido, reduzindo significativamente o overhead de informação lateral.
