@@ -1,14 +1,20 @@
 \begin{simbolos}
-  \item[$K$] Number of original input segments / packets
-  \item[$N$] Number of generated encoded droplets
-  \item[$\epsilon$] Coding overhead ($\epsilon = \frac{N - K}{K}$)
-  \item[$d$] Droplet degree (number of combined segments)
-  \item[$\rho(d)$] Ideal Soliton distribution probability density function
-  \item[$\tau(d)$] Robust Soliton distribution correction term
-  \item[$\mu(d)$] Robust Soliton distribution normalized probability density function
-  \item[$c$] Robust Soliton distribution free tuning parameter ($c > 0$)
-  \item[$\delta$] Upper bound on the decoding failure probability
-  \item[$R$] Expected ripple size parameter in Robust Soliton distribution
-  \item[$p_e$] Droplet erasure probability in the channel
-  \item[$\oplus$] Bitwise XOR operation (addition in $GF(2)$)
+  \item[$K$] Número de blocos ou pacotes fonte originais
+  \item[$N$] Número de droplets codificados gerados
+  \item[$L$] Comprimento dos segmentos ou blocos fonte em bytes
+  \item[$\epsilon$] Sobrecarga de codificação (\emph{overhead}, $\epsilon = (N - K)/K$)
+  \item[$d$] Grau do droplet (quantidade de blocos fonte combinados)
+  \item[$\bar{d}$] Grau médio empírico ou teórico dos droplets
+  \item[$\rho(d)$] Função de probabilidade da Distribuição Ideal de Soliton
+  \item[$\tau(d)$] Termo corretivo da Distribuição Robusta de Soliton
+  \item[$\mu(d)$] Função de probabilidade normalizada da Distribuição Robusta de Soliton
+  \item[$\beta$] Fator de normalização da Distribuição Robusta de Soliton ($\beta = \sum_{d=1}^K (\rho(d) + \tau(d))$)
+  \item[$c$] Parâmetro livre de sintonia da DRS ($c > 0$)
+  \item[$\delta$] Parâmetro que dimensiona a cauda da DRS; em regimes assintóticos, limita superiormente a probabilidade de falha
+  \item[$R$] Parâmetro de escala associado ao tamanho esperado do \emph{ripple} ($R = c \ln(K/\delta)\sqrt{K}$)
+  \item[$m$] Modo ou índice do pico da cauda da DRS ($m = \lfloor K/R \rfloor$)
+  \item[$R_{\text{screen}}$] Taxa de rejeição do módulo de screening biológico
+  \item[$H_{\max}$] Comprimento máximo permitido de sequências homopoliméricas
+  \item[$p_{\text{loss}}$] Probabilidade de apagamento de droplet no canal
+  \item[$\oplus$] Operação OU-Exclusivo (\emph{bitwise XOR}, adição em $GF(2)$)
 \end{simbolos}
