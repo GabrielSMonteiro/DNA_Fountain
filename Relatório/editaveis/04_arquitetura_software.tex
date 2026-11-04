@@ -1,10 +1,10 @@
 % !TEX root = ../main.tex
-\chapter{Software Architecture and Engineering}
+\chapter{Arquitetura e Engenharia de Software}
 \label{chap:software_architecture}
 
-Esse capítulo detalha a contribuição central de Engenharia de Software desse trabalho: o projeto, a arquitetura e a implementação do simulador modular do pipeline DNA Fountain. São formalizados os requisitos funcionais e não-funcionais do sistema, as decisões arquiteturais que motivaram a transição de scripts procedurais para uma estrutura orientada a objetos, a organização dos módulos do pacote \texttt{dna\_fountain}, os modelos de dados que representam as entidades do pipeline, o fluxo completo de execução em dez etapas, as decisões de implementação coerentes com o código desenvolvido e, por fim, a suíte de testes e validação interna que assegura a corretude do simulador.
+Este capítulo detalha a contribuição central de Engenharia de Software deste trabalho: o projeto, a arquitetura e a implementação do simulador modular do pipeline DNA Fountain. São formalizados os requisitos funcionais e não-funcionais do sistema, as decisões arquiteturais que motivaram a transição de scripts procedurais para uma estrutura orientada a objetos, a organização dos módulos do pacote \texttt{dna\_fountain}, os modelos de dados que representam as entidades do pipeline, o fluxo completo de execução em dez etapas, as decisões de implementação coerentes com o código desenvolvido e, por fim, a suíte de testes e validação interna que assegura a corretude do simulador.
 
-\section{System Requirements}
+\section{Requisitos do Sistema}
 \label{sec:system_requirements}
 
 Para orientar o desenvolvimento do simulador e assegurar o cumprimento dos objetivos formulados no Capítulo~\ref{chap:introduction}, os requisitos do sistema foram divididos em requisitos funcionais (RF) e requisitos não-funcionais (RNF).
@@ -72,10 +72,10 @@ Os requisitos não-funcionais estabelecem as restrições de qualidade e arquite
     \item \textbf{RNF06 --- Testabilidade Unitária}: Cada módulo deve ser testável de forma isolada, com testes unitários determinísticos que verifiquem a corretude das operações fundamentais (conversão bytes/DNA, amostragem da distribuição, screening, decodificação).
 \end{itemize}
 
-\section{Architectural Decisions}
+\section{Decisões Arquiteturais}
 \label{sec:architectural_decisions}
 
-O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de Erlich e Zielinski~\cite{erlich2017}) empregam extensões em Cython e pacotes especializados em C para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
+O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de Erlich e Zielinski~\cite{erlich2017}) empregam extensões em Cython e rotinas especializadas para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
 
 \begin{enumerate}
     \item \textbf{Isolamento de Responsabilidades}: Cada fase lógica do pipeline foi encapsulada em uma classe ou módulo independente, com interfaces bem definidas. O codificador (\texttt{DNAFountainEncoder}) desconhece o algoritmo de reconstrução do decodificador (\texttt{DNAFountainDecoder}), e o canal (\texttt{ErasureChannel}) opera de forma autocontida, sem acesso a metadados internos dos droplets.
@@ -83,7 +83,7 @@ O desenvolvimento do simulador priorizou modularidade, didática e independênci
     \item \textbf{Encapsulamento de Parâmetros}: Todos os hiperparâmetros do sistema foram centralizados na classe \texttt{DNAFountainConfig}, implementada como \texttt{@dataclass}. Essa decisão elimina valores literais dispersos no código (\emph{magic numbers}) e permite que diferentes configurações experimentais sejam instanciadas sem modificar o código-fonte.
 \end{enumerate}
 
-\section{Modular Organization}
+\section{Organização Modular}
 \label{sec:modular_organization}
 
 O código-fonte do simulador foi organizado no pacote Python \texttt{dna\_fountain}, estruturado nos seguintes módulos:
@@ -184,10 +184,10 @@ O funcionamento do simulador é executado em dez etapas sequenciais, descritas a
     \item \textbf{Consolidação de Métricas}: O simulador registra o número de blocos recuperados, a trajetória do \emph{ripple}, o total de operações XOR, falhas de CRC, o tempo de decodificação e o status de sucesso ou falha. Em modo de lote, os resultados são agregados e exportados em CSV.
 \end{enumerate}
 
-\section{Implementation Decisions}
+\section{Decisões de Implementação}
 \label{sec:implementation_decisions}
 
-Três decisões de projeto foram fundamentais na implementação do simulador:
+Quatro decisões de projeto foram fundamentais na implementação do simulador:
 
 \subsection{Zero-Byte Padding}
 
@@ -195,7 +195,7 @@ Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do
 
 \subsection{Papel do CRC-8}
 
-O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $x^8 + x^2 + x + 1$ (máscara \texttt{0x07}). O CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado nesse trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
+O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $x^8 + x^2 + x + 1$ (máscara \texttt{0x07}). O CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado neste trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
 
 \begin{itemize}
     \item Permite descartar antecipadamente pacotes corrompidos caso o canal seja estendido para incluir erros de substituição em trabalhos futuros;
@@ -209,12 +209,25 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 \begin{enumerate}
     \item \textbf{PRNG da Seed (Reconstrução de Índices)}: Cada droplet é associado a uma \emph{seed} inteira de 16 bits que, ao ser fornecida como entrada para \texttt{random.Random(seed)}, permite regenerar deterministicamente o grau $d$ e os $d$ índices dos blocos fonte. Esse é o mecanismo central que torna possível a decodificação sem transmissão explícita dos índices: tanto o codificador quanto o decodificador executam \texttt{soliton.sortear\_grau\_e\_indices(seed)} e obtêm os mesmos resultados.
 
+    Ressalta-se que o gerador da biblioteca padrão do Python (\texttt{random.Random}) baseia-se no algoritmo Mersenne Twister (MT19937). Embora o CPython garanta reprodutibilidade entre versões para chamadas básicas de \texttt{random()}, rotinas de amostragem de coleções podem apresentar pequenas variações algorítmicas entre versões menores do interpretador. Em arquiteturas voltadas a arquivamento de longo prazo ou implementações em hardware reconfigurável (FPGA), a substituição por um PRNG portável autocontido (como um LFSR aritmético ou geradores da família PCG/xoshiro) é recomendada para assegurar independência total de plataforma e versão de software.
+
     \item \textbf{PRNG do Canal (Eventos de Apagamento)}: O canal de apagamento utiliza uma instância separada de \texttt{random.Random}, inicializada com a \emph{seed} global do experimento (\texttt{seed\_experimento}). Essa separação garante que os sorteios de perda do canal não interfiram na sequência de números pseudoaleatórios utilizada pela codificação.
 
     \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios em qualquer plataforma Python~3.12, garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
 \end{enumerate}
 
-\section{Testing and Internal Validation}
+\subsection{Dimensionamento de Cabeçalho e Densidade Efetiva do Protótipo}
+
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ droplets candidatos distintos. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o pool de droplets válidos utilizáveis é restrito a aproximadamente 39.000 oligonucleotídeos. Embora plenamente suficiente para regimes finitos ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
+
+Adicionalmente, cada oligonucleotídeo sintético do protótipo é estruturado em três campos: cabeçalho de seed (2 bytes = 16 bits), carga útil ($L = 4$ bytes = 32 bits) e checksum CRC-8 (1 byte = 8 bits), totalizando 7 bytes (56 bits). Na conversão para DNA à razão de 2 bits por base, cada droplet gera uma fita de exatamente 28 nucleotídeos. Consequentemente, a densidade de informação líquida efetiva do protótipo é calculada por:
+\begin{equation}
+    \label{eq:densidade_efetiva_prototipo}
+    D_{\text{efetiva}} = \frac{32 \text{ bits de carga útil}}{28 \text{ nucleotídeos}} \approx 1{,}14 \text{ bits/nt}
+\end{equation}
+(sem computar regiões adicionais de primers de PCR necessárias para amplificação física). Esse valor ilustra o impacto do overhead de framing em oligonucleotídeos curtos, que se dilui à medida que o tamanho do bloco $L$ cresce em sistemas laboratoriais.
+
+\section{Testes e Validação Interna}
 \label{sec:testing_and_validation}
 
 A validação da infraestrutura de software adotou uma distinção metodológica explícita entre duas categorias de ensaios:
@@ -256,9 +269,10 @@ Para comprovar a corretude lógica do motor do \emph{peeling decoder}, foram exe
 \begin{table}[htbp]
     \centering
     \small
+    \setlength{\tabcolsep}{5pt}
     \caption{Suíte de testes e validação interna do simulador.}
     \label{tab:suite_testes}
-    \begin{tabular}{lp{7cm}l}
+    \begin{tabular}{lp{6.5cm}l}
         \toprule
         \textbf{Teste} & \textbf{Descrição} & \textbf{Resultado} \\
         \midrule
@@ -267,7 +281,7 @@ Para comprovar a corretude lógica do motor do \emph{peeling decoder}, foram exe
         Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$. & Desvio $< 0{,}4\%$ \\
         GC fora da faixa & Sequências com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas \\
         Homopolímero $\geq 4$ & Sequências com 4+ bases consecutivas iguais. & Rejeitadas \\
-        Peeling sem perda & Pipeline com $p_{\text{loss}} = 0$ e $\epsilon \geq 0{,}20$. & Recuperação $= 100\%$ \\
+        Peeling em grafos canônicos & Instâncias determinísticas com $K$ droplets de grau 1 e triangular. & Recuperação $= 100\%$ \\
         \bottomrule
     \end{tabular}
 \end{table}
