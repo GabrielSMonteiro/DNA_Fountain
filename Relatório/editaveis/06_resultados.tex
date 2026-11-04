@@ -1,23 +1,23 @@
 % !TEX root = ../main.tex
-\chapter{Results and Discussion}
+\chapter{Resultados e Discussão}
 \label{chap:results}
 
-Esse capítulo apresenta e discute os resultados obtidos a partir das simulações computacionais do pipeline DNA Fountain, executadas de acordo com a metodologia descrita no Capítulo~\ref{chap:experimental_methodology}. Foram avaliadas 216 combinações paramétricas, com 100 repetições independentes para cada configuração, totalizando 21.600 execuções completas do processo de codificação, transmissão e decodificação.
+Este capítulo apresenta e discute os resultados obtidos a partir das simulações computacionais do pipeline DNA Fountain, executadas de acordo com a metodologia descrita no Capítulo~\ref{chap:experimental_methodology}. Foram avaliadas 216 combinações paramétricas, com 100 repetições independentes para cada configuração, totalizando 21.600 execuções completas do processo de codificação, transmissão e decodificação.
 
 Os dados coletados permitem analisar a validade funcional do simulador, o impacto do screening biológico sobre a distribuição de graus, a dinâmica do \emph{ripple} durante a decodificação por peeling, a relação entre overhead e taxa de sucesso, a sensibilidade aos parâmetros da distribuição robusta de soliton, a resiliência a perdas no canal e o custo computacional do sistema.
 
-\section{Functional Validation of the Simulator}
+\section{Validação Funcional do Simulador}
 \label{sec:results_functional_validation}
 
-A validação funcional do simulador teve como objetivo comprovar que o pipeline opera corretamente em condições nominais, sem introduzir corrupções de dados ou falhas lógicas no fluxo de codificação e decodificação. Para isso, foram avaliados cenários em canal ideal ($p_{\text{loss}} = 0$) com overhead relativo elevado ($\epsilon = 1{,}0$, correspondente a $N = 2K$), utilizando os parâmetros de referência $c = 0{,}1$ e $\delta = 0{,}1$.
+A validação funcional do simulador teve como objetivo comprovar que o pipeline opera corretamente em condições nominais, sem introduzir corrupções de dados ou falhas lógicas no fluxo de codificação e decodificação. Para isso, foram avaliados cenários em canal ideal ($p_{\text{loss}} = 0$) com overhead relativo elevado ($\epsilon = 1{,}00$, correspondente a $N = 2K$), utilizando os parâmetros de referência $c = 0{,}1$ e $\delta = 0{,}10$.
 
-A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para os três tamanhos de mensagem avaliados sob essas condições, além de comparações com $\epsilon = 0{,}5$.
+A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para os três tamanhos de mensagem avaliados sob essas condições, além de comparações com $\epsilon = 0{,}50$.
 
 \begin{table}[htbp]
     \centering
     \small
     \setlength{\tabcolsep}{5pt}
-    \caption{Resultados da validação funcional em canal ideal ($p_{\text{loss}} = 0{,}0$, $\delta = 0{,}1$).}
+    \caption{Resultados da validação funcional em canal ideal ($p_{\text{loss}} = 0{,}0$, $\delta = 0{,}10$, 100 execuções).}
     \label{tab:validacao_funcional}
     \begin{tabular}{ccccccc}
         \toprule
@@ -38,11 +38,11 @@ A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para os 
     \end{tabular}
 \end{table}
 
-Os resultados confirmam que, com overhead $\epsilon = 1{,}00$, canal ideal ($p_{\text{loss}} = 0{,}0$) e parametrização $c = 0{,}1$ e $\delta = 0{,}10$, foram observadas 100 recuperações completas em 100 execuções para $K = 32$ e $K = 64$ (taxa observada de 100\%). Em todas as execuções bem-sucedidas, a integridade dos dados recuperados foi confirmada byte a byte contra os blocos fonte originais, sem qualquer discrepância.
+Os resultados confirmam que, com overhead $\epsilon = 1{,}00$, canal ideal ($p_{\text{loss}} = 0{,}0$) e parametrização $c = 0{,}1$ e $\delta = 0{,}10$, foram observadas 100 recuperações completas em 100 execuções para $K = 32$ e $K = 64$ (taxa observada de 100\%, correspondendo ao intervalo de confiança exato de Clopper--Pearson a 95\% de $[96{,}4\%, 100{,}0\%]$). Em todas as execuções bem-sucedidas, a integridade dos dados recuperados foi confirmada byte a byte contra os blocos fonte originais, sem qualquer discrepância.
 
-Para $K = 16$, a taxa de sucesso observada foi de 90\% para $c = 0{,}1$ (e 91\% para $c = 0{,}3$). Esse comportamento decorre da alta variância estocástica inerente a regimes com número reduzido de blocos: com apenas 16 blocos fonte, pequenas flutuações na amostragem da DRS frequentemente deixam um ou dois blocos sem cobertura por droplets de grau 1, levando à interrupção prematura do \emph{ripple} mesmo na ausência total de perdas no canal. À medida que $K$ cresce para 32 e 64, a amostragem da DRS se estabiliza, resultando em 100\% de sucesso nas 100 repetições avaliadas.
+Para $K = 16$, a taxa de sucesso observada foi de 90\% para $c = 0{,}1$ (IC 95\%: $[82{,}4\%, 95{,}1\%]$) e 91\% para $c = 0{,}3$ (IC 95\%: $[83{,}6\%, 95{,}8\%]$). A análise diagnóstica das falhas revela que a ausência total de arestas cobrindo um determinado bloco fonte (nó isolado de grau 0 no grafo bipartido) responde por menos de 3\% das ocorrências. A causa primária e dominante das interrupções reside no esgotamento prematuro do \emph{ripple}: o processo de decodificação avança nos primeiros blocos, mas a fila esvazia enquanto os blocos restantes encontram-se presos em componentes cíclicos ou subgrafos nos quais todos os droplets remanescentes possuem grau 2 ou superior, sem que reste nenhuma equação de grau 1 para desencadear as rodadas subsequentes de peeling. À medida que $K$ cresce para 32 e 64, a amostragem da DRS se estabiliza e a conectividade do grafo supera esse gargalo estocástico.
 
-\section{Effect of Biological Screening}
+\section{Efeito do Screening Biológico}
 \label{sec:results_biological_screening}
 
 O módulo de screening biológico atua como um filtro de qualidade físico-química, rejeitando sequências de DNA candidatas que violem a janela de conteúdo GC ($40\% \le \text{GC} \le 60\%$) ou que contenham homopolímeros com comprimento superior a 3 nucleotídeos idênticos consecutivos.
@@ -54,7 +54,7 @@ A Tabela~\ref{tab:screening_graus} compara o grau médio teórico da distribuiç
 \begin{table}[htbp]
     \centering
     \small
-    \setlength{\tabcolsep}{6pt}
+    \setlength{\tabcolsep}{5pt}
     \caption{Comparação do grau médio antes e após o screening biológico ($K = 32$, $c = 0{,}1$, $\delta = 0{,}10$).}
     \label{tab:screening_graus}
     \begin{tabular}{lccc}
@@ -72,7 +72,7 @@ Nas condições avaliadas, foram observadas diferenças limitadas no grau médio
 
 Ressalta-se, contudo, por prudência metodológica, que a semelhança entre graus médios não comprova por si só a identidade estrita das distribuições de probabilidade completas: duas distribuições podem partilhar médias similares e apresentar variações nas frequências relativas de graus específicos (como graus 1 e 2). A confirmação formal de ortogonalidade total requer o levantamento de histogramas completos por grau e aplicação de testes de aderência estatística em larga escala, constituindo diretriz relevante para investigações futuras.
 
-\section{Ripple Behavior}
+\section{Comportamento e Dinâmica do Ripple}
 \label{sec:results_ripple_behavior}
 
 O \emph{ripple} monitorado no simulador representa a quantidade de elementos presentes na fila de processamento (\texttt{collections.deque}) a cada iteração do \emph{peeling decoder}. A manutenção de uma fila não vazia ao longo do processo é condição necessária para a progressão contínua da decodificação.
@@ -123,10 +123,10 @@ A análise da Figura~\ref{fig:dinamica_ripple} e da Tabela~\ref{tab:ripple_metri
     \item O valor do ripple mínimo médio ser registrado como 1,0 em todas as linhas da Tabela~\ref{tab:ripple_metricas} decorre da definição de instrumentação: a medição amostral é computada dentro do laço de decodificação (\texttt{while ripple:}), momento em que a fila contém no mínimo um elemento ativo. O esvaziamento final (tamanho zero) representa a condição de saída do laço, não sendo capturado como estado intermediário da fila.
 \end{enumerate}
 
-\section{Overhead versus Success Rate}
+\section{Overhead versus Taxa de Sucesso}
 \label{sec:results_overhead_success_rate}
 
-A relação entre o overhead relativo enviado $\epsilon = (N - K)/K$ e a probabilidade de reconstrução bem-sucedida é uma das características centrais dos códigos de fonte. A teoria assintótica prevê que, para $K \to \infty$, a taxa de sucesso transita abruptamente de 0 para 1 em overheads próximos a zero. Em sistemas práticos com $K$ pequeno ou moderado, contudo, essa transição assume a forma de uma curva gradual.
+A relação entre o overhead relativo enviado $\epsilon = (N - K)/K$ e a probabilidade de reconstrução bem-sucedida é uma das características centrais dos \emph{fountain codes}. A teoria assintótica prevê que, para $K \to \infty$, a taxa de sucesso transita abruptamente de 0 para 1 em overheads próximos a zero. Em sistemas práticos com $K$ pequeno ou moderado, contudo, essa transição assume a forma de uma curva gradual.
 
 A Tabela~\ref{tab:overhead_sucesso} sintetiza as taxas de sucesso obtidas para diferentes níveis de overhead em canal limpo ($p_{\text{loss}} = 0{,}0$) com $\delta = 0{,}10$.
 
@@ -171,16 +171,26 @@ A Figura~\ref{fig:overhead_sucesso} exibe graficamente as curvas de transição 
 A visualização na Figura~\ref{fig:overhead_sucesso} demonstra que a inclinação da curva de transição torna-se mais pronunciada à medida que $K$ cresce:
 \begin{itemize}
     \item Para $K = 16$, a transição é suave e atinge no máximo 91\% mesmo com $\epsilon = 1{,}00$, refletindo a vulnerabilidade a flutuações em blocos escassos;
-    \item Para $K = 32$ e $K = 64$, a curva com $c = 0{,}1$ exibe crescimento rápido a partir de $\epsilon = 0{,}25$, alcançando 85\%--88\% em $\epsilon = 0{,}50$ e consolidando 100\% em $\epsilon = 1{,}00$;
-    \item As curvas correspondentes a $c = 0{,}5$ e $c = 0{,}8$ permanecem coladas no eixo horizontal (sucesso próximo a zero) para praticamente todos os níveis de overhead em $K = 16$ e $K = 32$.
+    \item Para $K = 32$ e $K = 64$, a curva com $c = 0{,}1$ exibe crescimento rápido a partir de $\epsilon = 0{,}25$, alcançando 85\%--88\% em $\epsilon = 0{,}50$ e consolidando 100\% em $\epsilon = 1{,}00$ (IC 95\%: $[96{,}4\%, 100{,}0\%]$);
+    \item As curvas correspondentes a $c = 0{,}8$ permanecem coladas no eixo horizontal (sucesso próximo a zero) para praticamente todos os níveis de overhead.
 \end{itemize}
 
-Esses resultados comprovam empiricamente que, para blocos fonte pequenos ($K \le 64$), o sistema exige overhead $\epsilon \ge 0{,}50$ para assegurar estabilidade na recuperação, ao contrário de sistemas com $K \ge 10^4$, onde overheads da ordem de 5\% a 10\% são suficientes.
+\subsection{Diferença Estrutural de Desempenho com $c = 0{,}5$ entre $K = 32$ e $K = 64$}
 
-\section{Impact of $c$ and $\delta$}
+Um dos comportamentos mais elucidativos revelados na Tabela~\ref{tab:overhead_sucesso} ocorre com $c = 0{,}5$ sob overhead $\epsilon = 1{,}00$: enquanto para $K = 32$ a taxa de recuperação é nula ($0{,}0\%$, IC 95\%: $[0{,}0\%, 3{,}6\%]$), para $K = 64$ o sistema atinge expressivos $82{,}0\%$ de sucesso (IC 95\%: $[73{,}1\%, 89{,}0\%]$).
+
+Esse contraste decorre diretamente da dependência do pico $m = \lfloor K/R \rfloor$ em relação à escala de $K$:
+\begin{itemize}
+    \item Para $K = 32$, tem-se $R = 0{,}5 \ln(32/0{,}10)\sqrt{32} \approx 16{,}32$, resultando em $m = \lfloor 32 / 16{,}32 \rfloor = 1$. Todo o termo corretivo $\tau(d)$ colapsa sobre o grau 1. A DRS passa a gerar quase exclusivamente cópias redundantes de blocos unitários, privando o sistema de droplets combinatórios de grau 2 e superiores necessários para interligar os demais blocos fonte. Sem essa conectividade, a taxa de sucesso é aniquilada ($0{,}0\%$);
+    \item Para $K = 64$, tem-se $R = 0{,}5 \ln(64/0{,}10)\sqrt{64} \approx 25{,}84$, resultando em $m = \lfloor 64 / 25{,}84 \rfloor = 2$. O pico de probabilidade concentra-se precisamente no grau 2! Como droplets de grau 2 são os catalisadores fundamentais do processo de peeling (pois tornam-se de grau 1 assim que um de seus vizinhos é desvendado), a decodificação ganha tração contínua e consegue recuperar $82{,}0\%$ das instâncias sob $\epsilon = 1{,}00$.
+\end{itemize}
+
+Essa observação comprova empiricamente como o efeito de escala de $K$ altera qualitativamente a viabilidade de uma mesma parametrização da DRS, demonstrando que valores de $c$ que inviabilizam mensagens pequenas podem tornar-se parcialmente funcionais à medida que o grafo se expande.
+
+\section{Impacto dos Parâmetros $c$ e $\delta$}
 \label{sec:results_impact_c_delta}
 
-Os parâmetros $c$ e $\delta$ governam a distribuição robusta de soliton por meio do componente corretivo $\tau(d)$ e do tamanho esperado do \emph{ripple} $R = c \ln(K/\delta)\sqrt{K}$. O parâmetro $c$ atua como uma constante de escala que amplia o valor de $R$, enquanto $\delta$ representa um limitador superior para a probabilidade de falha na decodificação.
+Os parâmetros $c$ e $\delta$ governam a distribuição robusta de soliton por meio do componente corretivo $\tau(d)$ e do tamanho esperado do \emph{ripple} $R = c \ln(K/\delta)\sqrt{K}$. O parâmetro $c$ atua como uma constante de escala que amplia o valor de $R$, enquanto $\delta$ representa um limitador superior assintótico para a probabilidade de falha na decodificação.
 
 A Tabela~\ref{tab:impacto_c_delta} detalha o impacto sistemático de $c$ e $\delta$ sobre as métricas do sistema para $K = 32$, sob overhead fixo de $\epsilon = 0{,}50$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$).
 
@@ -214,19 +224,21 @@ A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simult
     \label{fig:impacto_c_delta}
 \end{figure}
 
-A correlação exposta na Figura~\ref{fig:impacto_c_delta} explica o colapso paramétrico da DRS em regimes de $K$ reduzido:
+A correlação exposta na Figura~\ref{fig:impacto_c_delta} esclarece as nuances da DRS em regimes finitos:
 \begin{enumerate}
     \item \textbf{Degeneração da distribuição para $c \ge 0{,}5$}: Quando $c$ assume valores elevados ($0{,}5$ ou $0{,}8$), a fórmula teórica resulta em $R = 16{,}3$ ou $26{,}1$ para $K = 32$. Como $R$ aproxima-se ou supera a metade de $K$, o índice do pico da distribuição, dado por $m = \lfloor K/R \rfloor$, colapsa para $1$ ou $2$. O termo $\tau(d)$ passa então a concentrar quase toda a massa de probabilidade no próprio grau 1. Com isso, o grau médio amostrado cai drasticamente de $4{,}95$ para $1{,}85$ e $1{,}55$. Sem droplets de graus intermediários para conectar múltiplos blocos, o decodificador é incapaz de resolver o sistema linear, resultando em 0\% de sucesso;
-    \item \textbf{Influência de $\delta$}: Para um mesmo valor de $c = 0{,}1$, reduzir $\delta$ de $0{,}10$ para $0{,}01$ aumenta o $R$ teórico de $3{,}26$ para $4{,}57$, mas a taxa de sucesso despenca de $85\%$ para $33\%$. Novamente, a tentativa de impor uma garantia teórica mais rígida (menor $\delta$) em um regime finito de blocos força uma hiperconcentração de probabilidade em graus baixos, prejudicando a conectividade global do grafo;
+    
+    \item \textbf{Efeito de $\delta$ e dinâmica de graus baixos}: Ao contrário de uma suposição intuitiva de que $\delta$ menor concentraria a massa em graus baixos, a redução de $\delta$ de $0{,}10$ para $0{,}01$ sob $c = 0{,}1$ praticamente mantém inalterado o grau médio global ($\bar{d}$ passa de $4{,}945$ para $4{,}961$). A causa da expressiva perda de desempenho (sucesso caindo de $85{,}0\%$ para $33{,}0\%$) decorre da redistribuição interna de probabilidades: com $R$ aumentando de $3{,}26$ para $4{,}57$, o pico analítico $m$ recua de $9$ para $6$, e a probabilidade de droplets de grau 2 sofre redução sensível ($\mu(2)$ decresce de $\approx 0{,}338$ para $\approx 0{,}257$). Com menos droplets binários para alimentar o processo logo após a queima dos graus unitários, o ripple atinge um pico menor ($7{,}2$ vs. $10{,}5$) e esgota-se precocemente antes de cobrir o grafo;
+    
     \item \textbf{Relação com operações XOR}: À medida que o grau médio diminui, o número médio de operações XOR realizadas durante a decodificação também se reduz (de 196{,}0 para 65{,}4). No entanto, essa economia computacional reflete na verdade a incapacidade de avanço do decodificador, que aborta o processamento por esgotamento de conexões válidas.
 \end{enumerate}
 
-Conclui-se que $c = 0{,}1$ e $\delta = 0{,}10$ constituem o par paramétrico ótimo entre as configurações avaliadas para essa faixa de blocos fonte.
+A caracterização de $c = 0{,}1$ e $\delta = 0{,}10$ como a configuração mais eficiente deve ser qualificada ao regime avaliado. Embora essa combinação tenha se mostrado claramente superior para $K = 32$ e $K = 64$ sob overheads intermediários ($\epsilon = 0{,}50$ e $\epsilon = 1{,}00$), ela não representa um ``ótimo irrestrito''. Primeiramente, $c = 0{,}1$ constitui o menor valor testado na grade, permanecendo inexplorada a faixa $c < 0{,}1$. Em segundo lugar, para $K = 16$ sob overhead restrito ($\epsilon = 0{,}25$), a parametrização $c = 0{,}3$ superou estatisticamente $c = 0{,}1$, registrando $36{,}0\%$ de sucesso contra apenas $8{,}0\%$ (teste exato de Fisher: $p < 0{,}001$). Em regimes extremamente curtos, um valor moderadamente maior de $c$ eleva a probabilidade de sortear droplets unitários iniciais, fator determinante para disparar o peeling em amostras pequenas.
 
-\section{System Resilience}
+\section{Resiliência do Sistema a Perdas no Canal}
 \label{sec:results_system_resilience}
 
-A capacidade de operar sobre canais não confiáveis sem necessidade de retransmissão é o principal atrativo das arquiteturas baseadas em códigos de fonte. Para quantificar essa tolerância, o simulador foi submetido a probabilidades de apagamento estocástico $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$, correspondendo a perdas de até 20\% dos droplets transmitidos.
+A capacidade de operar sobre canais não confiáveis sem necessidade de retransmissão é o principal atrativo das arquiteturas baseadas em \emph{fountain codes}. Para quantificar essa tolerância, o simulador foi submetido a probabilidades de apagamento estocástico $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$, correspondendo a perdas de até 20\% dos droplets transmitidos.
 
 A Tabela~\ref{tab:resiliencia_canal} compara as taxas de sucesso e as operações XOR sob perdas no canal para a parametrização recomendada ($c = 0{,}1$, $\delta = 0{,}10$) em diferentes níveis de overhead.
 
@@ -269,12 +281,12 @@ Quando o transmissor opera com overhead nominal $\epsilon = 1{,}00$ ($N = 2K$), 
 
 Em contrapartida, configurações que operam com overhead nominal ajustado no limite da estabilidade ($\epsilon = 0{,}50$) sofrem degradação expressiva sob perdas: para $K = 64$, a perda de 10\% reduz o sucesso de 88\% para 52\%, e a perda de 20\% derruba o índice para 16\%. Esse comportamento reforça a diretriz de dimensionamento: em canais físicos de DNA sujeitos a dropout e degradação molecular, a margem de overhead deve ser dimensionada considerando a perda esperada no sequenciamento.
 
-\section{Computational Cost}
+\section{Custo Computacional}
 \label{sec:results_computational_cost}
 
 O custo computacional do pipeline foi quantificado por duas métricas complementares: o tempo de execução do processo de decodificação (em milissegundos) e o esforço de operações XOR realizadas entre blocos de dados.
 
-O tempo mensurado abrange a execução integral do método \texttt{decoder.\allowbreak decodificar()}, englobando: (1) a conversão da sequência de nucleotídeos em bytes; (2) a extração e desofuscação da seed de 16 bits; (3) a verificação de integridade CRC-8; (4) a regeneração pseudoaleatória dos índices de vizinhança; (5) a montagem da tabela reversa de adjacências; e (6) todas as iterações do algoritmo de peeling com propagação de XORs.
+O tempo mensurado contempla a execução completa do método de decodificação (\texttt{decoder.decodificar()}), englobando: (1) a conversão de nucleotídeos em bytes; (2) a extração da \emph{seed} ofuscada; (3) a checagem CRC-8; (4) a regeneração dos índices de vizinhança; (5) a montagem da tabela reversa de adjacências; e (6) as iterações do \emph{peeling} com propagação de XORs.
 
 A Tabela~\ref{tab:custo_computacional} consolida os tempos de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$).
 
@@ -313,13 +325,19 @@ A teoria de códigos LT prevê complexidade assintótica de decodificação de o
 
 Ressalta-se que esses resultados caracterizam pequenas instâncias de estudo ($K \le 64$), adequadas à experimentação controlada e didática. Eles não permitem inferir diretamente o desempenho assintótico para arquivos de grande escala ($K \ge 10^4$), nos quais a alocação de memória e o overhead de interpretação em Python tornam recomendável o emprego de linguagens compiladas de baixo nível (como C/C++ ou Rust) ou aceleração em hardware dedicado.
 
-\section{Limitations of the Results}
+\section{Limitações dos Resultados}
 \label{sec:results_limitations}
 
-Para assegurar o rigor acadêmico desse trabalho, é essencial delimitar com precisão o escopo e as limitações dos resultados apresentados:
+Para assegurar o rigor acadêmico deste trabalho, é essencial delimitar com precisão o escopo e as limitações dos resultados apresentados:
 
 \begin{enumerate}
     \item \textbf{Canal de transmissão simplificado}: O simulador modela o canal biológico como um canal de apagamento binário sem memória (BEC), no qual os droplets chegam íntegros ou são inteiramente descartados. Na prática bioquímica, os canais de síntese, conservação química e sequenciamento de DNA sofrem também erros pontuais de substituição, inserções e deleções (indels), além de viés de cobertura não uniforme dependente do contexto da sequência~\cite{heckel2019, shomorony2022}. Dessa forma, os resultados de resiliência aqui relatados representam o limite superior do desempenho sob apagamento puro;
+    
     \item \textbf{Escala do número de blocos ($K$)}: Os ensaios experimentais concentraram-se na faixa $K \in \{16, 32, 64\}$. Essa escolha foi intencional para viabilizar a exploração exaustiva de uma matriz de 216 combinações paramétricas com 100 repetições cada (21.600 ensaios). Embora essa faixa seja representativa para entender a dinâmica de transição e o comportamento da DRS em pequenos regimes, sistemas de arquivamento real em DNA~\cite{erlich2017} operam com $K$ na ordem de dezenas ou centenas de milhares de blocos, onde os efeitos de borda da DRS são diluídos e o overhead requerido decresce para a faixa de 5\% a 10\%;
-    \item \textbf{Implementação em linguagem de alto nível}: O simulador foi construído em Python 3 puro com propósitos de modularidade, clareza didática, manutenibilidade e reprodutibilidade acadêmica. Consequentemente, as medições de tempo de execução refletem o overhead interpretativo da CPython, não correspondendo aos tempos que seriam obtidos por implementações compiladas em C/C++, Rust ou com aceleração em hardware dedicado (FPGA).
+    
+    \item \textbf{Implementação em linguagem de alto nível}: O simulador foi construído em Python 3 puro com propósitos de modularidade, clareza didática, manutenibilidade e reprodutibilidade acadêmica. Consequentemente, as medições de tempo de execução refletem o overhead interpretativo da CPython, não correspondendo aos tempos que seriam obtidos por implementações compiladas em C/C++, Rust ou com aceleração em hardware dedicado (FPGA);
+    
+    \item \textbf{Restrição do espaço amostral de seeds e densidade líquida}: A utilização de um cabeçalho de seed de 16 bits limita a capacidade de endereçamento a $2^{16} = 65.536$ droplets candidatos distintos. Sob o filtro de screening biológico, com taxa de rejeição de aproximadamente $40{,}2\%$, o universo útil efetivo reduz-se para cerca de 39.000 oligonucleotídeos. Além disso, a estrutura de framing adotada no protótipo (2 bytes de seed, $L=4$ bytes de payload e 1 byte de CRC-8, totalizando 7 bytes ou 28 nucleotídeos) confere uma densidade líquida efetiva de $\approx 1{,}14$ bits por nucleotídeo ($32\text{ bits} / 28\text{ nt}$), ilustrando o peso relativo do cabeçalho em oligonucleotídeos curtos;
+    
+    \item \textbf{Portabilidade estocástica entre interpretadores}: A dependência do módulo padrão \texttt{random} do Python assegura reprodutibilidade estrita quando fixada a versão do interpretador (Python~3.12). Entretanto, a especificação do CPython garante compatibilidade de longo prazo apenas para o sorteio de ponto flutuante \texttt{random()}, podendo ocorrer sutis alterações algorítmicas em métodos de amostragem entre versões do interpretador. Para preservação digital em escala de décadas ou migração para FPGA, recomenda-se a substituição por um gerador linear independente (como LFSR ou PCG32).
 \end{enumerate}
