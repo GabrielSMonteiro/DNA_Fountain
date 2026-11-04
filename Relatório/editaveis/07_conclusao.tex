@@ -2,9 +2,9 @@
 \chapter{Conclusão}
 \label{chap:conclusion}
 
-Este trabalho apresentou o projeto, a implementação e a avaliação experimental de um simulador modular do pipeline DNA Fountain, voltado ao estudo do armazenamento de dados digitais em moléculas de DNA sintético. A pesquisa combinou princípios de Engenharia de Software, teoria da informação e bioinformática para construir um ambiente computacional controlado, extensível e totalmente reprodutível.
+Este trabalho apresentou o projeto, a implementação e a avaliação experimental de um simulador modular do pipeline DNA Fountain, voltado ao estudo do armazenamento de dados digitais em moléculas de DNA sintético. A pesquisa combinou princípios de Engenharia de Software, teoria da informação e bioinformática para construir um ambiente computacional controlado, extensível e reprodutível de forma determinística no ambiente declarado.
 
-O objetivo geral estabelecido no Capítulo~\ref{chap:introduction} foi plenamente alcançado. O simulador desenvolvido modela com fidelidade as dez etapas do pipeline, desde a ingestão da carga útil binária e segmentação em blocos fonte até a codificação com códigos LT, mapeamento em nucleotídeos, filtragem por critérios biológicos de síntese, transmissão em canal de apagamento estocástico e reconstrução dos dados originais pelo algoritmo de \emph{peeling}.
+O objetivo geral estabelecido no Capítulo~\ref{chap:introduction} foi atingido no escopo delimitado (canal de apagamento, $K \le 64$). O simulador desenvolvido implementa as dez etapas do pipeline em nível lógico, desde a ingestão da carga útil binária e segmentação em blocos fonte até a codificação com códigos LT, mapeamento em nucleotídeos, filtragem por critérios biológicos de síntese, transmissão em canal de apagamento estocástico e reconstrução dos dados originais pelo algoritmo de \emph{peeling}.
 
 Em relação aos objetivos específicos, cada uma das metas delineadas foi concretizada:
 
@@ -19,4 +19,4 @@ Em relação aos objetivos específicos, cada uma das metas delineadas foi concr
     \item \textbf{Garantia de Reprodutibilidade}: O isolamento de três domínios estocásticos distintos (gerador de índices por seed de 16 bits, gerador de apagamentos no canal e semente mestre dos experimentos em lote) assegurou rastreabilidade e repetibilidade determinística dos resultados.
 \end{enumerate}
 
-Em conclusão, a principal contribuição deste trabalho é a construção de uma base de software aberta, modular e didática para a comunidade acadêmica de Engenharia de Software e Bioinformática. Ao detalhar o funcionamento interno do DNA Fountain e comprovar o impacto das escolhas paramétricas em regime de blocos finitos, este trabalho fornece uma plataforma sólida para pesquisas futuras em codificação e recuperação de dados biológicos.
+Em conclusão, a principal contribuição deste trabalho é a construção de uma base de software aberta, modular e didática para a comunidade acadêmica de Engenharia de Software e Bioinformática. Ao detalhar o funcionamento interno do DNA Fountain e caracterizar experimentalmente o impacto das escolhas paramétricas em regime de blocos finitos, este trabalho fornece uma plataforma sólida para pesquisas futuras em codificação e recuperação de dados biológicos.

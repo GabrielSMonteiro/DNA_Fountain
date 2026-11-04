@@ -36,7 +36,7 @@ Os objetivos específicos são:
     
     \item Representar restrições biológicas, como conteúdo GC e limitação de homopolímeros, por meio de um módulo de screening configurável.
     
-    \item Simular canais de apagamento e leituras inválidas tratadas como perdas, em coerência com o escopo já delimitado no material preliminar.
+    \item Simular canais de apagamento e tratar leituras inválidas como perdas, em coerência com a delimitação de escopo apresentada na Seção~\ref{sec:scope_delimitation}.
     
     \item Medir taxa de sucesso, overhead efetivo, taxa de rejeição no screening, número de operações XOR, comportamento do ripple e tempo de processamento.
     
@@ -46,6 +46,7 @@ Os objetivos específicos são:
 \end{enumerate}
 
 \section{Delimitação do Escopo}
+\label{sec:scope_delimitation}
 
 Este trabalho se delimita como uma investigação de Engenharia de Software aplicada ao estudo computacional de \emph{fountain codes} para armazenamento de dados em DNA. Neste sentido, o trabalho não pretende derivar toda a teoria assintótica dos códigos LT nem reproduzir, em nível físico, os processos reais de síntese e sequenciamento, de forma a manter o escopo compatível com um TCC de Engenharia de Software.
 
@@ -57,7 +58,7 @@ Dessa forma, os seguintes limites são declarados explicitamente:
     \item Não será feita validação laboratorial com DNA real, síntese química ou sequenciamento físico.
 \end{itemize}
 
-Como possível continuação do projeto, a implementação de um núcleo restrito do \emph{peeling decoder} em uma FPGA Digilent Basys 3 poderá ser investigada. Essa etapa teria como objetivo avaliar a aceleração das operações de decodificação utilizando hardware reconfigurável, com base em instâncias geradas pelo simulador desenvolvido neste trabalho. Contudo, essa possível continuação não altera o escopo do TCC I, que permanece focado na modelagem, implementação do simulador e análise experimental em software.
+Como possível continuação do projeto, a implementação de um núcleo restrito do \emph{peeling decoder} em uma FPGA Digilent Basys 3 poderá ser investigada. Essa etapa teria como objetivo avaliar a aceleração das operações de decodificação utilizando hardware reconfigurável, com base em instâncias geradas pelo simulador desenvolvido neste trabalho. Contudo, essa possível continuação não altera o escopo deste trabalho, que permanece focado na modelagem, implementação do simulador e análise experimental em software.
 
 \section{Organização do Trabalho}
 \label{sec:organization}
