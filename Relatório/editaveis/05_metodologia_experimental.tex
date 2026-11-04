@@ -1,10 +1,10 @@
 % !TEX root = ../main.tex
-\chapter{Experimental Methodology}
+\chapter{Metodologia Experimental}
 \label{chap:experimental_methodology}
 
-Esse capítulo define o protocolo experimental adotado para avaliar o simulador desenvolvido. São especificados o ambiente de execução, as variáveis independentes que serão sistematicamente variadas, as variáveis dependentes que serão medidas, os parâmetros controlados que permanecem fixos ao longo dos ensaios, os cinco cenários experimentais planejados, o número de repetições com os procedimentos de análise estatística e, por fim, as medidas de reprodutibilidade que asseguram a rastreabilidade completa dos resultados.
+Este capítulo define o protocolo experimental adotado para avaliar o simulador desenvolvido. São especificados o ambiente de execução, as variáveis independentes que foram sistematicamente variadas na matriz de ensaios, as variáveis dependentes que foram medidas, os parâmetros controlados mantidos fixos, os cinco cenários experimentais planejados, os procedimentos de análise estatística com intervalos de confiança exatos e testes de hipótese e, por fim, as medidas de reprodutibilidade que asseguram a rastreabilidade completa dos resultados.
 
-\section{Experimental Environment}
+\section{Ambiente Experimental}
 \label{sec:experimental_environment}
 
 Todos os experimentos foram executados em uma única máquina com a seguinte configuração de hardware e software:
@@ -19,28 +19,24 @@ Todos os experimentos foram executados em uma única máquina com a seguinte con
 
 Essa escolha deliberada de depender exclusivamente da biblioteca padrão do Python garante que os experimentos possam ser reproduzidos em qualquer ambiente com Python~3.12 instalado, sem necessidade de instalação de pacotes adicionais.
 
-\section{Independent Variables}
+\section{Variáveis Independentes}
 \label{sec:independent_variables}
 
-As variáveis independentes são os parâmetros do pipeline que serão sistematicamente variados entre os cenários experimentais para avaliar seu impacto sobre o desempenho do sistema. As seguintes variáveis foram selecionadas:
+As variáveis independentes são os parâmetros do pipeline sistematicamente variados na grade experimental fatorial para avaliar seu impacto sobre o desempenho e a robustez do sistema. A combinação dos níveis dessas variáveis define o espaço de busca de $3 \times 4 \times 2 \times 3 \times 3 = 216$ pontos paramétricos:
 
 \begin{itemize}
-    \item \textbf{Quantidade de blocos fonte ($K$)}: Determina o número de segmentos em que a mensagem é particionada. Valores avaliados: $K \in \{16, 32, 64\}$, representando regimes de blocos finitos para avaliar os limites práticos do \emph{peeling decoder}.
+    \item \textbf{Quantidade de blocos fonte ($K$)}: Determina o número de segmentos em que a mensagem é particionada. Valores avaliados: $K \in \{16, 32, 64\}$ (3 níveis), representando regimes de blocos finitos para avaliar os limites práticos do \emph{peeling decoder}.
 
-    \item \textbf{Tamanho do bloco em bytes ($L$)}: Define o comprimento em bytes de cada bloco fonte. O valor padrão fixado ao longo de toda a grade experimental é $L = 4$ bytes (gerando 16 bases de DNA por payload), mantendo os oligonucleotídeos sintetizados em tamanhos curtos e uniformes.
+    \item \textbf{Parâmetro $c$ da DRS}: Constante multiplicativa que controla a escala de $R$ na distribuição robusta de soliton. Valores avaliados: $c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis).
 
-    \item \textbf{Parâmetro $c$ da DRS}: Constante multiplicativa que controla a escala de $R$ na distribuição robusta de soliton. Valores avaliados: $c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$.
+    \item \textbf{Parâmetro $\delta$ da DRS}: Balizador formal de projeto da cauda da distribuição. Valores avaliados: $\delta \in \{0{,}01;\; 0{,}1\}$ (2 níveis).
 
-    \item \textbf{Parâmetro $\delta$ da DRS}: Balizador formal de projeto da cauda da distribuição. Valores avaliados: $\delta \in \{0{,}01;\; 0{,}1\}$.
+    \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ é o número de droplets gerados. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis), correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
 
-    \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ é o número de droplets gerados. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$, correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
-
-    \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$, abrangendo desde canal sem ruído até perda estocástica de $20\%$ dos pacotes.
-
-    \item \textbf{Módulo de screening biológico}: Mantido ativado ao longo de toda a matriz principal de ensaios com parâmetros $gc_{\min}=0{,}40$, $gc_{\max}=0{,}60$ e $H_{\max}=3$, além de um ensaio dedicado de caracterização de $2.000$ droplets para avaliação de potencial viés de graus.
+    \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis), abrangendo desde canal sem ruído até perda estocástica de $20\%$ dos pacotes.
 \end{itemize}
 
-\section{Dependent Variables}
+\section{Variáveis Dependentes}
 \label{sec:dependent_variables}
 
 As variáveis dependentes são as métricas de saída coletadas pelo simulador em cada execução. Essas métricas quantificam o desempenho e o custo do pipeline sob diferentes configurações:
@@ -58,30 +54,30 @@ As variáveis dependentes são as métricas de saída coletadas pelo simulador e
 
     \item \textbf{Tamanho máximo e mínimo do ripple}: Valores extremos do comprimento da fila de pacotes processáveis (\emph{ripple}) ao longo da decodificação, indicando a estabilidade do processo e a proximidade de eventos de colapso.
 
-    \item \textbf{Tempo de decodificação}: Intervalo de tempo em milissegundos consumido exclusivamente pelo motor do \emph{peeling decoder}, medido via \texttt{time.perf\_counter()} com resolução de microssegundos.
+    \item \textbf{Tempo de decodificação}: Intervalo de tempo em milissegundos consumido pelo método \texttt{decoder.decodificar()}, medido via \texttt{time.perf\_counter()} com resolução de microssegundos.
 \end{itemize}
 
-\section{Controlled Variables}
+\section{Variáveis Controladas}
 \label{sec:controlled_variables}
 
-Para garantir a validade interna dos experimentos, os seguintes parâmetros permaneceram fixos em todos os cenários, salvo quando explicitamente indicado como variável independente:
+Para garantir a validade interna dos experimentos, os seguintes parâmetros permaneceram estritamente fixos em todos os ensaios da matriz fatorial de 216 combinações:
 
 \begin{itemize}
-    \item \textbf{Carga útil}: Os blocos fonte são gerados sinteticamente como vetores de bytes pseudoaleatórios controlados pela \emph{seed} base do experimento, garantindo reprodutibilidade sem depender de arquivos externos.
+    \item \textbf{Tamanho do bloco ($L$)}: Fixado em $L = 4$ bytes (32 bits de carga útil, gerando 16 nucleotídeos de payload por droplet), mantendo oligonucleotídeos de comprimento curto e uniforme ao longo de toda a grade.
 
-    \item \textbf{Mapeamento de bases}: O esquema de codificação binário $\to$ DNA utiliza o mapeamento fixo de 2 bits por base ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), conforme descrito na Seção~\ref{sec:digital_to_dna_encoding}.
+    \item \textbf{Módulo de screening biológico}: Mantido ativado com janela de aceitabilidade de GC entre $40\%$ e $60\%$ e limite máximo de homopolímeros de $H_{\max} = 3$ bases consecutivas idênticas.
 
-    \item \textbf{Cabeçalho de seed}: A \emph{seed} de cada droplet é armazenada em 16 bits (2 bytes), ofuscada por máscara XOR \texttt{0x1B1B}, conforme definido na classe \texttt{DNAFountainConfig}.
+    \item \textbf{Carga útil sintética}: Os blocos fonte são gerados como vetores de bytes pseudoaleatórios governados pela \emph{seed} base do experimento, garantindo reprodutibilidade sem depender de arquivos externos.
 
-    \item \textbf{Política de padding}: O último bloco recebe preenchimento determinístico com bytes nulos (\texttt{0x00}), sem componente aleatória.
+    \item \textbf{Mapeamento de bases}: Mapeamento direto de 2 bits por base ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), conforme Seção~\ref{sec:digital_to_dna_encoding}.
 
-    \item \textbf{Limites de GC}: Faixa de aceitabilidade $[40\%, 60\%]$, correspondendo aos parâmetros \texttt{gc\_min = 0.40} e \texttt{gc\_max = 0.60} da configuração.
+    \item \textbf{Cabeçalho de seed}: Armazenado em 16 bits (2 bytes) ofuscado por máscara XOR \texttt{0x1B1B}.
 
-    \item \textbf{Limite de homopolímeros}: Comprimento máximo permitido de $H_{\max} = 3$ bases consecutivas iguais.
+    \item \textbf{Política de padding}: Preenchimento determinístico com bytes nulos (\texttt{0x00}).
 
-    \item \textbf{CRC-8}: Ativo por padrão com polinômio \texttt{0x07}, servindo como validação de integridade complementar.
+    \item \textbf{CRC-8}: Ativo por padrão com polinômio gerador \texttt{0x07}.
 
-    \item \textbf{Scrambler}: Ativo por padrão com offset \texttt{0x5A5A}, aplicando embaralhamento pseudoaleatório ao payload.
+    \item \textbf{Scrambler}: Ativo por padrão com offset aritmético \texttt{0x5A5A}.
 \end{itemize}
 
 A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáveis independentes, dependentes e controladas do protocolo experimental.
@@ -95,17 +91,15 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
         \toprule
         \textbf{Tipo} & \textbf{Variável} & \textbf{Valores / Faixa} \\
         \midrule
-        \multirow{7}{*}{Independente}
-            & $K$ & $\{16, 32, 64\}$ \\
-            & $L$ & $4$ bytes (variável em cenários específicos) \\
-            & $c$ & $\{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ \\
-            & $\delta$ & $\{0{,}01;\; 0{,}1\}$ \\
-            & $\epsilon$ & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ \\
-            & $p_{\text{loss}}$ & $\{0{,}0;\; 0{,}1;\; 0{,}2\}$ \\
-            & Screening & Ativado / Desativado \\
+        \multirow{5}{*}{Independente}
+            & Quantidade de blocos ($K$) & $\{16, 32, 64\}$ (3 níveis) \\
+            & Parâmetro $c$ da DRS & $\{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis) \\
+            & Parâmetro $\delta$ da DRS & $\{0{,}01;\; 0{,}1\}$ (2 níveis) \\
+            & Overhead ($\epsilon$) & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis) \\
+            & Taxa de perda ($p_{\text{loss}}$) & $\{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis) \\
         \midrule
         \multirow{7}{*}{Dependente}
-            & Taxa de sucesso & $0\%$ a $100\%$ \\
+            & Taxa de sucesso & $0\%$ a $100\%$ (com IC de 95\%) \\
             & Blocos recuperados & $0$ a $K$ \\
             & $R_{\text{screen}}$ & Taxa de rejeição no screening \\
             & Droplets recebidos & Contagem efetiva \\
@@ -113,18 +107,20 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
             & Ripple (máx / mín) & Dinâmica da fila \\
             & Tempo de decodificação & Milissegundos \\
         \midrule
-        \multirow{6}{*}{Controlada}
+        \multirow{8}{*}{Controlada}
+            & Tamanho do bloco ($L$) & $4$ bytes (fixo na matriz fatorial) \\
+            & Screening biológico & Ativado (GC $40$--$60\%$, $H_{\max} = 3$) \\
             & Mapeamento & $2$ bits/base (fixo) \\
             & Seed header & $16$ bits, máscara \texttt{0x1B1B} \\
             & Padding & \emph{Zero-padding} (\texttt{0x00}) \\
-            & GC & $[40\%, 60\%]$ \\
-            & Homopolímero & $H_{\max} = 3$ \\
-            & CRC-8 / Scrambler & Ativos por padrão \\
+            & Carga útil & Sintética pseudoaleatória controlada \\
+            & CRC-8 & Ativo (\texttt{0x07}) \\
+            & Scrambler & Ativo (\texttt{0x5A5A}) \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\section{Experimental Scenarios}
+\section{Cenários Experimentais}
 \label{sec:experimental_scenarios}
 
 Cinco cenários experimentais foram planejados para investigar, de forma isolada e progressiva, os principais fatores que influenciam o desempenho do pipeline DNA Fountain. Cada cenário fixa determinados parâmetros e varia sistematicamente um fator de interesse, conforme descrito a seguir.
@@ -137,13 +133,13 @@ O primeiro cenário tem como objetivo avaliar o comportamento probabilístico do
 
 O segundo cenário investiga a relação entre o overhead relativo $\epsilon$ e a taxa de sucesso na decodificação. Os parâmetros $c$, $\delta$ e $p_{\text{loss}}$ são mantidos em valores de referência, variando-se o overhead entre $25\%$, $50\%$ e $100\%$ para cada valor de $K$.
 
-O objetivo é mapear a transição entre decodificação incompleta e decodificação garantida, identificando o patamar a partir do qual a taxa de sucesso atinge $100\%$.
+O objetivo é mapear a transição entre decodificação incompleta e decodificação estável, identificando o patamar a partir do qual a taxa de sucesso atinge patamares elevados de recuperação.
 
 \subsection{Experimento 3: Impacto dos Parâmetros $c$ e $\delta$}
 
 O terceiro cenário avalia como os parâmetros da distribuição robusta de soliton afetam o desempenho do sistema. Para cada par $(c, \delta)$, são medidos a taxa de sucesso, o grau médio amostrado $\bar{d}$, o valor de $R$, o número de operações XOR e a dinâmica do \emph{ripple}.
 
-Esse experimento permite observar o compromisso entre robustez e custo: valores moderados ($c=0{,}1$) sustentam a conectividade do grafo, enquanto valores elevados ($c \ge 0{,}5$) deslocam o pico $m = \lfloor K/R \rfloor$ para graus unitários, reduzindo o grau médio e provocando o colapso precoce do processo de peeling.
+Esse experimento permite observar o compromisso entre robustez e custo: valores moderados ($c=0{,}1$) sustentam a conectividade do grafo, enquanto valores elevados ($c \ge 0{,}5$) deslocam o pico $m = \lfloor K/R \rfloor$ para graus unitários, reduzindo o grau médio e provocando o colapso precoce do processo de peeling em regimes de poucos blocos.
 
 \subsection{Experimento 4: Impacto do Screening Biológico}
 
@@ -173,10 +169,10 @@ A Tabela~\ref{tab:cenarios_experimentais} sintetiza os cinco cenários avaliados
     \end{tabular}
 \end{table}
 
-\section{Repetitions and Statistical Analysis}
+\section{Repetições e Procedimentos Estatísticos}
 \label{sec:repetitions_and_statistics}
 
-Para garantir significância estatística dos resultados, cada ponto paramétrico da grade principal é executado 100 vezes de forma independente ($n = 100$). A suíte disponibiliza três patamares de repetição ($n \in \{10, 30, 100\}$), sendo o nível de 100 repetições utilizado para as análises consolidadas.
+Para garantir significância estatística dos resultados, cada ponto paramétrico da grade principal é executado 100 vezes de forma independente ($n = 100$). A suíte disponibiliza três patamares de repetição ($n \in \{10, 30, 100\}$), sendo o nível de 100 repetições utilizado para as análises consolidadas, totalizando 21.600 execuções completas.
 
 Para cada métrica contínua reportada (tempo de decodificação e contagem de operações XOR), são calculados:
 \begin{itemize}
@@ -185,9 +181,16 @@ Para cada métrica contínua reportada (tempo de decodificação e contagem de o
     \item \textbf{Mediana e dispersão}: quartis e extremos para caracterização de assimetria.
 \end{itemize}
 
-Para a taxa de sucesso na decodificação (variável binária discreta associada a $n$ ensaios de Bernoulli), a taxa reportada representa a proporção empírica de sucessos observados na amostra ($\hat{p} = k/n$). Em regimes próximos aos extremos ($0\%$ ou $100\%$), a variância amostral se aproxima de zero, recomendando-se cautela quanto à aplicação de intervalos de confiança assintóticos normais, sendo o resultado reportado diretamente como a frequência observada.
+Para a taxa de sucesso na decodificação (variável binária associada a $n$ ensaios de Bernoulli), além da frequência observada $\hat{p} = k/n$, foram calculados intervalos de confiança exatos de Clopper--Pearson ao nível de 95\%, derivados dos quantis da distribuição Beta:
+\begin{equation}
+    \label{eq:clopper_pearson}
+    \text{IC}_{95\%} = \left[ B\left(\frac{\alpha}{2}; k, n - k + 1\right), \; B\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
+\end{equation}
+com $\alpha = 0{,}05$. Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
 
-\section{Reproducibility}
+Para a comparação de proporções de sucesso entre pares de configurações experimentais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal, adequado a amostras com contagens discretas, adotando-se $\alpha = 0{,}05$ como limiar de significância estatística.
+
+\section{Reprodutibilidade}
 \label{sec:reproducibility}
 
 A reprodutibilidade dos experimentos apoia-se em três pilares:
