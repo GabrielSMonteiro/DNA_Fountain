@@ -1,10 +1,10 @@
 % !TEX root = ../main.tex
-\chapter{Theoretical Foundation}
+\chapter{Fundamentação Teórica}
 \label{chap:theoretical_foundation}
 
-Esse capítulo apresenta os fundamentos teóricos necessários para a compreensão do trabalho. São abordados os conceitos de armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os tipos de erros e restrições biológicas envolvidos, os códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain proposta por Erlich e Zielinski, e as métricas de avaliação utilizadas ao longo dos experimentos.
+Este capítulo apresenta os fundamentos teóricos necessários para a compreensão do trabalho. São abordados os conceitos de armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os tipos de erros e restrições biológicas envolvidos, os códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain proposta por Erlich e Zielinski, e as métricas de avaliação utilizadas ao longo dos experimentos.
 
-\section{DNA Data Storage}
+\section{Armazenamento de Dados em DNA}
 \label{sec:dna_data_storage}
 
 A molécula de ácido desoxirribonucleico (DNA) é a estrutura biológica responsável pelo armazenamento da informação genética em organismos vivos. Cada fita de DNA é composta por uma sequência de nucleotídeos, que são unidades formadas por um grupo fosfato, uma desoxirribose e uma base nitrogenada. As quatro bases nitrogenadas presentes no DNA são adenina (A), citosina (C), guanina (G) e timina (T), e a sequência dessas bases ao longo da fita constitui o código genético~\cite{compeau2018}.
@@ -17,12 +17,12 @@ Contudo, o armazenamento de dados em DNA também enfrenta desafios significativo
 
 O ciclo de vida completo do armazenamento de dados em DNA pode ser descrito em cinco etapas: (1)~codificação digital, na qual o arquivo binário é convertido em sequências de nucleotídeos; (2)~síntese química, na qual as sequências são fabricadas em laboratório; (3)~armazenamento físico do pool de oligonucleotídeos em condições controladas; (4)~sequenciamento, no qual as moléculas são lidas por um dispositivo de sequenciamento; e (5)~decodificação computacional, na qual as leituras obtidas são processadas para reconstruir o arquivo original.
 
-\section{Digital to DNA Encoding}
+\section{Codificação Digital para DNA}
 \label{sec:digital_to_dna_encoding}
 
 A primeira etapa do armazenamento de dados em DNA consiste em converter um arquivo binário em uma representação compatível com as quatro bases nitrogenadas. Para isso, o arquivo de entrada é inicialmente tratado como uma sequência contínua de bytes, que é então dividida em blocos de tamanho fixo $L$ (em bytes). Caso o último bloco não possua exatamente $L$ bytes, é realizado um preenchimento determinístico com bytes nulos (\texttt{0x00}), técnica conhecida como \emph{zero-padding}.
 
-Com os blocos definidos, cada byte é convertido em uma sequência de quatro nucleotídeos por meio de um mapeamento direto de pares de bits para bases. O esquema de mapeamento utilizado nesse trabalho é apresentado na Tabela~\ref{tab:mapeamento_bits_dna}.
+Com os blocos definidos, cada byte é convertido em uma sequência de quatro nucleotídeos por meio de um mapeamento direto de pares de bits para bases. O esquema de mapeamento utilizado neste trabalho é apresentado na Tabela~\ref{tab:mapeamento_bits_dna}.
 
 \begin{table}[htbp]
     \centering
@@ -40,11 +40,11 @@ Com os blocos definidos, cada byte é convertido em uma sequência de quatro nuc
     \end{tabular}
 \end{table}
 
-Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$)~\cite{shannon1948}. Contudo, sob restrições físico-químicas de viabilidade biológica (como conteúdo GC entre 45\% e 55\% e ausência de homopolímeros com mais de 3 bases), a capacidade informacional do canal de DNA restrito cai para aproximadamente $1{,}98$ bits por nucleotídeo~\cite{erlich2017}. A densidade líquida pioneira de $1{,}57$ bits/nt alcançada por Erlich e Zielinski representa cerca de $78{,}5\%$ do limite não restrito de 2 bits/nt e $79{,}3\%$ da capacidade de Shannon sob restrições biológicas. Esse mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
+Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$)~\cite{shannon1948}. Contudo, sob restrições físico-químicas de viabilidade biológica (como conteúdo GC entre 45\% e 55\% e ausência de homopolímeros com mais de 3 bases), a capacidade informacional do canal de DNA restrito cai para aproximadamente $1{,}83$ bits por nucleotídeo~\cite{erlich2017}. A densidade líquida pioneira de $1{,}57$ bits/nt alcançada por Erlich e Zielinski representa cerca de $78{,}5\%$ do limite não restrito de 2 bits/nt e cerca de $86\%$ da capacidade de Shannon sob restrições biológicas ($\approx 1{,}83$ bits/nt). Este mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
 
-A simplicidade desse esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
+A simplicidade deste esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
 
-\section{Errors and Biological Constraints}
+\section{Erros e Restrições Biológicas}
 \label{sec:errors_and_biological_constraints}
 
 Ao longo do ciclo de vida do armazenamento em DNA, duas classes distintas de fenômenos impactam a integridade dos dados: as falhas físicas geradas pelas etapas de síntese e sequenciamento (erros de canal) e as restrições biológicas de aceitabilidade, que definem se uma sequência pode ou não ser sintetizada e amplificada com estabilidade.
@@ -63,7 +63,7 @@ Os erros do canal ocorrem durante os processos físicos de síntese e sequenciam
     \item \textbf{Apagamentos (\emph{erasures})}: um oligonucleotídeo inteiro é perdido durante o processo, seja por degradação física, cobertura insuficiente no sequenciamento ou falha completa na síntese de uma sequência. Nesse caso, o receptor simplesmente não recebe a sequência, mas sabe que ela está ausente.
 \end{itemize}
 
-No contexto desse trabalho, o canal biológico é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
+No contexto deste trabalho, o canal biológico é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
 
 \subsection{Restrições Biológicas de Aceitabilidade}
 
@@ -72,12 +72,12 @@ Independentemente dos erros do canal, nem todas as sequências de DNA podem ser 
 \begin{itemize}
     \item \textbf{Conteúdo GC}: a proporção de bases G e C em relação ao comprimento total da sequência deve estar dentro de uma faixa aceitável, tipicamente entre 40\% e 60\%. Sequências com conteúdo GC muito baixo ou muito alto apresentam temperaturas de desnaturação (\emph{melting temperature}) atípicas, o que dificulta a amplificação por PCR (\emph{Polymerase Chain Reaction}) e introduz viés no sequenciamento~\cite{erlich2017}.
     
-    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Nesse trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por Erlich e Zielinski~\cite{erlich2017}.
+    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Neste trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por Erlich e Zielinski~\cite{erlich2017}.
 \end{itemize}
 
 Essas restrições biológicas \textbf{não constituem erros físicos de canal}, mas sim filtros de aceitabilidade aplicados ainda na etapa de codificação. Quando um droplet gerado viola os limites de GC ou homopolímeros no \emph{screening}, ele é descartado antes do envio e outro droplet é gerado em seu lugar. Essa distinção entre erros estocásticos do canal e critérios de filtragem é essencial para a compreensão do sistema.
 
-\section{Erasure Codes and Fountain Codes}
+\section{Códigos de Apagamento e Fountain Codes}
 \label{sec:erasure_codes_and_fountain_codes}
 
 Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessário utilizar alguma forma de codificação redundante que permita a recuperação dos dados mesmo quando parte das sequências é perdida. Nesse contexto, os \textbf{códigos de apagamento} (\emph{erasure codes}) são a classe de códigos corretores de erros adequada ao problema.
@@ -96,7 +96,7 @@ Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgo
 
 Essas propriedades tornam os \emph{fountain codes} particularmente adequados ao cenário de armazenamento em DNA, no qual o número exato de oligonucleotídeos que sobreviverão aos processos de síntese, armazenamento e sequenciamento não pode ser determinado com antecedência~\cite{erlich2017}.
 
-\section{LT Codes}
+\section{Códigos LT}
 \label{sec:lt_codes}
 
 Os códigos LT (\emph{Luby Transform}), propostos por Michael Luby em 2002~\cite{luby2002}, foram os primeiros \emph{fountain codes} práticos. A ideia central dos códigos LT é gerar cada pacote codificado --- chamado de \textbf{droplet} --- por meio da combinação de um subconjunto aleatório dos blocos originais utilizando a operação de ou-exclusivo (XOR) sobre o corpo finito binário $GF(2)$.
@@ -122,7 +122,7 @@ Esse processo pode ser representado por meio de um \textbf{grafo bipartido}, no 
 
 A escolha da distribuição de probabilidade para o grau $d$ é o fator determinante para o desempenho dos códigos LT. Uma distribuição mal calibrada pode gerar excesso de droplets de alto grau (inúteis nas primeiras iterações da decodificação) ou excesso de droplets de grau 1 (que não contribuem para a diversidade de combinações). A seção seguinte formaliza as distribuições utilizadas.
 
-\section{Robust Soliton Distribution}
+\section{Distribuição Robusta de Soliton}
 \label{sec:robust_soliton_distribution}
 
 A distribuição de probabilidade utilizada para sortear o grau dos droplets é o componente teórico central dos códigos LT. Luby~\cite{luby2002} propôs inicialmente a \textbf{Distribuição Ideal de Soliton} $\rho(d)$, definida como:
@@ -185,7 +185,7 @@ A distribuição resultante $\mu(d)$ satisfaz $\sum_{d=1}^{K} \mu(d) = 1$ e é u
 
 Na implementação do simulador, a amostragem de um grau é realizada por meio da função de distribuição acumulada (CDF) de $\mu(d)$: um valor uniforme $u \sim \mathcal{U}(0,1)$ é gerado e o grau $d$ é determinado como o menor valor tal que $\text{CDF}(d) \geq u$. Essa técnica garante que a frequência empírica dos graus sorteados convirja para a distribuição $\mu(d)$ à medida que o número de amostras aumenta.
 
-\section{Peeling Decoder and Ripple}
+\section{Decodificador Peeling e Dinâmica do Ripple}
 \label{sec:peeling_decoder_and_ripple}
 
 O \textbf{\emph{peeling decoder}} é o algoritmo de decodificação utilizado nos códigos LT para reconstruir os blocos fonte originais a partir dos droplets recebidos. Trata-se de um algoritmo iterativo baseado em propagação de crença (\emph{belief propagation}) sobre o grafo bipartido, que opera exclusivamente com operações XOR no corpo finito binário $GF(2)$.
@@ -216,12 +216,12 @@ O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das ite
 
 A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
 
-\section{DNA Fountain Architecture}
+\section{Arquitetura DNA Fountain}
 \label{sec:dna_fountain_architecture}
 
 A arquitetura \textbf{DNA Fountain}, proposta por Erlich e Zielinski em 2017~\cite{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original.
 
-O pipeline do DNA Fountain, conforme modelado nesse trabalho, opera da seguinte forma:
+O pipeline do DNA Fountain, conforme modelado neste trabalho, opera da seguinte forma:
 
 \begin{enumerate}
     \item \textbf{Segmentação}: O arquivo binário de entrada é dividido em $K$ blocos de tamanho fixo $L$ bytes. O último bloco recebe \emph{zero-padding} determinístico com bytes nulos caso não possua $L$ bytes completos.
@@ -234,17 +234,17 @@ O pipeline do DNA Fountain, conforme modelado nesse trabalho, opera da seguinte 
     
     \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível.
     
-    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal biológico, modelado nesse trabalho como um canal de apagamento com probabilidade de perda $p_{\text{loss}}$.
+    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal biológico, modelado neste trabalho como um canal de apagamento com probabilidade de perda $p_{\text{loss}}$.
     
     \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
 \end{enumerate}
 
 Um aspecto central da arquitetura DNA Fountain é o papel da \emph{seed}. Ao utilizar um PRNG determinístico inicializado com a \emph{seed}, tanto o codificador quanto o decodificador podem calcular independentemente o grau e os índices dos blocos associados a cada droplet. Isso elimina a necessidade de transmitir metadados adicionais sobre a estrutura do grafo bipartido, reduzindo significativamente o overhead de informação lateral.
 
-\section{Evaluation Metrics}
+\section{Métricas de Avaliação}
 \label{sec:evaluation_metrics}
 
-Para avaliar quantitativamente o desempenho do simulador sob diferentes configurações, esse trabalho utiliza um conjunto de métricas formais que capturam aspectos distintos do processo de codificação e decodificação. As métricas adotadas são:
+Para avaliar quantitativamente o desempenho do simulador sob diferentes configurações, este trabalho utiliza um conjunto de métricas formais que capturam aspectos distintos do processo de codificação e decodificação. As métricas adotadas são:
 
 \begin{itemize}
     \item \textbf{Taxa de sucesso na decodificação} ($P_{\text{succ}}$): a proporção de execuções em que o \emph{peeling decoder} conseguiu recuperar todos os $K$ blocos fonte. Calculada como:
