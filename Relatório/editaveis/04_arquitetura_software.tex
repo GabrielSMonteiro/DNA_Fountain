@@ -137,7 +137,7 @@ A Tabela~\ref{tab:modulos_sistema} sintetiza a organização modular do simulado
     \end{tabular}
 \end{table}
 
-\section{Data Models}
+\section{Modelos de Dados}
 \label{sec:data_models}
 
 As entidades manipuladas pelo simulador foram formalizadas em estruturas de dados claras e coerentes com o código implementado:
@@ -159,7 +159,7 @@ As entidades manipuladas pelo simulador foram formalizadas em estruturas de dado
     \item \textbf{ExperimentResult}: A função \texttt{experimento()} retorna um dicionário com as métricas agregadas sobre $n$ repetições: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, overhead enviado, $R$, grau médio, taxa de sucesso, XOR médio, ripple máximo/mínimo médio e tempo de decodificação em milissegundos.
 \end{itemize}
 
-\section{Pipeline Flow}
+\section{Fluxo do Pipeline}
 \label{sec:pipeline_flow}
 
 O funcionamento do simulador é executado em dez etapas sequenciais, descritas a seguir:
@@ -191,7 +191,7 @@ O funcionamento do simulador é executado em dez etapas sequenciais, descritas a
 
 Quatro decisões de projeto foram fundamentais na implementação do simulador:
 
-\subsection{Zero-Byte Padding}
+\subsection{Preenchimento com Bytes Nulos (\emph{Zero-Byte Padding})}
 
 Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do bloco $L$, o último bloco é preenchido com bytes nulos (\texttt{0x00}) até completar $L$ bytes. Essa abordagem determinística, conhecida como \emph{zero-padding}, foi adotada por sua simplicidade e compatibilidade com o pipeline: o decodificador recebe o tamanho original da mensagem como metadado externo e trunca a saída reconstruída exatamente no byte correto, descartando o \emph{padding} automaticamente.
 
@@ -220,14 +220,14 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 
 \subsection{Dimensionamento de Cabeçalho e Densidade Efetiva do Protótipo}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ droplets candidatos distintos. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o pool de droplets válidos utilizáveis é restrito a aproximadamente 39.000 oligonucleotídeos. Embora plenamente suficiente para regimes finitos ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil esperado é de aproximadamente 39.000 oligonucleotídeos distintos. Embora plenamente suficiente para regimes finitos ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
 
 Adicionalmente, cada oligonucleotídeo sintético do protótipo é estruturado em três campos: cabeçalho de seed (2 bytes = 16 bits), carga útil ($L = 4$ bytes = 32 bits) e checksum CRC-8 (1 byte = 8 bits), totalizando 7 bytes (56 bits). Na conversão para DNA à razão de 2 bits por base, cada droplet gera uma fita de exatamente 28 nucleotídeos. Consequentemente, a densidade de informação líquida efetiva do protótipo é calculada por:
 \begin{equation}
     \label{eq:densidade_efetiva_prototipo}
     D_{\text{efetiva}} = \frac{32 \text{ bits de carga útil}}{28 \text{ nucleotídeos}} \approx 1{,}14 \text{ bits/nt}
 \end{equation}
-(sem computar regiões adicionais de primers de PCR necessárias para amplificação física). Esse valor ilustra o impacto do overhead de framing em oligonucleotídeos curtos, que se dilui à medida que o tamanho do bloco $L$ cresce em sistemas laboratoriais.
+Ressalta-se que a densidade de $1{,}14$ bits/nt refere-se ao payload útil por oligonucleotídeo transmitido, antes de contabilizar a redundância LT global ($N/K = 1 + \epsilon$), os oligonucleotídeos rejeitados durante o screening e eventuais primers de PCR necessários para amplificação física. Esse valor ilustra o impacto do overhead de framing em oligonucleotídeos curtos, que se dilui à medida que o tamanho do bloco $L$ cresce em sistemas laboratoriais.
 
 \section{Testes e Validação Interna}
 \label{sec:testing_and_validation}

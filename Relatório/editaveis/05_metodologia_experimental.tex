@@ -196,7 +196,7 @@ Para a comparação de proporções de sucesso entre pares de configurações ex
 A reprodutibilidade dos experimentos apoia-se em três pilares:
 
 \begin{enumerate}
-    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas em qualquer ambiente Python~3.12. Medições de tempo físico de CPU refletem a carga do sistema operacional e apresentam variações normais entre execuções.
+    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython 3.12.7), com as seeds e arquivos CSV fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas de amostragem do módulo \texttt{random}. Medições de tempo físico de CPU refletem a carga do sistema operacional e apresentam variações normais entre execuções.
 
     \item \textbf{Registro integral em CSV}: Os dados de cada bateria são exportados em arquivos CSV (\texttt{resultados\_10.csv}, \texttt{resultados\_30.csv}, \texttt{resultados\_100.csv}), contendo para cada ponto paramétrico os hiperparâmetros e as métricas amostradas.
 

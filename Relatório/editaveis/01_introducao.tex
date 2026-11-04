@@ -36,7 +36,7 @@ Os objetivos específicos são:
     
     \item Representar restrições biológicas, como conteúdo GC e limitação de homopolímeros, por meio de um módulo de screening configurável.
     
-    \item Simular canais de apagamento e tratar leituras inválidas como perdas, em coerência com a delimitação de escopo apresentada na Seção~\ref{sec:scope_delimitation}.
+    \item Simular um canal de apagamento e tratar como perdas os oligonucleotídeos descartados pelo modelo, conforme as hipóteses de canal descritas no Capítulo~\ref{chap:experimental_methodology}.
     
     \item Medir taxa de sucesso, overhead efetivo, taxa de rejeição no screening, número de operações XOR, comportamento do ripple e tempo de processamento.
     
@@ -53,7 +53,7 @@ Este trabalho se delimita como uma investigação de Engenharia de Software apli
 Dessa forma, os seguintes limites são declarados explicitamente:
 
 \begin{itemize}
-    \item O canal biológico será modelado de forma simplificada, principalmente como apagamento e descarte de leituras inválidas.
+    \item O canal de armazenamento em DNA será modelado de forma simplificada como um canal de apagamento, no qual perdas moleculares e leituras descartadas são tratadas como apagamentos puros.
     
     \item Não será feita validação laboratorial com DNA real, síntese química ou sequenciamento físico.
 \end{itemize}

@@ -63,7 +63,7 @@ Os erros do canal ocorrem durante os processos físicos de síntese e sequenciam
     \item \textbf{Apagamentos (\emph{erasures})}: um oligonucleotídeo inteiro é perdido durante o processo, seja por degradação física, cobertura insuficiente no sequenciamento ou falha completa na síntese de uma sequência. Nesse caso, o receptor simplesmente não recebe a sequência, mas sabe que ela está ausente.
 \end{itemize}
 
-No contexto deste trabalho, o canal biológico é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
+No contexto deste trabalho, o canal de armazenamento em DNA é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
 
 \subsection{Restrições Biológicas de Aceitabilidade}
 
@@ -164,7 +164,7 @@ Na prática computacional, especialmente em regimes com número finito e reduzid
 Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
 
 \begin{itemize}
-    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o pico $m$ para graus muito baixos ($m=1$ ou $m=2$). Para $K = 32$ e $c = 0{,}5$, por exemplo, cerca de 73\% da massa de probabilidade concentra-se no grau 1, reduzindo o grau médio amostrado $\bar{d}$ e impedindo a formação de arestas intermediárias no grafo. O efeito de $c$ sobre o grau médio é monotonicamente decrescente: valores maiores de $c$ reduzem o grau médio e concentram a distribuição em graus baixos.
+    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o índice de máximo da função corretiva $\tau(d)$, dado por $m = \lfloor K/R \rfloor$, para graus muito baixos ($m=1$ ou $m=2$). Cabe enfatizar a distinção entre o índice $m$, que maximiza o termo corretivo $\tau(d)$, e a moda global da distribuição $\mu(d)$: para $K = 32$ e $c = 0{,}5$, a translação do pico de $\tau$ para $m=1$ faz com que cerca de 73\% da massa de probabilidade total concentre-se no próprio grau 1, reduzindo expressivamente o grau médio amostrado $\bar{d}$ e privando o sistema de conexões intermediárias. O efeito de $c$ sobre o grau médio é monotonicamente decrescente: valores maiores de $c$ reduzem o grau médio e concentram a distribuição em graus baixos.
     
     \item O parâmetro $\delta$ é uma probabilidade de falha teórica que orienta o dimensionamento assintótico da cauda da distribuição. Ele não constitui uma garantia determinística incondicional de que a taxa de erro empírica será $\le \delta$ para qualquer valor de $K$ e overhead finito, servindo como balizador formal de robustez.
 \end{itemize}
@@ -212,7 +212,7 @@ O algoritmo pode ser formalizado nos seguintes passos:
     \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, o processo de peeling é interrompido sem recuperar a totalidade dos blocos por ausência de equações residuais de grau 1 na fila (o que não exclui a possibilidade de resolução por eliminação gaussiana sobre $GF(2)$, embora o algoritmo de peeling linear tenha estagnado).
 \end{enumerate}
 
-O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Conceitualmente, ele representa o conjunto de equações ativas de grau 1 disponíveis para resolver blocos pendentes. Na implementação do software, o ripple monitorado corresponde operacionalmente ao tamanho da fila de processamento (\texttt{collections.deque}) registrado no início de cada passo do laço de peeling. Cabe destacar que essa fila pode conter múltiplos droplets redundantes cobrindo um bloco já descoberto, os quais são descartados sem gerar novas soluções.
+O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Distingue-se aqui o conceito de \emph{ripple} teórico proposto por Luby~\cite{luby2002} (conjunto de equações ativas de grau 1 que cobrem blocos fonte ainda não descobertos) da fila de processamento instrumentada no simulador (\texttt{collections.deque}), a qual armazena operacionalmente os droplets que atingem grau 1 durante o processo, podendo incluir elementos redundantes associados a blocos já resolvidos.
 
 A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
 
@@ -234,7 +234,7 @@ O pipeline do DNA Fountain, conforme modelado neste trabalho, opera da seguinte 
     
     \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível.
     
-    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal biológico, modelado neste trabalho como um canal de apagamento com probabilidade de perda $p_{\text{loss}}$.
+    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal de apagamento estocástico com probabilidade de perda $p_{\text{loss}}$.
     
     \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
 \end{enumerate}
