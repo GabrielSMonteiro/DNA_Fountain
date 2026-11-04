@@ -1,22 +1,28 @@
 % !TEX root = ../main.tex
-\chapter{Future Work}
+\chapter{Trabalhos Futuros}
 \label{chap:future_work}
 
-A partir dos resultados e das conclusões estabelecidas nesse trabalho, identificam-se direções naturais para a continuidade e expansão da pesquisa em Engenharia de Software e sistemas de armazenamento molecular:
+A partir dos resultados e das conclusões estabelecidas neste trabalho, identificam-se direções naturais para a continuidade e expansão da pesquisa em Engenharia de Software e sistemas de armazenamento molecular:
 
 \begin{enumerate}
     \item \textbf{Modelagem de Canais Ruidosos com Indels e Substituições}:
     Evoluir o modelo de canal estocástico para além do apagamento puro, incorporando taxas realistas de mutação pontual (substituição de nucleotídeos), deleção e inserção (indels), típicas de tecnologias de síntese química e sequenciamento de terceira geração (como Oxford Nanopore e Pacific Biosciences). A implementação de algoritmos de sincronização e alinhamento com distância de Levenshtein ou códigos HEDGES~\cite{press2020} permitirá avaliar a robustez do pipeline sob ruído de fase.
 
     \item \textbf{Integração de Códigos Concatenados de Correção de Erros}:
-    Acoplar ao simulador uma arquitetura em duas camadas, combinando um código interno de correção de erros em bloco (como Reed-Solomon ou códigos convolucionais) aplicado sobre o payload de cada oligo com o código de fonte LT externo, aproximando o simulador da especificação integral empregada por Erlich e Zielinski~\cite{erlich2017}.
+    Acoplar ao simulador uma arquitetura em duas camadas, combinando um código interno de correção de erros em bloco (como Reed-Solomon de 2 bytes por oligo ou códigos convolucionais) aplicado sobre o payload de cada oligonucleotídeo com o código LT externo sem taxa, aproximando o simulador da especificação integral empregada por Erlich e Zielinski~\cite{erlich2017}.
 
     \item \textbf{Investigação de Distribuições Alternativas e Códigos Sistemáticos}:
-    Explorar distribuições de probabilidade alternativas à DRS clássica de Luby, como as distribuições otimizadas para códigos Raptor e códigos BATS (\emph{Batched Sparse Codes}), além de versões sistemáticas de códigos de fonte, nas quais os primeiros $K$ pacotes transmitidos correspondem diretamente aos blocos fonte não codificados, reduzindo o overhead necessário em regimes de mensagens pequenas.
+    Explorar distribuições de probabilidade alternativas à DRS clássica de Luby, como as distribuições otimizadas para códigos Raptor e códigos BATS (\emph{Batched Sparse Codes}), além de versões sistemáticas de \emph{fountain codes}, nas quais os primeiros $K$ pacotes transmitidos correspondem diretamente aos blocos fonte não codificados, reduzindo o overhead necessário em regimes de mensagens pequenas.
 
     \item \textbf{Escalabilidade para Arquivos em Larga Escala}:
     Expandir a infraestrutura experimental para avaliar cargas úteis na escala de megabytes ou gigabytes ($K \ge 10^4$), incorporando técnicas de decodificação concorrente com paralelismo em nível de threads e processos (\texttt{multiprocessing} ou OpenMP) e otimização de representação de grafos em memória.
 
     \item \textbf{Aceleração em Hardware Dedicado (FPGA)}:
     Projetar e sintetizar um núcleo de processamento em hardware (IP Core) para o algoritmo de \emph{peeling decoder} utilizando linguagens de descrição de hardware (VHDL ou Verilog), voltado a dispositivos FPGA de baixo custo (como a placa Digilent Basys 3 equipada com FPGA Xilinx Artix-7). A paralelização das operações XOR e o gerenciamento de filas de adjacência em hardware dedicado oferecem potencial para reduzir a latência de decodificação para a ordem de microssegundos em sistemas de armazenamento em tempo real.
+
+    \item \textbf{PRNG Autônomo e Portável para Síntese em Hardware}:
+    Implementar um gerador pseudoaleatório autônomo e de alta velocidade (como LFSR aritmético com registradores de deslocamento ou geradores da família PCG32/xoshiro), eliminando a dependência do interpretador Python e viabilizando a síntese direta dos circuitos de regeneração de índices de vizinhança em hardware reconfigurável.
+
+    \item \textbf{Testes de Aderência sobre a Distribuição de Graus sob Screening}:
+    Conduzir levantamento amostral em larga escala ($10^5$ ou mais droplets) com teste de aderência qui-quadrado ($\chi^2$) e teste de Kolmogorov--Smirnov sobre os histogramas completos de frequência de cada grau $d \in \{1, \ldots, K\}$, aprofundando a avaliação da ortogonalidade estrita entre os filtros físico-químicos e a distribuição teórica da DRS.
 \end{enumerate}
