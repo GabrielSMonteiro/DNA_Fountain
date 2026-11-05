@@ -55,6 +55,8 @@ Dessa forma, os seguintes limites são declarados explicitamente:
 \begin{itemize}
     \item O canal de armazenamento em DNA será modelado de forma simplificada como um canal de apagamento, no qual perdas moleculares e leituras descartadas são tratadas como apagamentos puros.
     
+    \item Não serão modeladas as etapas bioquímicas de cobertura molecular por leituras redundantes brutas, consenso de sequenciamento (\emph{consensus calling}) ou agrupamento (\emph{clustering}) de sequências: cada oligonucleotídeo entregue ao decodificador representa uma sequência individual já resolvida.
+    
     \item Não será feita validação laboratorial com DNA real, síntese química ou sequenciamento físico.
 \end{itemize}
 

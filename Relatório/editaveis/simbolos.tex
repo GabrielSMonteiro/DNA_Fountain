@@ -10,9 +10,9 @@
   \item[$\mu(d)$] Função de probabilidade normalizada da Distribuição Robusta de Soliton
   \item[$\beta$] Fator de normalização da Distribuição Robusta de Soliton ($\beta = \sum_{d=1}^K (\rho(d) + \tau(d))$)
   \item[$c$] Parâmetro livre de sintonia da DRS ($c > 0$)
-  \item[$\delta$] Parâmetro que dimensiona a cauda da DRS; em regimes assintóticos, limita superiormente a probabilidade de falha
+  \item[$\delta$] Parâmetro de robustez teórica da DRS (limitador assintótico da probabilidade de falha sob overhead $K + O(\sqrt{K}\ln^2(K/\delta))$)
   \item[$R$] Parâmetro de escala associado ao tamanho esperado do \emph{ripple} ($R = c \ln(K/\delta)\sqrt{K}$)
-  \item[$m$] Modo ou índice do pico da cauda da DRS ($m = \lfloor K/R \rfloor$)
+  \item[$m$] Índice de máximo do componente corretivo $\tau(d)$ da DRS ($m = \lfloor K/R \rfloor$)
   \item[$R_{\text{screen}}$] Taxa de rejeição do módulo de screening biológico
   \item[$H_{\max}$] Comprimento máximo permitido de sequências homopoliméricas
   \item[$p_{\text{loss}}$] Probabilidade de apagamento de droplet no canal

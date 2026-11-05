@@ -201,7 +201,7 @@ O simulador inclui uma camada opcional de verificação de integridade por meio 
 
 \begin{itemize}
     \item Permite descartar antecipadamente pacotes corrompidos caso o canal seja estendido para incluir erros de substituição em trabalhos futuros;
-    \item Fornece proteção contra eventuais mutações acidentais de bits durante a manipulação dos dados no pipeline.
+    \item Detecta parte das corrupções de bits de acordo com as propriedades de distância de Hamming do polinômio CRC-8 adotado. Como o canal utilizado nos experimentos simula apagamentos puros de oligonucleotídeos íntegros, o CRC-8 não atua ativamente como detector de falhas nos resultados reportados.
 \end{itemize}
 
 \subsection{Separação e Controle dos Geradores Pseudoaleatórios (PRNG)}
@@ -211,16 +211,16 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 \begin{enumerate}
     \item \textbf{PRNG da Seed (Reconstrução de Índices)}: Cada droplet é associado a uma \emph{seed} inteira de 16 bits que, ao ser fornecida como entrada para \texttt{random.Random(seed)}, permite regenerar deterministicamente o grau $d$ e os $d$ índices dos blocos fonte. Esse é o mecanismo central que torna possível a decodificação sem transmissão explícita dos índices: tanto o codificador quanto o decodificador executam \texttt{soliton.sortear\_grau\_e\_indices(seed)} e obtêm os mesmos resultados.
 
-    Ressalta-se que o gerador da biblioteca padrão do Python (\texttt{random.Random}) baseia-se no algoritmo Mersenne Twister (MT19937). Embora o CPython garanta reprodutibilidade entre versões para chamadas básicas de \texttt{random()}, rotinas de amostragem de coleções podem apresentar pequenas variações algorítmicas entre versões menores do interpretador. Em arquiteturas voltadas a arquivamento de longo prazo ou implementações em hardware reconfigurável (FPGA), a substituição por um PRNG portável autocontido (como um LFSR aritmético ou geradores da família PCG/xoshiro) é recomendada para assegurar independência total de plataforma e versão de software.
+    Ressalta-se que a interoperabilidade entre codificador e decodificador depende criticamente do emprego do mesmo algoritmo gerador: uma semente compartilhada entre interpretadores com implementações distintas de PRNG pode gerar vizinhanças e graus divergentes, inviabilizando a decodificação. Embora o interpretador CPython~3.12 garanta reprodutibilidade determinística nas versões declaradas, a preservação de dados em escala de longo prazo ou a migração para hardware dedicado (FPGA) recomenda a adoção de um PRNG autocontido padronizado (como LFSR aritmético ou geradores da família PCG/xoshiro), eliminando dependências de rotinas internas de bibliotecas de software.
 
     \item \textbf{PRNG do Canal (Eventos de Apagamento)}: O canal de apagamento utiliza uma instância separada de \texttt{random.Random}, inicializada com a \emph{seed} global do experimento (\texttt{seed\_experimento}). Essa separação garante que os sorteios de perda do canal não interfiram na sequência de números pseudoaleatórios utilizada pela codificação.
 
-    \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios em qualquer plataforma Python~3.12, garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
+    \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios no ambiente declarado (CPython~3.12.7), garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
 \end{enumerate}
 
 \subsection{Dimensionamento de Cabeçalho e Densidade Efetiva do Protótipo}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil esperado é de aproximadamente 39.000 oligonucleotídeos distintos. Embora plenamente suficiente para regimes finitos ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil esperado é de aproximadamente 39.000 oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
 
 Adicionalmente, cada oligonucleotídeo sintético do protótipo é estruturado em três campos: cabeçalho de seed (2 bytes = 16 bits), carga útil ($L = 4$ bytes = 32 bits) e checksum CRC-8 (1 byte = 8 bits), totalizando 7 bytes (56 bits). Na conversão para DNA à razão de 2 bits por base, cada droplet gera uma fita de exatamente 28 nucleotídeos. Consequentemente, a densidade de informação líquida efetiva do protótipo é calculada por:
 \begin{equation}
@@ -266,7 +266,7 @@ O componente \texttt{BiologicalScreening} foi submetido a sequências de DNA pro
 
 \subsection{Teste Funcional Determinístico do Peeling Decoder}
 
-Para comprovar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Em todas as configurações de prova, o algoritmo recuperou $100\%$ dos blocos originais, confirmando que as operações XOR de vizinhança e a remoção de arestas operam sem falhas algorítmicas.
+Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Em todas as configurações de prova, o algoritmo recuperou $100\%$ dos blocos originais, confirmando que as operações XOR de vizinhança e a remoção de arestas operam sem falhas algorítmicas.
 
 \begin{table}[htbp]
     \centering
@@ -280,7 +280,7 @@ Para comprovar a corretude lógica do motor do \emph{peeling decoder}, foram exe
         \midrule
         Conversão bytes $\leftrightarrow$ DNA & Ciclo fechado para todos os 256 bytes. & Erro $= 0{,}00\%$ \\
         Somatória da DRS & Verificação de $\sum \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado \\
-        Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$. & Desvio $< 0{,}4\%$ \\
+        Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$. & Erro rel. $< 0{,}4\%$ ($\mu(d) \ge 0{,}01$); erro abs. $< 0{,}003$ \\
         GC fora da faixa & Sequências com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas \\
         Homopolímero $\geq 4$ & Sequências com 4+ bases consecutivas iguais. & Rejeitadas \\
         Peeling em grafos canônicos & Instâncias determinísticas com $K$ droplets de grau 1 e triangular. & Recuperação $= 100\%$ \\
