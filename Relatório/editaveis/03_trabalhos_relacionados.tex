@@ -43,14 +43,14 @@ Ambos os trabalhos, contudo, mantinham a característica de taxa fixa: a redund�
 
 \subsection{Erlich e Zielinski --- DNA Fountain (2017)}
 
-O trabalho de Erlich e Zielinski~\cite{erlich2017}, publicado na revista Science em 2017, foi o primeiro a aplicar \emph{fountain codes} ao armazenamento em DNA. A arquitetura DNA Fountain, conforme detalhada no Capítulo~\ref{chap:theoretical_foundation}, combina códigos LT com screening biológico para produzir um número potencialmente ilimitado de oligonucleotídeos codificados, dos quais o receptor precisa coletar apenas $K(1 + \epsilon)$ para decodificar o arquivo original.
+O trabalho de Erlich e Zielinski~\cite{erlich2017}, publicado na revista Science em 2017, foi o primeiro a aplicar \emph{fountain codes} ao armazenamento em DNA. A arquitetura DNA Fountain, conforme detalhada no Capítulo~\ref{chap:theoretical_foundation}, combina um código LT externo sem taxa com um código interno de Reed-Solomon (2 bytes de paridade por oligo) para detecção e descarte de erros pontuais, além de screening biológico. A propriedade \emph{rateless} permite gerar oligonucleotídeos codificados sob demanda até que o receptor colete uma quantidade suficiente ($K(1 + \epsilon)$) para reconstruir o arquivo original.
 
 As contribuições principais do DNA Fountain em relação aos trabalhos anteriores podem ser sintetizadas em três aspectos:
 
 \begin{itemize}
     \item \textbf{Taxa variável}: diferentemente dos códigos de taxa fixa (Reed-Solomon, sobreposição), o DNA Fountain gera droplets continuamente até que o número desejado de oligonucleotídeos válidos seja alcançado. Isso permite que o sistema se adapte implicitamente às condições do canal, sem necessidade de conhecer previamente a taxa de perda.
     
-    \item \textbf{Densidade de armazenamento}: a densidade alcançada de 1,57 bits por nucleotídeo representou o valor mais alto reportado na literatura até então, correspondendo a cerca de 86\% da capacidade de Shannon sob restrições biológicas ($\approx 1{,}83$ bits/nt) e a 78,5\% do limite teórico não restrito de $\log_2 4 = 2{,}0$ bits por nucleotídeo.
+    \item \textbf{Densidade de armazenamento}: a densidade líquida alcançada de 1,57 bits por nucleotídeo representou o valor mais alto reportado na literatura até então, correspondendo a cerca de 86\% da capacidade prática de Shannon estimada sob desordem e indexação ($\approx 1{,}83$ bits/nt), frente a um potencial de codificação de 1,98 bits/nt sob restrições físico-químicas de GC e homopolímeros e ao limite teórico irrestrito de $\log_2 4 = 2{,}0$ bits por nucleotídeo.
     
     \item \textbf{Screening biológico integrado}: o processo de descarte e re-sorteio de oligonucleotídeos que violam restrições biológicas (conteúdo GC fora da faixa, homopolímeros longos) é naturalmente absorvido pela propriedade \emph{rateless} dos \emph{fountain codes}, sem penalização estrutural no esquema de codificação.
 \end{itemize}
@@ -68,7 +68,7 @@ Do ponto de vista da codificação, Organick et al. empregaram uma estratégia h
 
 Paralelamente aos avanços experimentais, uma série de trabalhos teóricos buscou formalizar os limites fundamentais do armazenamento de dados em DNA, estabelecendo os tradeoffs entre capacidade, redundância e confiabilidade.
 
-Heckel et al.~\cite{heckel2017} derivaram limites fundamentais para a capacidade do canal de armazenamento em DNA, considerando um modelo no qual as sequências são armazenadas sem ordem e sujeitas a erros de substituição, inserção e deleção. Os autores demonstraram que, para que a capacidade do canal seja positiva, o comprimento dos oligonucleotídeos deve crescer pelo menos logaritmicamente com o número de moléculas armazenadas, e que a perda de informação de ordenação inerente ao processo de sequenciamento afeta a capacidade do canal.
+Heckel et al.~\cite{heckel2017} derivaram limites fundamentais para a capacidade do canal de armazenamento em DNA, considerando um modelo no qual as sequências são armazenadas sem ordem em um pool molecular e sujeitas a amostragem aleatória e erros de mutação. Os autores demonstraram que, para que a capacidade seja positiva, o comprimento dos oligonucleotídeos deve crescer pelo menos logaritmicamente com o número de moléculas armazenadas, formalizando o impacto teórico da perda de ordenação das sequências. Cabe explicitar que esse resultado fornece contexto motivador sobre canais moleculares não ordenados, não atuando como validação física do canal de apagamento binário sem memória (BEC) simplificado adotado nas simulações deste trabalho.
 
 Mais recentemente, Shomorony e Heckel~\cite{shomorony2022} publicaram uma revisão abrangente dos fundamentos teóricos do armazenamento em DNA na série \emph{Foundations and Trends}, consolidando os resultados de teoria da informação aplicáveis ao problema. Esse trabalho formalizou a distinção entre o canal de \emph{sequencing} (onde a informação de ordenação é perdida) e o canal de \emph{storage} (que inclui erros físicos), e estabeleceu limites de capacidade para ambos os cenários. Os autores demonstraram que os esquemas baseados em \emph{fountain codes}, como o DNA Fountain, operam próximos à capacidade teórica do canal quando a taxa de apagamento é moderada.
 
@@ -78,6 +78,8 @@ Esses modelos teóricos de canais de apagamento fornecem limites de referência 
 \label{sec:related_simulators}
 
 Embora o armazenamento de dados em DNA tenha atraído atenção significativa da comunidade científica, a disponibilidade de ferramentas de software abertas, modulares e voltadas à experimentação acadêmica permanece limitada. A seguir, são apresentados os principais esforços identificados na literatura.
+
+No campo dos códigos sem taxa, a otimização de distribuições de graus para mensagens curtas foi investigada pioneiramente por Hyytiä et al.~\cite{hyytia2007}. Os autores analisaram códigos LT para mensagens com pequeno número de blocos em canais de apagamento de telecomunicações, demonstrando analiticamente e heuristicamente que a DRS padrão de Luby perde eficiência em pequenos regimes e propondo distribuições alternativas via programação linear. Esse estudo focou estritamente o canal clássico de redes, sem abranger restrições físico-químicas de viabilidade biológica ou a dinâmica de screening em DNA.
 
 O sistema de armazenamento proposto por Bornholt et al.~\cite{bornholt2016} incluía uma implementação de software para codificação e decodificação, mas o foco do trabalho era a demonstração arquitetural completa (síntese, armazenamento, recuperação), e o código publicado não foi projetado como uma ferramenta reutilizável ou extensível. Os módulos de codificação eram acoplados às decisões específicas do experimento, dificultando a reutilização em contextos com diferentes configurações de parâmetros.
 
@@ -89,21 +91,21 @@ Antkowiak et al.~\cite{antkowiak2020} propuseram uma abordagem de baixo custo co
 
 Erlich e Zielinski~\cite{erlich2017} disponibilizaram o código-fonte de sua implementação em repositório público aberto sob licença GPL-3.0. O software original foi estruturado como um pipeline de alto rendimento composto por módulos em Python 2 e rotinas de desempenho compiladas em Cython (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} e \texttt{receiver.py}). A ferramenta oferece interface de linha de comando que expõe parâmetros como tamanho do bloco, limites de GC (faixa padrão de 45\% a 55\%), probabilidade $\delta$, constante $c$ e quantidade de oligonucleotídeos a gerar. Contudo, essa base foi concebida como artefato de acompanhamento do artigo científico para viabilizar o experimento laboratorial em larga escala (empacotando arquivos de megabytes com $K = 67.088$ segmentos fonte, código externo de Reed-Solomon de 2 bytes de paridade por oligo e cabeçalhos de 32 bits), não tendo como objetivo pedagógico a instrumentação didática passo a passo da dinâmica interna do ripple, o desacoplamento puro em biblioteca padrão ou a execução automatizada de matrizes paramétricas em lote com persistência de métricas detalhadas.
 
-Schwarz e Freisleben~\cite{schwarz2021} apresentaram o \textbf{NOREC4DNA}, um framework moderno de código aberto desenvolvido em Python voltado à exploração de códigos de apagamento sem taxa para armazenamento em DNA. O NOREC4DNA introduziu suporte comparativo não apenas aos códigos LT clássicos, mas também a códigos mais avançados da família de fontes inesgotáveis, como os códigos Raptor e Online. A ferramenta inclui representação de restrições biológicas, simulação de canais ruidosos e interfaces de análise. Trata-se de uma contribuição de grande relevância para a área, focada em fornecer uma plataforma abrangente para avaliação de códigos de alto desempenho.
+Schwarz e Freisleben~\cite{schwarz2021} apresentaram o \textbf{NOREC4DNA}, um framework moderno de código aberto desenvolvido em Python voltado à exploração comparativa de códigos de apagamento sem taxa para armazenamento em DNA. O NOREC4DNA implementa códigos LT, Raptor e Online, oferecendo suporte à distribuição ideal e robusta de soliton, além de distribuições adaptativas programáveis. O framework integra restrições biológicas e simulação de canais ruidosos com erros de substituição e perda. Mais recentemente, Schwarz e Freisleben~\cite{schwarz2024} avançaram na otimização numérica de códigos \emph{fountain} especificamente para o canal de armazenamento em DNA, introduzindo algoritmos para criar distribuições de graus ajustadas aos perfis de erro molecular e restrições de sequência, demonstrando ganhos substanciais de capacidade e confiabilidade frente às distribuições genéricas.
 
 \section{Lacuna Identificada e Posicionamento do Trabalho}
 \label{sec:identified_gap}
 
-A revisão do estado da arte evidencia que as soluções existentes se dividem entre artefatos de replicação laboratorial em larga escala (como o DNA Fountain original) e frameworks voltados à comparação de códigos de canal avançados (como o NOREC4DNA). Permanece, contudo, um espaço relevante para abordagens voltadas à Engenharia de Software didática e à experimentação controlada em regimes de blocos finitos.
+A revisão do estado da arte evidencia que as soluções existentes dividem-se entre artefatos de replicação laboratorial em larga escala (como o DNA Fountain original~\cite{erlich2017}), estudos analíticos de códigos curtos em telecomunicações puras~\cite{hyytia2007} e frameworks comparativos amplos focados em códigos sem taxa avançados e otimizações heurísticas de distribuição~\cite{schwarz2021, schwarz2024}.
 
-Neste cenário, a contribuição central deste trabalho não pretende competir em vazão assintótica com implementações em Cython ou frameworks com códigos Raptor, mas sim:
+A lacuna explorada neste trabalho reside na caracterização integrada e instrumentada do pipeline simplificado de DNA Fountain sob a ótica da Engenharia de Software. Em contraste com a complexidade arquitetural do NOREC4DNA e dos pipelines laboratoriais compilados em Cython, a contribuição central deste trabalho visa:
 
 \begin{enumerate}
-    \item \textbf{Implementação Didática e Autocontida}: Construir uma implementação orientada a objetos em Python~3 contemporâneo que depende exclusivamente da biblioteca padrão (sem exigir extensões compiladas em C ou Cython), viabilizando execução imediata e reprodutível em qualquer ambiente;
+    \item \textbf{Implementação Didática, Modular e Autocontida}: Construir uma implementação orientada a objetos em Python~3 contemporâneo que depende exclusivamente da biblioteca padrão (sem exigir extensões compiladas em C ou Cython), viabilizando execução imediata e reprodutível no ambiente declarado;
     
-    \item \textbf{Instrumentação Analítica Fina}: Expor detalhadamente a mecânica interna do \emph{peeling decoder}, registrando o histórico temporal da fila do \emph{ripple}, a contagem exata de operações XOR por bloco e o comportamento do grafo iterativo;
+    \item \textbf{Instrumentação Analítica Fina do Peeling}: Expor detalhadamente a mecânica interna do decodificador por peeling, registrando o histórico temporal passo a passo da fila do \emph{ripple}, a contagem exata de operações XOR por bloco fonte e as transições de grau dos droplets no grafo bipartido;
     
-    \item \textbf{Investigação do Regime de Poucos Blocos ($K \le 64$)}: Caracterizar empiricamente os efeitos de tamanho finito, nos quais a DRS clássica sofre deslocamento de pico e potenciais degenerações, fornecendo dados para o entendimento de pequenas mensagens e arquivos fragmentados;
+    \item \textbf{Avaliação Experimental Integrada em Pequenos Blocos ($K \le 64$)}: Caracterizar empiricamente o comportamento conjunto da DRS clássica sob restrições físico-químicas de screening biológico e canais de apagamento estocástico em uma grade fatorial de 216 configurações, mapeando as transições de pico de $\tau(d)$ e as condições de esgotamento do ripple;
     
     \item \textbf{Infraestrutura Experimental em Lote}: Disponibilizar scripts padronizados para execução de matrizes multidimensionais de parâmetros com controle determinístico de sementes e exportação estruturada em CSV.
 \end{enumerate}
@@ -120,7 +122,7 @@ A Tabela~\ref{tab:comparacao_especificacao} compara as decisões técnicas do DN
         \textbf{Característica} & \textbf{DNA Fountain Original~\cite{erlich2017}} & \textbf{Simulador Deste Trabalho} \\
         \midrule
         Linguagem & Python 2.7 e Cython (módulos C) & Python 3.12 puro (biblioteca padrão) \\
-        Licença & GPL-3.0 & Aberto (didático) \\
+        Licença & GPL-3.0 & Código Aberto (Licença MIT) \\
         Código externo & Reed-Solomon (2 bytes/oligo) & Validação complementar por CRC-8 \\
         Tamanho da seed & 32 bits (4 bytes) no cabeçalho & 16 bits (2 bytes) com máscara XOR \\
         Regime alvo ($K$) & Larga escala ($K = 67.088$, 72.000 oligos) & Poucos blocos ($K \in \{16, 32, 64\}$) \\
