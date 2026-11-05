@@ -203,17 +203,33 @@ com $\alpha = 0{,}05$ e $Q_{\text{Beta}}(p; a, b)$ denotando o quantil de ordem 
 
 Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), foram utilizados fluxos pseudoaleatórios distintos, sem pareamento deliberado entre configurações, tratados como amostras independentes na análise estatística. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
 
-\section{Reprodutibilidade}
+\section{Reprodutibilidade e Rastreabilidade Experimental}
 \label{sec:reproducibility}
 
-A reprodutibilidade dos experimentos apoia-se em quatro medidas metodológicas fundamentais:
+A reprodutibilidade dos experimentos apoia-se em cinco medidas metodológicas fundamentais:
 
 \begin{enumerate}
-    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython 3.12.7), com as seeds e arquivos CSV fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas de amostragem do módulo \texttt{random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
+    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython~3.12.7), com as seeds e arquivos fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas internas de amostragem do módulo \texttt{random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
 
-    \item \textbf{Registro integral em CSV}: Os dados de cada bateria são exportados em arquivos CSV (\texttt{resultados\_10.csv}, \texttt{resultados\_30.csv}, \texttt{resultados\_100.csv}), contendo para cada ponto paramétrico os hiperparâmetros e as métricas amostradas.
+    \item \textbf{Distinção entre dados agregados e registros individuais}:
+    \begin{itemize}
+        \item \emph{Matrizes de resultados agregados}: Os dados de cada bateria fatorial estão consolidados nos arquivos \texttt{resultados\_10.csv}, \texttt{resultados\_}\allowbreak\texttt{30.csv} e \texttt{resultados\_}\allowbreak\texttt{100.csv}, contendo exatamente 216 linhas cada. Cada linha sintetiza as médias, desvios e taxas observadas sobre as $n$ repetições independentes daquele ponto paramétrico fatorial;
+        \item \emph{Registros individuais de custo}: O arquivo \texttt{tempos\_brutos\_decodificacao.json} armazena individualmente as 100 medições de tempo e contagens de XOR obtidas para cada quantidade de blocos $K \in \{16, 32, 64\}$ na validação de desempenho;
+        \item \emph{Registros de auditoria de falhas}: O arquivo \texttt{falhas\_k16.json} documenta individualmente as 10 repetições com falha observadas no cenário baseline de $K=16$;
+        \item \emph{Histograma do ensaio de screening}: O arquivo \texttt{screening\_qui\_quadrado.json} registra as contagens observadas e esperadas nas 18 classes do teste de aderência $\chi^2$ para os 2.000 oligonucleotídeos candidatos avaliados.
+    \end{itemize}
 
-    \item \textbf{Independência de bibliotecas proprietárias}: O simulador utiliza exclusivamente módulos padrão do interpretador CPython, permitindo replicação direta sem dependências compiladas externas.
+    \item \textbf{Automação e regeneração de artefatos}: A execução completa dos experimentos e a geração dos artefatos documentais são governadas por scripts Python dedicados:
+    \begin{itemize}
+        \item Execução da grade fatorial: \texttt{python run\_experiments.py};
+        \item Estatísticas temporais e de custo: \texttt{python salvar\_estatisticas\_custo.py};
+        \item Análise de falhas em $K=16$: \texttt{python analisar\_falhas\_k16.py};
+        \item Geração de gráficos vetoriais: \texttt{python gerar\_graficos.py};
+        \item Geração do diagrama arquitetural: \texttt{python gerar\_diagrama\_arquitetura.py};
+        \item Execução da suíte de testes: \texttt{python -m pytest tests/}.
+    \end{itemize}
+
+    \item \textbf{Independência de bibliotecas proprietárias}: O simulador utiliza exclusivamente módulos da biblioteca padrão do interpretador CPython, permitindo replicação direta sem dependências compiladas externas.
     
-    \item \textbf{Disponibilização do código e dados}: Os scripts de automação dos ensaios em lote, as matrizes de dados brutos consolidadas em formato CSV e todos os módulos do simulador estão publicamente disponíveis no repositório GitHub do projeto: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+    \item \textbf{Disponibilização do código sob versão imutável}: Todos os módulos do simulador, scripts de instrumentação e bases de dados experimentais estão versionados e publicamente acessíveis no repositório GitHub do projeto: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. Os resultados apresentados nesta monografia correspondem à versão identificada pelo commit \texttt{bb2f0ab}, documentada no arquivo \texttt{README.md} do repositório.
 \end{enumerate}

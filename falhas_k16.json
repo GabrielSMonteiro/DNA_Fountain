@@ -1,0 +1,64 @@
+[
+  {
+    "repeticao": 3,
+    "recuperados": 3,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 18,
+    "recuperados": 0,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 32,
+    "recuperados": 0,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 41,
+    "recuperados": 2,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 60,
+    "recuperados": 6,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 72,
+    "recuperados": 4,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 83,
+    "recuperados": 2,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 85,
+    "recuperados": 15,
+    "blocos_isolados_grau0": [
+      1
+    ],
+    "categoria": "isolamento_inicial"
+  },
+  {
+    "repeticao": 86,
+    "recuperados": 0,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  },
+  {
+    "repeticao": 94,
+    "recuperados": 5,
+    "blocos_isolados_grau0": [],
+    "categoria": "stopping_set_esgotamento_ripple"
+  }
+]

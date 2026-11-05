@@ -90,7 +90,7 @@ Os requisitos não-funcionais estabelecem as restrições de qualidade e arquite
 
     \item \textbf{RNF03 --- Extensibilidade}: Todos os hiperparâmetros do pipeline devem ser centralizados em uma estrutura unificada e tipada, facilitando a adição de novos canais ou distribuições sem modificar o núcleo do sistema.
 
-    \item \textbf{RNF04 --- Desempenho Computacional}: A decodificação deve utilizar estruturas de dados indexadas com busca em tempo constante $O(1)$ na tabela de adjacência reversa, evitando varreduras lineares redundantes, enquanto o custo de propagação por XOR permanece proporcional aos graus dos nós conectados.
+    \item \textbf{RNF04 --- Desempenho Computacional}: A decodificação deve utilizar busca indexada de custo esperado $O(1)$ na tabela reversa de adjacências baseada em dicionário (\emph{hash table}), evitando varreduras lineares redundantes, enquanto o custo de propagação por XOR permanece proporcional ao número de arestas incidentes afetadas.
 
     \item \textbf{RNF05 --- Legibilidade de Código}: O código-fonte deve seguir as convenções do PEP~8, utilizar \emph{type hints} para tipagem estática opcional e incluir documentação contextual, atendendo ao propósito didático do trabalho.
 
@@ -124,8 +124,8 @@ O código-fonte do simulador foi organizado no pacote Python \texttt{dna\_founta
 
     \item \textbf{\texttt{lt\_codec.py}}: Contém duas classes centrais:
     \begin{itemize}
-        \item \texttt{DNAFountainEncoder}: Realiza a segmentação da carga útil, a geração de droplets por combinação XOR dos blocos selecionados, a composição do cabeçalho com a \emph{seed} ofuscada, a aplicação opcional de \emph{scrambling} e CRC-8, a conversão para DNA e o screening biológico com descarte e re-sorteio.
-        \item \texttt{DNAFountainDecoder}: Implementa o \emph{peeling decoder}, incluindo a extração da \emph{seed} do cabeçalho, a verificação de CRC, a regeneração dos índices, a construção do índice reverso (\texttt{por\_bloco}) e a decodificação iterativa com rastreamento do \emph{ripple}.
+        \item \texttt{DNAFountain}\allowbreak\texttt{Encoder}: Coordena o pré-processamento via \texttt{MessageProcessor}, sintetiza droplets por combinação XOR, compõe o cabeçalho com a \emph{seed} ofuscada, aplica opcionalmente \emph{scrambling} e CRC-8, converte em DNA e executa o screening biológico com descarte determinístico.
+        \item \texttt{DNAFountain}\allowbreak\texttt{Decoder}: Implementa o \emph{peeling decoder}, incluindo a extração da \emph{seed} do cabeçalho, a verificação de CRC, a regeneração dos índices, a construção do índice reverso (\texttt{por\_bloco}) e a decodificação iterativa com rastreamento do \emph{ripple}.
     \end{itemize}
 
     \item \textbf{\texttt{screening.py}}: Implementa a classe \texttt{BiologicalScreening} com validadores configuráveis para conteúdo GC (\texttt{calcular\_gc}) e comprimento máximo de homopolímeros (\texttt{maior\_homopolimero}), retornando \texttt{True} ou \texttt{False} para cada sequência de DNA avaliada.
@@ -234,21 +234,21 @@ Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do
 
 \subsection{Mecanismo de Scrambling e Auto-Inversão}
 
-Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $m$ inicializada pela própria \emph{seed} do droplet e combina os bytes via operação XOR:
+Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $\mathbf{s}$ inicializada pela própria \emph{seed} do droplet e combina os bytes via operação XOR:
 \begin{equation}
     \label{eq:scramble}
-    y_{\text{scrambled}} = y \oplus m(\text{seed})
+    y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})
 \end{equation}
-A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre $GF(2)$: como $(x \oplus m) \oplus m = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
+A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre $GF(2)$: como $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
 
 \subsection{Papel e Cobertura do CRC-8 no Pipeline de Enquadramento}
 
-O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $P(x) = x^8 + x^2 + x + 1$ (representação binária \texttt{0x07}) com registrador inicializado em \texttt{0x00}. O checksum CRC-8 cobre a concatenação da \emph{seed} ofuscada de 16 bits com o payload de $L$ bytes após o \emph{scrambling}.
+O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $P(x) = x^8 + x^2 + x + 1$ (representação binária \texttt{0x07}) com registrador inicializado em \texttt{0x00}, sem reflexão de entrada/saída e sem XOR final (compatível com a parametrização padrão CRC-8/SMBus, cujo vetor de teste canônico para a sequência ASCII \texttt{"123456789"} resulta exatamente em \texttt{0xF4}). O checksum CRC-8 cobre a concatenação da \emph{seed} ofuscada de 16 bits com o payload de $L$ bytes após o \emph{scrambling}.
 
 A ordem estrita de operações no codificador segue a seguinte cadeia:
 \begin{enumerate}
     \item Obtenção do payload bruto $y$ via combinação XOR dos blocos fonte incidentes sorteados pela \emph{seed};
-    \item Aplicação do \emph{scrambling} aditivo no payload: $y_{\text{scrambled}} = y \oplus m(\text{seed})$;
+    \item Aplicação do \emph{scrambling} aditivo no payload: $y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})$;
     \item Ofuscação da \emph{seed} de 16 bits (em formato \emph{big-endian}) por meio de XOR com a máscara estática: $\text{seed}_{\text{ofuscada}} = \text{seed} \oplus \texttt{0x1B1B}$;
     \item Cálculo do byte de CRC-8 sobre os $L + 2$ bytes resultantes da concatenação $(\text{seed}_{\text{ofuscada}} \Vert y_{\text{scrambled}})$;
     \item Composição do pacote em bytes contíguos:
@@ -258,7 +258,7 @@ A ordem estrita de operações no codificador segue a seguinte cadeia:
     totalizando $L + 3$ bytes, subsequentemente convertidos para DNA à taxa de 2 bits por base.
 \end{enumerate}
 
-No decodificador, o processo realiza a inversão simétrica: a sequência de DNA é reconvertida em bytes; o CRC-8 é recalculado sobre os $L + 2$ primeiros bytes e comparado ao byte final (descartando-se o pacote caso haja divergência); a \emph{seed} original é recuperada desfazendo-se a ofuscação ($\text{cabeçalho} \oplus \texttt{0x1B1B}$); o payload bruto $y$ é reconstituído pela auto-inversão do \emph{scrambling} ($y_{\text{scrambled}} \oplus m(\text{seed})$); e a \emph{seed} recuperada é utilizada para regenerar deterministicamente o grau e os índices dos blocos combinados.
+No decodificador, o processo realiza a inversão simétrica: a sequência de DNA é reconvertida em bytes; o CRC-8 é recalculado sobre os $L + 2$ primeiros bytes e comparado ao byte final (descartando-se o pacote caso haja divergência); a \emph{seed} original é recuperada desfazendo-se a ofuscação ($\text{cabeçalho} \oplus \texttt{0x1B1B}$); o payload bruto $y$ é reconstituído pela auto-inversão do \emph{scrambling} ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$); e a \emph{seed} recuperada é utilizada para regenerar deterministicamente o grau e os índices dos blocos combinados.
 
 Ressalta-se que o CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado neste trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
 \begin{itemize}
@@ -282,7 +282,7 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 
 \subsection{Dimensionamento de Cabeçalho, Framing e Densidade da Biblioteca}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
 
 Cada oligonucleotídeo sintético do protótipo é estruturado pelo seguinte \emph{framing} binário:
 \begin{equation}
@@ -373,4 +373,4 @@ Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram exe
     \end{tabular}
 \end{table}
 
-Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte, confirmando a consistência dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.
+Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte. A execução integral da suíte de 10 testes é realizada via comando \texttt{python -m pytest tests/}, alcançando 100\% de aprovação em aproximadamente 0{,}05 segundos na versão sob commit \texttt{bb2f0ab}, confirmando a conformidade dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.

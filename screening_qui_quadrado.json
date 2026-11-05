@@ -1,0 +1,106 @@
+{
+  "ensaio": "Screening Biológico - Aderência Qui-Quadrado",
+  "parametros": {
+    "K": 32,
+    "c": 0.1,
+    "delta": 0.1,
+    "candidatos": 2000,
+    "seed_ensaio": 41
+  },
+  "aceitos": 1195,
+  "rejeitados": 805,
+  "graus_de_liberdade": 17,
+  "chi2_calculado": 24.5057,
+  "tabela_classes": [
+    {
+      "classe": "d=1",
+      "observado": 115,
+      "esperado": 97.52
+    },
+    {
+      "classe": "d=2",
+      "observado": 412,
+      "esperado": 403.32
+    },
+    {
+      "classe": "d=3",
+      "observado": 162,
+      "esperado": 146.88
+    },
+    {
+      "classe": "d=4",
+      "observado": 74,
+      "esperado": 79.66
+    },
+    {
+      "classe": "d=5",
+      "observado": 50,
+      "esperado": 51.53
+    },
+    {
+      "classe": "d=6",
+      "observado": 32,
+      "esperado": 36.84
+    },
+    {
+      "classe": "d=7",
+      "observado": 20,
+      "esperado": 28.09
+    },
+    {
+      "classe": "d=8",
+      "observado": 23,
+      "esperado": 22.4
+    },
+    {
+      "classe": "d=9",
+      "observado": 244,
+      "esperado": 270.31
+    },
+    {
+      "classe": "d=10",
+      "observado": 7,
+      "esperado": 8.13
+    },
+    {
+      "classe": "d=11",
+      "observado": 6,
+      "esperado": 6.65
+    },
+    {
+      "classe": "d=12",
+      "observado": 8,
+      "esperado": 5.55
+    },
+    {
+      "classe": "d in {13,14}",
+      "observado": 7,
+      "esperado": 8.71
+    },
+    {
+      "classe": "d in {15,16}",
+      "observado": 9,
+      "esperado": 6.54
+    },
+    {
+      "classe": "d in {17,18}",
+      "observado": 3,
+      "esperado": 5.08
+    },
+    {
+      "classe": "d in {19-21}",
+      "observado": 6,
+      "esperado": 5.81
+    },
+    {
+      "classe": "d in {22-25}",
+      "observado": 3,
+      "esperado": 5.58
+    },
+    {
+      "classe": "d in {26-32}",
+      "observado": 14,
+      "esperado": 6.4
+    }
+  ]
+}

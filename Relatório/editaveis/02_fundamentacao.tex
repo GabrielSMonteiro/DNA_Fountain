@@ -93,14 +93,14 @@ Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são c
 Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgotável), por outro lado, pertencem à classe de códigos de canal para canais de apagamento de \textbf{taxa variável} (\emph{rateless codes}), não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
 
 \begin{itemize}
-    \item O transmissor pode gerar um fluxo potencialmente ilimitado de pacotes codificados a partir dos $K$ blocos originais, sem necessidade de conhecer previamente a taxa de perda do canal.
+    \item O transmissor pode gerar um fluxo potencialmente inesgotável de pacotes codificados a partir dos $K$ blocos originais, flexibilizando a geração de sequências e o dimensionamento da redundância antes da síntese química.
     
     \item O decodificador é capaz de reconstruir a mensagem com alta probabilidade ao coletar uma quantidade moderada de pacotes válidos, tipicamente $N = K(1 + \epsilon)$, com $\epsilon > 0$. Ao contrário de códigos MDS determinísticos (como Reed-Solomon), a recuperação pelo \emph{peeling decoder} é probabilística e depende da conectividade do grafo estocasticamente formado pelos pacotes recebidos.
     
-    \item Não há necessidade de canal de retorno (\emph{feedback}) entre receptor e transmissor.
+    \item Não há necessidade de canal de retorno (\emph{feedback}) entre receptor e transmissor durante a emissão.
 \end{itemize}
 
-Essas propriedades tornam os \emph{fountain codes} particularmente adequados ao cenário de armazenamento em DNA, no qual o número exato de oligonucleotídeos que sobreviverão aos processos de síntese, armazenamento e sequenciamento não pode ser determinado com antecedência~\cite{erlich2017}.
+Essas propriedades tornam os \emph{fountain codes} vantajosos no planejamento do armazenamento em DNA, no qual o volume exato de oligonucleotídeos que sobreviverão aos processos de síntese, conservação e sequenciamento não pode ser previsto rigidamente. Ressalta-se, contudo, que essa propriedade \emph{rateless} opera na fase de geração digital antes da síntese; uma vez produzida uma biblioteca física fixa de oligonucleotídeos em laboratório, não há criação autônoma de novas moléculas durante a leitura, permanecendo a recuperação condicionada à biblioteca efetivamente armazenada, à profundidade de amostragem no sequenciamento e às perdas moleculares ocorridas.
 
 \section{Códigos LT}
 \label{sec:lt_codes}
@@ -170,20 +170,22 @@ Na prática computacional, especialmente em regimes com número finito e reduzid
     \end{equation}
     Na grade avaliada, a correção do índice bruto zero é ativada nas combinações $(K, c, \delta) \in \{(16; 0{,}8; 0{,}10), (16; 0{,}8; 0{,}01), (32; 0{,}8; 0{,}01)\}$. Por exemplo, para $K = 16$, $c = 0{,}8$ e $\delta = 0{,}10$, obtém-se $R \approx 16{,}241$ e $\lfloor K/R \rfloor = 0$, sendo adotado $m = 1$.
     
-    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria uma probabilidade estritamente negativa em $\tau(m)$, violando os axiomas de Kolmogorov da teoria das probabilidades. Para evitar massas negativas, adota-se a proteção:
+    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria um termo corretivo negativo em $\tau(m)$, fora das condições usuais da construção, motivo pelo qual a implementação adota uma salvaguarda numérica defensiva:
     \begin{equation}
         \label{eq:tau_adaptado}
         \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
     \end{equation}
-    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, de modo que essa salvaguarda específica atua como guarda estrutural do software contra configurações hipotéticas degeneradas.
+    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, de modo que essa salvaguarda atua como guarda estrutural do software contra configurações hipotéticas degeneradas.
 \end{enumerate}
+
+Na implementação computacional, a função corretiva $\tau(d)$ é construída utilizando o índice $m$ após aplicação das salvaguardas das Equações~(\ref{eq:m_adaptado}) e~(\ref{eq:tau_adaptado}), garantindo $1 \le m \le K$ e $\tau(m) \ge 0$ em todos os ramos.
 
 Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
 
 \begin{itemize}
-    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o índice de máximo da função corretiva $\tau(d)$, dado por $m = \lfloor K/R \rfloor$, para graus muito baixos ($m=1$ ou $m=2$). Cabe enfatizar a distinção entre o índice $m$, que maximiza o termo corretivo $\tau(d)$, e a moda global da distribuição $\mu(d)$: para $K = 32$ e $c = 0{,}5$, a translação do pico de $\tau$ para $m=1$ faz com que cerca de 73\% da massa de probabilidade total concentre-se no próprio grau 1, reduzindo expressivamente o grau médio amostrado $\bar{d}$ e privando o sistema de conexões intermediárias. Nas configurações avaliadas, o grau médio amostrado diminuiu quando $c$ passou de 0,1 para 0,8, refletindo a redução discreta de $m$; contudo, isso não estabelece monotonicidade estrita em toda a reta real de $c$, haja vista que pequenas oscilações locais podem surgir para variações infinitesimais nos parâmetros da distribuição.
+    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o índice de máximo da função corretiva $\tau(d)$, dado por $m = \lfloor K/R \rfloor$, para graus muito baixos ($m=1$ ou $m=2$). Cabe enfatizar a distinção entre o índice $m$, que maximiza o termo corretivo $\tau(d)$, e a moda global da distribuição $\mu(d)$: para $K = 32$ e $c = 0{,}5$, a translação do pico de $\tau$ para $m=1$ faz com que cerca de 73\% da massa de probabilidade total concentre-se no próprio grau 1, reduzindo expressivamente o grau médio teórico e privando o sistema de conexões intermediárias. Nas configurações avaliadas, o grau médio amostrado diminuiu quando $c$ passou de 0,1 para 0,8, refletindo a redução discreta de $m$; contudo, isso não estabelece monotonicidade estrita em toda a reta real de $c$, haja vista que pequenas oscilações locais podem surgir para variações infinitesimais nos parâmetros da distribuição.
     
-    \item O parâmetro $\delta$ orienta o dimensionamento assintótico da cauda da distribuição. De acordo com a formalização original de Luby~\cite{luby2002}, ao receber $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets sob a DRS, o processo de decodificação assegura sucesso na recuperação com probabilidade de pelo menos $1 - \delta$ sob as hipóteses assintóticas do modelo. Em regimes finitos com $K$ pequeno e overhead restrito, contudo, $\delta$ atua como um balizador formal de robustez e não como uma garantia determinística incondicional para toda e qualquer instância finita.
+    \item O parâmetro $\delta$ orienta o dimensionamento assintótico da cauda da distribuição. De acordo com a formalização original de Luby~\cite{luby2002}, ao receber $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets sob a DRS, o processo de decodificação assegura sucesso na recuperação com probabilidade de pelo menos $1 - \delta$ sob as hipóteses assintóticas do modelo. A garantia teórica assintótica de Luby é apresentada como referência clássica da teoria; ela não se transfere automaticamente às distribuições empíricas de droplets aceitos após screening biológico nem às configurações em blocos finitos ajustadas pelas salvaguardas.
 \end{itemize}
 
 A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rho(d)$ e $\tau(d)$, dividida pela constante de normalização $\beta$:
@@ -193,11 +195,11 @@ A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rh
     \mu(d) = \frac{\rho(d) + \tau(d)}{\beta}, \quad \text{onde} \quad \beta = \sum_{d=1}^{K} \left[\rho(d) + \tau(d)\right]
 \end{equation}
 
-A distribuição resultante $\mu(d)$ satisfaz $\sum_{d=1}^{K} \mu(d) = 1$ e é utilizada para sortear o grau de cada droplet durante a codificação. O grau médio esperado de um droplet sob essa distribuição é dado por:
+A distribuição resultante $\mu(d)$ satisfaz $\sum_{d=1}^{K} \mu(d) = 1$ e é utilizada para sortear o grau de cada droplet durante a codificação. O grau médio esperado teórico de um droplet sob essa distribuição é formalizado como:
 
 \begin{equation}
     \label{eq:grau_medio}
-    \bar{d} = \sum_{d=1}^{K} d \cdot \mu(d)
+    \mathbb{E}_\mu[D] = \sum_{d=1}^{K} d \cdot \mu(d)
 \end{equation}
 
 Na implementação do simulador, a amostragem de um grau é realizada por meio da função de distribuição acumulada (CDF) de $\mu(d)$: um valor uniforme $u \sim \mathcal{U}(0,1)$ é gerado e o grau $d$ é determinado como o menor valor tal que $\text{CDF}(d) \geq u$. Essa técnica garante que a frequência empírica dos graus sorteados convirja para a distribuição $\mu(d)$ à medida que o número de amostras aumenta.
@@ -230,7 +232,7 @@ O algoritmo pode ser formalizado nos seguintes passos:
     \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, o processo de peeling é interrompido sem recuperar a totalidade dos blocos por ausência de equações residuais de grau 1 na fila (o que não exclui a possibilidade de resolução por eliminação gaussiana sobre $GF(2)$, embora o algoritmo de peeling linear tenha estagnado).
 \end{enumerate}
 
-O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Distingue-se aqui o conceito de \emph{ripple} teórico proposto por Luby~\cite{luby2002} (conjunto de equações ativas de grau 1 que cobrem blocos fonte ainda não descobertos) da fila de processamento instrumentada no simulador (\texttt{collections.deque}), a qual armazena operacionalmente os droplets que atingem grau 1 durante o processo, podendo incluir elementos redundantes associados a blocos já resolvidos.
+O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Na definição original de Luby~\cite{luby2002}, o \emph{ripple} é formalizado como o conjunto de símbolos fonte (variáveis de entrada) cobertos por símbolos codificados liberados, mas ainda não processados pelo decodificador. No presente simulador, a métrica instrumentada corresponde ao comprimento da fila de droplets de grau 1 mantida em memória (\texttt{collections.deque}), a qual armazena operacionalmente os pacotes que atingem grau 1 durante o processo, podendo conter droplets redundantes associados a um mesmo símbolo fonte já desvendado. Essa fila operacional é empregada como indicador prático da dinâmica de decodificação, embora sua cardinalidade não coincida necessariamente com a do ripple teórico original de Luby.
 
 A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
 
@@ -287,7 +289,7 @@ Para avaliar quantitativamente o desempenho do simulador sob diferentes configur
     
     onde $N_{\text{cand}}$ é o número total de candidatos gerados pelo codificador até atingir a cota de $N_{\text{tx}}$ oligos válidos transmitidos.
     
-    \item \textbf{Número de operações XOR}: a contagem total de operações XOR realizadas durante o processo de decodificação por \emph{peeling}. Essa métrica é um indicador direto do custo computacional da decodificação, independente da plataforma de hardware.
+    \item \textbf{Número de operações XOR}: a contagem acumulada de operações XOR executadas pelo decodificador durante o processo de \emph{peeling}. Cada operação contabilizada corresponde à aplicação da operação XOR bit a bit entre dois blocos completos de $L$ bytes ($\texttt{xor\_blocos}$), executada exatamente uma vez por aresta removida no grafo bipartido durante a propagação de vizinhanças. Essa métrica fornece um indicador direto e agnóstico de plataforma para o esforço algorítmico da decodificação.
     
     \item \textbf{Tamanho do ripple}: registrado ao longo dos passos de decodificação, tanto o valor máximo quanto o valor médio. A trajetória do ripple permite analisar a estabilidade da decodificação e identificar pontos de estagnação.
     
