@@ -1,16 +1,22 @@
 \begin{simbolos}
   \item[$K$] Número de blocos ou pacotes fonte originais
-  \item[$N$] Número de droplets codificados gerados
+  \item[$N$] Número total de droplets codificados
+  \item[$N_{\text{cand}}$] Número de oligonucleotídeos candidatos gerados antes do screening
+  \item[$N_{\text{tx}}$] Número de oligonucleotídeos codificados transmitidos (aprovados no screening)
+  \item[$N_{\text{rx}}$] Número de oligonucleotídeos recebidos pelo decodificador
   \item[$L$] Comprimento dos segmentos ou blocos fonte em bytes
   \item[$\epsilon$] Sobrecarga de codificação (\emph{overhead}, $\epsilon = (N - K)/K$)
+  \item[$\epsilon_{\text{tx}}$] Overhead nominal de transmissão ($\epsilon_{\text{tx}} = (N_{\text{tx}} - K)/K$)
+  \item[$\epsilon_{\text{rx}}$] Overhead efetivo recebido ($\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$)
   \item[$d$] Grau do droplet (quantidade de blocos fonte combinados)
   \item[$\bar{d}$] Grau médio empírico ou teórico dos droplets
+  \item[{$\mathbb{E}_\mu[D]$}] Grau médio teórico da Distribuição Robusta de Soliton
   \item[$\rho(d)$] Função de probabilidade da Distribuição Ideal de Soliton
   \item[$\tau(d)$] Termo corretivo da Distribuição Robusta de Soliton
   \item[$\mu(d)$] Função de probabilidade normalizada da Distribuição Robusta de Soliton
-  \item[$\beta$] Fator de normalização da Distribuição Robusta de Soliton ($\beta = \sum_{d=1}^K (\rho(d) + \tau(d))$)
+  \item[$\beta$] Fator de normalização da DRS ($\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$)
   \item[$c$] Parâmetro livre de sintonia da DRS ($c > 0$)
-  \item[$\delta$] Parâmetro de robustez teórica da DRS (limitador assintótico da probabilidade de falha sob overhead $K + O(\sqrt{K}\ln^2(K/\delta))$)
+  \item[$\delta$] Parâmetro de robustez teórica da DRS (limitador assintótico da probabilidade de falha sob o número de pacotes recebidos $K + O(\sqrt{K}\ln^2(K/\delta))$)
   \item[$R$] Parâmetro de escala associado ao tamanho esperado do \emph{ripple} ($R = c \ln(K/\delta)\sqrt{K}$)
   \item[$m$] Índice de máximo do componente corretivo $\tau(d)$ da DRS ($m = \lfloor K/R \rfloor$)
   \item[$R_{\text{screen}}$] Taxa de rejeição do módulo de screening biológico

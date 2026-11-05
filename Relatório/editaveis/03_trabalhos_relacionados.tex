@@ -27,7 +27,7 @@ Contudo, a redundância por sobreposição apresentava uma taxa fixa, definida e
 
 \subsection{Grass et al. (2015)}
 
-Grass et al.~\cite{grass2015} abordaram o problema do armazenamento de longo prazo sob uma perspectiva distinta, focando na preservação física do DNA por meio do encapsulamento em microesferas de sílica. Do ponto de vista da codificação, os autores empregaram códigos de Reed-Solomon sobre o corpo finito $GF(47)$ (utilizando mapeamento de trits para bases nitrogenadas), organizados em dois níveis: um código interno para corrigir erros dentro de cada oligonucleotídeo e um código externo para recuperar oligonucleotídeos inteiros perdidos.
+Grass et al.~\cite{grass2015} abordaram o problema do armazenamento de longo prazo sob uma perspectiva distinta, focando na preservação física do DNA por meio do encapsulamento em microesferas de sílica. Do ponto de vista da codificação, os autores empregaram códigos de Reed-Solomon sobre o corpo finito $GF(47)$ (utilizando mapeamento de elementos do corpo para tripletos de bases nitrogenadas, evitando repetições de homopolímeros), organizados em dois níveis: um código interno para corrigir erros dentro de cada oligonucleotídeo e um código externo para recuperar oligonucleotídeos inteiros perdidos.
 
 Essa abordagem hierárquica de correção de erros representou um avanço em relação aos esquemas anteriores, pois tratava separadamente os erros de substituição (corrigidos pelo código interno) e os apagamentos de sequências inteiras (corrigidos pelo código externo). Os autores demonstraram experimentalmente a recuperação sem erros de 83 kilobytes de dados após armazenamento acelerado equivalente a 2.000 anos em condições ambientais.
 
@@ -79,7 +79,7 @@ Esses modelos teóricos de canais de apagamento fornecem limites de referência 
 
 Embora o armazenamento de dados em DNA tenha atraído atenção significativa da comunidade científica, a disponibilidade de ferramentas de software abertas, modulares e voltadas à experimentação acadêmica permanece limitada. A seguir, são apresentados os principais esforços identificados na literatura.
 
-No campo dos códigos sem taxa, a otimização de distribuições de graus para mensagens curtas foi investigada pioneiramente por Hyytiä et al.~\cite{hyytia2007}. Os autores analisaram códigos LT para mensagens com pequeno número de blocos em canais de apagamento de telecomunicações, demonstrando analiticamente e heuristicamente que a DRS padrão de Luby perde eficiência em pequenos regimes e propondo distribuições alternativas via programação linear. Esse estudo focou estritamente o canal clássico de redes, sem abranger restrições físico-químicas de viabilidade biológica ou a dinâmica de screening em DNA.
+No campo dos códigos sem taxa, a otimização de distribuições de graus para mensagens curtas foi investigada pioneiramente por Hyytiä et al.~\cite{hyytia2007}. Os autores analisaram códigos LT para mensagens com pequeno número de blocos em canais de apagamento de telecomunicações, demonstrando analiticamente e heuristicamente que a DRS padrão de Luby perde eficiência em pequenos regimes e propondo distribuições alternativas via modelagem por cadeias de Markov absorventes e otimização heurística combinatória recursiva. Esse estudo focou estritamente o canal clássico de redes, sem abranger restrições físico-químicas de viabilidade biológica ou a dinâmica de screening em DNA.
 
 O sistema de armazenamento proposto por Bornholt et al.~\cite{bornholt2016} incluía uma implementação de software para codificação e decodificação, mas o foco do trabalho era a demonstração arquitetural completa (síntese, armazenamento, recuperação), e o código publicado não foi projetado como uma ferramenta reutilizável ou extensível. Os módulos de codificação eram acoplados às decisões específicas do experimento, dificultando a reutilização em contextos com diferentes configurações de parâmetros.
 
@@ -89,7 +89,7 @@ Chandak et al.~\cite{chandak2019} investigaram o uso de códigos LDPC (\emph{Low
 
 Antkowiak et al.~\cite{antkowiak2020} propuseram uma abordagem de baixo custo combinando síntese por fotolitografia com algoritmos avançados de reconstrução. O software de reconstrução desenvolvido incluía mecanismos sofisticados de alinhamento e correção, mas era especializado para o pipeline específico descrito no artigo e não oferecia modularidade para substituição de componentes individuais.
 
-Erlich e Zielinski~\cite{erlich2017} disponibilizaram o código-fonte de sua implementação em repositório público aberto sob licença GPL-3.0. O software original foi estruturado como um pipeline de alto rendimento composto por módulos em Python 2 e rotinas de desempenho compiladas em Cython (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} e \texttt{receiver.py}). A ferramenta oferece interface de linha de comando que expõe parâmetros como tamanho do bloco, limites de GC (faixa padrão de 45\% a 55\%), probabilidade $\delta$, constante $c$ e quantidade de oligonucleotídeos a gerar. Contudo, essa base foi concebida como artefato de acompanhamento do artigo científico para viabilizar o experimento laboratorial em larga escala (empacotando arquivos de megabytes com $K = 67.088$ segmentos fonte, código externo de Reed-Solomon de 2 bytes de paridade por oligo e cabeçalhos de 32 bits), não tendo como objetivo pedagógico a instrumentação didática passo a passo da dinâmica interna do ripple, o desacoplamento puro em biblioteca padrão ou a execução automatizada de matrizes paramétricas em lote com persistência de métricas detalhadas.
+Erlich e Zielinski~\cite{erlich2017} disponibilizaram o código-fonte de sua implementação em repositório público aberto sob licença GPL-3.0. O software original foi estruturado como um pipeline de alto rendimento composto por módulos em Python 2 e rotinas de desempenho compiladas em Cython (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} e \texttt{receiver.py}). A ferramenta oferece interface de linha de comando que expõe parâmetros como tamanho do bloco, limites de GC (faixa padrão de 45\% a 55\%), probabilidade $\delta$, constante $c$ e quantidade de oligonucleotídeos a gerar. Contudo, essa base foi concebida como artefato de acompanhamento do artigo científico para viabilizar o experimento laboratorial em larga escala (empacotando arquivos de megabytes com $K = 67.088$ segmentos fonte, código interno de Reed-Solomon de 2 bytes de paridade por oligo e cabeçalhos de 32 bits), não tendo como objetivo pedagógico a instrumentação didática passo a passo da dinâmica interna do ripple, o desacoplamento puro em biblioteca padrão ou a execução automatizada de matrizes paramétricas em lote com persistência de métricas detalhadas.
 
 Schwarz e Freisleben~\cite{schwarz2021} apresentaram o \textbf{NOREC4DNA}, um framework moderno de código aberto desenvolvido em Python voltado à exploração comparativa de códigos de apagamento sem taxa para armazenamento em DNA. O NOREC4DNA implementa códigos LT, Raptor e Online, oferecendo suporte à distribuição ideal e robusta de soliton, além de distribuições adaptativas programáveis. O framework integra restrições biológicas e simulação de canais ruidosos com erros de substituição e perda. Mais recentemente, Schwarz e Freisleben~\cite{schwarz2024} avançaram na otimização numérica de códigos \emph{fountain} especificamente para o canal de armazenamento em DNA, introduzindo algoritmos para criar distribuições de graus ajustadas aos perfis de erro molecular e restrições de sequência, demonstrando ganhos substanciais de capacidade e confiabilidade frente às distribuições genéricas.
 
@@ -117,13 +117,15 @@ A Tabela~\ref{tab:comparacao_especificacao} compara as decisões técnicas do DN
     \small
     \caption{Comparação técnica entre o DNA Fountain original e o simulador deste trabalho.}
     \label{tab:comparacao_especificacao}
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{lp{5.5cm}p{5.5cm}}
         \toprule
         \textbf{Característica} & \textbf{DNA Fountain Original~\cite{erlich2017}} & \textbf{Simulador Deste Trabalho} \\
         \midrule
         Linguagem & Python 2.7 e Cython (módulos C) & Python 3.12 puro (biblioteca padrão) \\
         Licença & GPL-3.0 & Código Aberto (Licença MIT) \\
-        Código externo & Reed-Solomon (2 bytes/oligo) & Validação complementar por CRC-8 \\
+        Código interno (por oligo) & Reed-Solomon (2 bytes/oligo) & Validação complementar por CRC-8 \\
+        Código externo (entre blocos) & Código LT (DRS) & Código LT (DRS) \\
         Tamanho da seed & 32 bits (4 bytes) no cabeçalho & 16 bits (2 bytes) com máscara XOR \\
         Regime alvo ($K$) & Larga escala ($K = 67.088$, 72.000 oligos) & Poucos blocos ($K \in \{16, 32, 64\}$) \\
         Faixa de GC & 45\% a 55\% & 40\% a 60\% \\
@@ -131,5 +133,6 @@ A Tabela~\ref{tab:comparacao_especificacao} compara as decisões técnicas do DN
         Propósito central & Pipeline laboratorial de síntese real & Instrumentação analítica e didática \\
         Métricas coletadas & Reconstrução do arquivo de entrada & XORs, fila do ripple, tempos e perdas \\
         \bottomrule
-    \end{tabular}
+    \end{tabular}%
+    }
 \end{table}

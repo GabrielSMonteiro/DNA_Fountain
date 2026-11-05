@@ -21,9 +21,9 @@ Essa escolha deliberada de depender exclusivamente da biblioteca padrão do Pyth
 
 Em consonância com a delimitação de escopo estabelecida no Capítulo~\ref{chap:introduction}, o canal de transmissão é modelado sob as seguintes hipóteses operacionais:
 \begin{enumerate}
-    \item \textbf{Canal de Apagamento Estocástico Puro (BEC)}: Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$;
+    \item \textbf{Canal de Apagamento Estocástico Puro (BEC)}: Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$, de modo que a quantidade de droplets recebidos segue uma distribuição binomial $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
     \item \textbf{Integridade dos Pacotes Sobreviventes}: Os oligonucleotídeos que sobrevivem ao canal chegam ao decodificador com integridade lógica perfeita, sem mutações de substituição, inserções ou deleções pontuais;
-    \item \textbf{Descarte no Screening como Apagamento Prévio}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador, demandando novas sementes para atingir o volume $N$ estipulado.
+    \item \textbf{Rejeição Prévia no Screening com Reposição}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador e sorteadas novamente com novas sementes com reposição até que o volume estipulado de $N_{\text{tx}}$ oligonucleotídeos aprovados seja transmitido. Esse descarte de candidatos não se confunde com o apagamento estocástico do canal.
 \end{enumerate}
 
 \section{Variáveis Independentes}
@@ -59,7 +59,7 @@ As variáveis dependentes são as métricas de saída coletadas pelo simulador e
 
     \item \textbf{Número total de operações XOR}: Soma acumulada das operações de combinação e propagação executadas durante o \emph{peeling}, servindo como proxy do custo computacional da decodificação.
 
-    \item \textbf{Tamanho máximo e mínimo do ripple}: Valores extremos do comprimento da fila de pacotes processáveis (\emph{ripple}) ao longo da decodificação, indicando a estabilidade do processo e a proximidade de eventos de colapso.
+    \item \textbf{Tamanho da fila do ripple}: Comprimento da fila operacional de droplets processáveis (\emph{ripple}) monitorado a cada passo da decodificação. O valor máximo ($R_{\max}$) registra o pico de droplets unitários simultâneos na fila, enquanto o valor mínimo ($R_{\min}$) reflete a condição de guarda operacional durante o laço ativo de processamento.
 
     \item \textbf{Tempo de decodificação}: Intervalo de tempo em milissegundos consumido pelo método \texttt{decoder.decodificar()}, medido via \texttt{time.perf\_counter()} com resolução de microssegundos.
 \end{itemize}
@@ -183,7 +183,7 @@ A Tabela~\ref{tab:cenarios_experimentais} sintetiza os cinco cenários avaliados
 \section{Repetições e Procedimentos Estatísticos}
 \label{sec:repetitions_and_statistics}
 
-Para garantir significância estatística dos resultados, cada ponto paramétrico da grade principal é executado 100 vezes de forma independente ($n = 100$). A suíte disponibiliza três patamares de repetição ($n \in \{10, 30, 100\}$), sendo o nível de 100 repetições utilizado para as análises consolidadas, totalizando 21.600 execuções completas.
+Cada configuração foi executada 100 vezes para estimar a frequência de recuperação e sua incerteza amostral. A suíte disponibiliza três patamares de repetição ($n \in \{10, 30, 100\}$), sendo o nível de 100 repetições utilizado para as análises consolidadas, totalizando 21.600 execuções completas.
 
 Para cada métrica contínua reportada (tempo de decodificação e contagem de operações XOR), são calculados:
 \begin{itemize}
@@ -195,16 +195,16 @@ Para cada métrica contínua reportada (tempo de decodificação e contagem de o
 Para a taxa de sucesso na decodificação (variável binária associada a $n$ ensaios de Bernoulli), além da frequência observada $\hat{p} = k/n$, foram calculados intervalos de confiança exatos de Clopper--Pearson ao nível de 95\%, derivados dos quantis da distribuição Beta:
 \begin{equation}
     \label{eq:clopper_pearson}
-    \text{IC}_{95\%} = \left[ B\left(\frac{\alpha}{2}; k, n - k + 1\right), \; B\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
+    \text{IC}_{95\%} = \left[ Q_{\text{Beta}}\!\left(\frac{\alpha}{2}; k, n - k + 1\right), \; Q_{\text{Beta}}\!\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
 \end{equation}
-com $\alpha = 0{,}05$. Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
+com $\alpha = 0{,}05$ e $Q_{\text{Beta}}(p; a, b)$ denotando o quantil de ordem $p$ da distribuição Beta com parâmetros $a$ e $b$. Nos casos de fronteira, adota-se $L = 0$ quando $k = 0$ (nenhum sucesso) e $U = 1$ quando $k = n$ (sucesso total). Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
 
-Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), as baterias de ensaios entre diferentes configurações constituem sequências pseudoaleatórias independentes (amostras independentes de Bernoulli), satisfazendo os pressupostos clássicos do teste de Fisher sobre tabelas de contingência $2 \times 2$. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
+Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), foram utilizados fluxos pseudoaleatórios distintos, sem pareamento deliberado entre configurações, tratados como amostras independentes na análise estatística. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
 
 \section{Reprodutibilidade}
 \label{sec:reproducibility}
 
-A reprodutibilidade dos experimentos apoia-se em três pilares:
+A reprodutibilidade dos experimentos apoia-se em quatro medidas metodológicas fundamentais:
 
 \begin{enumerate}
     \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython 3.12.7), com as seeds e arquivos CSV fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas de amostragem do módulo \texttt{random}. Medições de tempo físico de CPU refletem a carga do sistema operacional e apresentam variações normais entre execuções.

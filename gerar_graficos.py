@@ -198,10 +198,10 @@ print('Figura 4 (grafico_resiliencia) gerada.')
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
 
 ks_num = [16, 32, 64]
-tempos_med = [2.05, 4.57, 7.45]
-tempos_std = [0.58, 0.67, 1.11]
-tempos_min = [1.29, 2.54, 5.25]
-tempos_max = [4.49, 5.74, 9.89]
+tempos_med = [0.84, 1.79, 3.60]
+tempos_std = [0.04, 0.12, 0.19]
+tempos_min = [0.71, 1.65, 3.35]
+tempos_max = [0.99, 2.48, 4.51]
 
 xors_totais = [107.6, 270.8, 688.4]
 xors_por_bloco = [107.6 / 16, 270.8 / 32, 688.4 / 64]

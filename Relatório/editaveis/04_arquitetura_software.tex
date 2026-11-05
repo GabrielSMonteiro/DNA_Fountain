@@ -26,7 +26,7 @@ Os requisitos funcionais definem as operações que o simulador deve executar ao
 
     \item \textbf{RF06 --- Simulação de Canal com Perda Estocástica}: O software deve submeter os oligonucleotídeos validados a um canal de apagamento i.i.d., descartando pacotes com probabilidade configurável $p_{\text{loss}}$.
 
-    \item \textbf{RF07 --- Decodificação por Peeling Incremental}: O decodificador deve extrair a \emph{seed} do cabeçalho de cada oligonucleotídeo recebido, regenerar os índices dos blocos associados, construir o índice reverso e executar o \emph{peeling decoder}, registrando a evolução do \emph{ripple}, o total de operações XOR e a integridade da mensagem reconstruída.
+    \item \textbf{RF07 --- Decodificação por Peeling Iterativo}: O decodificador deve extrair a \emph{seed} do cabeçalho de cada oligonucleotídeo recebido, regenerar os índices dos blocos associados, construir o índice reverso e executar o \emph{peeling decoder}, registrando a evolução do \emph{ripple}, o total de operações XOR e a integridade da mensagem reconstruída.
 
     \item \textbf{RF08 --- Coleta de Métricas Estatísticas}: O sistema deve coletar e exportar métricas de taxa de sucesso, overhead efetivo, taxa de rejeição no screening, operações XOR, dinâmica do ripple, blocos recuperados e tempo de processamento, consolidando os dados em arquivos CSV para análise posterior.
 \end{itemize}
@@ -48,10 +48,35 @@ A Tabela~\ref{tab:requisitos_funcionais} sintetiza os requisitos funcionais e su
         RF04 & Converter bytes em sequências de DNA (2 bits/base). \\
         RF05 & Aplicar screening biológico (GC e homopolímero). \\
         RF06 & Simular canal de apagamento com perda estocástica. \\
-        RF07 & Executar decodificação por \emph{peeling} incremental. \\
+        RF07 & Executar decodificação por \emph{peeling} iterativo. \\
         RF08 & Coletar métricas estatísticas e exportar em CSV. \\
         \bottomrule
     \end{tabular}
+\end{table}
+
+A Tabela~\ref{tab:rastreabilidade_requisitos} estabelece a matriz de rastreabilidade de engenharia de software, mapeando formalmente cada requisito funcional aos respectivos componentes de implementação e aos testes automatizados desenvolvidos.
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+    \caption{Matriz de rastreabilidade dos requisitos funcionais do simulador.}
+    \label{tab:rastreabilidade_requisitos}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{cllp{5.5cm}}
+        \toprule
+        \textbf{ID} & \textbf{Módulo de Software} & \textbf{Entidade / Método Central} & \textbf{Procedimento de Validação / Teste} \\
+        \midrule
+        RF01 & \texttt{preprocessing.py} & \texttt{MessageProcessor.preprocessar()} & \texttt{test\_peeling\_canal\_ideal} (segmentação) \\
+        RF02 & \texttt{soliton.py} & \texttt{RobustSoliton.sortear\_grau...()} & \texttt{test\_somatoria\_drs} ($\sum \mu(d) = 1{,}0$) \\
+        RF03 & \texttt{lt\_codec.py} & \texttt{DNAFountainEncoder.codificar()} & \texttt{test\_peeling\_canal\_ideal} (síntese) \\
+        RF04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna...()} & \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} \\
+        RF05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc}, \texttt{homopolimeros} \\
+        RF06 & \texttt{channel.py} & \texttt{ErasureChannel.transmitir()} & \texttt{test\_peeling\_canal\_ideal} ($p_{\text{loss}}$) \\
+        RF07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & \texttt{test\_peeling\_canal\_ideal} (peeling) \\
+        RF08 & \texttt{experiments.py} & \texttt{experimento()} / CSV export & Bateria fatorial ($21.600$ ensaios) \\
+        \bottomrule
+    \end{tabular}%
+    }
 \end{table}
 
 \subsection{Requisitos Não-Funcionais}
@@ -91,7 +116,7 @@ Em consonância com as orientações de documentação acadêmica em Engenharia 
 O código-fonte do simulador foi organizado no pacote Python \texttt{dna\_fountain}, estruturado nos seguintes módulos:
 
 \begin{itemize}
-    \item \textbf{\texttt{config.py}}: Centraliza os hiperparâmetros globais do sistema na classe \texttt{DNAFountainConfig}, incluindo tamanho do bloco ($L$), parâmetros da distribuição ($c$, $\delta$), número de droplets ($N$), bits da \emph{seed}, limites de GC e homopolímeros, probabilidade de perda e \emph{seed} do experimento.
+    \item \textbf{\texttt{config.py}}: Centraliza os hiperparâmetros globais na classe \texttt{DNAFountainConfig}, incluindo tamanho de bloco ($L$), parâmetros da DRS ($c$, $\delta$), total de droplets ($N$), restrições de GC e homopolímeros, perda e sementes.
 
     \item \textbf{\texttt{soliton.py}}: Implementa a classe \texttt{RobustSoliton}, responsável pelo cálculo das funções $\rho(d)$, $\tau(d)$ e $\mu(d)$, pela construção da CDF e pela amostragem determinística do grau e dos índices a partir de uma \emph{seed} inteira via \texttt{sortear\_grau\_e\_indices(seed)}.
 
@@ -162,6 +187,15 @@ As entidades manipuladas pelo simulador foram formalizadas em estruturas de dado
 \section{Fluxo do Pipeline}
 \label{sec:pipeline_flow}
 
+A Figura~\ref{fig:diagrama_arquitetura} ilustra a arquitetura conceitual e o fluxo de dados do simulador DNA Fountain, conectando os módulos desenvolvidos às etapas de processamento.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figuras/diagrama_arquitetura.pdf}
+    \caption{Arquitetura modular e fluxo de processamento de dados do simulador DNA Fountain.}
+    \label{fig:diagrama_arquitetura}
+\end{figure}
+
 O funcionamento do simulador é executado em dez etapas sequenciais, descritas a seguir:
 
 \begin{enumerate}
@@ -195,10 +229,20 @@ Quatro decisões de projeto foram fundamentais na implementação do simulador:
 
 Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do bloco $L$, o último bloco é preenchido com bytes nulos (\texttt{0x00}) até completar $L$ bytes. Essa abordagem determinística, conhecida como \emph{zero-padding}, foi adotada por sua simplicidade e compatibilidade com o pipeline: o decodificador recebe o tamanho original da mensagem como metadado externo e trunca a saída reconstruída exatamente no byte correto, descartando o \emph{padding} automaticamente.
 
-\subsection{Papel do CRC-8}
+\subsection{Mecanismo de Scrambling e Auto-Inversão}
 
-O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $x^8 + x^2 + x + 1$ (máscara \texttt{0x07}). O CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado neste trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
+Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $m$ inicializada pela própria \emph{seed} do droplet e combina os bytes via operação XOR:
+\begin{equation}
+    \label{eq:scramble}
+    y_{\text{scrambled}} = y \oplus m(\text{seed})
+\end{equation}
+A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre $GF(2)$: como $(x \oplus m) \oplus m = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
 
+\subsection{Papel e Cobertura do CRC-8}
+
+O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $P(x) = x^8 + x^2 + x + 1$ (representação binária \texttt{0x07}) com registrador inicializado em \texttt{0x00}. O checksum CRC-8 cobre a concatenação da \emph{seed} de 16 bits com o payload de $L$ bytes.
+
+O CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado neste trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
 \begin{itemize}
     \item Permite descartar antecipadamente pacotes corrompidos caso o canal seja estendido para incluir erros de substituição em trabalhos futuros;
     \item Detecta parte das corrupções de bits de acordo com as propriedades de distância de Hamming do polinômio CRC-8 adotado. Como o canal utilizado nos experimentos simula apagamentos puros de oligonucleotídeos íntegros, o CRC-8 não atua ativamente como detector de falhas nos resultados reportados.
@@ -218,16 +262,33 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
     \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios no ambiente declarado (CPython~3.12.7), garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
 \end{enumerate}
 
-\subsection{Dimensionamento de Cabeçalho e Densidade Efetiva do Protótipo}
+\subsection{Dimensionamento de Cabeçalho, Framing e Densidade da Biblioteca}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil esperado é de aproximadamente 39.000 oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}.
 
-Adicionalmente, cada oligonucleotídeo sintético do protótipo é estruturado em três campos: cabeçalho de seed (2 bytes = 16 bits), carga útil ($L = 4$ bytes = 32 bits) e checksum CRC-8 (1 byte = 8 bits), totalizando 7 bytes (56 bits). Na conversão para DNA à razão de 2 bits por base, cada droplet gera uma fita de exatamente 28 nucleotídeos. Consequentemente, a densidade de informação líquida efetiva do protótipo é calculada por:
+Cada oligonucleotídeo sintético do protótipo é estruturado pelo seguinte \emph{framing} binário:
 \begin{equation}
-    \label{eq:densidade_efetiva_prototipo}
-    D_{\text{efetiva}} = \frac{32 \text{ bits de carga útil}}{28 \text{ nucleotídeos}} \approx 1{,}14 \text{ bits/nt}
+    \text{Droplet} = \underbrace{\text{Seed}}_{\text{2 bytes (16 bits)}} \;\Vert\; \underbrace{\text{Payload}}_{\text{$L = 4$ bytes (32 bits)}} \;\Vert\; \underbrace{\text{CRC-8}}_{\text{1 byte (8 bits)}}
 \end{equation}
-Ressalta-se que a densidade de $1{,}14$ bits/nt refere-se ao payload útil por oligonucleotídeo transmitido, antes de contabilizar a redundância LT global ($N/K = 1 + \epsilon$), os oligonucleotídeos rejeitados durante o screening e eventuais primers de PCR necessários para amplificação física. Esse valor ilustra o impacto do overhead de framing em oligonucleotídeos curtos, que se dilui à medida que o tamanho do bloco $L$ cresce em sistemas laboratoriais.
+totalizando 7 bytes (56 bits). Na conversão direta para DNA à razão de 2 bits por base, cada droplet gera um oligonucleotídeo de exatamente 28 nucleotídeos. 
+
+Distingue-se, portanto, a densidade de carga útil individual por oligonucleotídeo da densidade líquida global da biblioteca de sequências:
+\begin{enumerate}
+    \item \textbf{Densidade de carga útil por oligonucleotídeo transmitido}:
+    \begin{equation}
+        \label{eq:densidade_oligo}
+        D_{\text{oligo}} = \frac{32 \text{ bits de carga útil}}{28 \text{ nucleotídeos}} \approx 1{,}14 \text{ bits/nt}
+    \end{equation}
+    calculada antes da introdução da redundância LT global e de eventuais primers de PCR;
+    
+    \item \textbf{Densidade líquida da biblioteca de armazenamento}:
+    \begin{equation}
+        \label{eq:densidade_biblioteca}
+        D_{\text{biblioteca}} = \frac{8 \cdot K \cdot L}{28 \cdot N_{\text{tx}}} = \frac{32 \cdot K}{28 \cdot K(1 + \epsilon)} = \frac{1{,}14}{1 + \epsilon} \text{ bits/nt}
+    \end{equation}
+    Sob overhead nominal $\epsilon = 1{,}00$ ($N_{\text{tx}} = 2K$), a densidade líquida da biblioteca resulta em $D_{\text{biblioteca}} \approx 0{,}571$ bits/nt; sob overhead $\epsilon = 0{,}50$, atinge $D_{\text{biblioteca}} \approx 0{,}762$ bits/nt.
+\end{enumerate}
+Esses valores ilustram quantitativamente o peso relativo da sobrecarga de enquadramento (\emph{framing}) e da redundância em blocos curtos, que se diluem sensivelmente quando o tamanho de bloco $L$ é ampliado para centenas de bytes em sistemas de escala laboratorial.
 
 \section{Testes e Validação Interna}
 \label{sec:testing_and_validation}
@@ -270,22 +331,22 @@ Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram exe
 
 \begin{table}[htbp]
     \centering
-    \small
-    \setlength{\tabcolsep}{5pt}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
     \caption{Suíte de testes e validação interna do simulador.}
     \label{tab:suite_testes}
-    \begin{tabular}{lp{6.5cm}l}
+    \begin{tabular}{p{4.2cm}p{6.0cm}p{4.8cm}}
         \toprule
-        \textbf{Teste} & \textbf{Descrição} & \textbf{Resultado} \\
+        \textbf{Teste Unitário} & \textbf{Descrição do Caso} & \textbf{Resultado Observado} \\
         \midrule
-        Conversão bytes $\leftrightarrow$ DNA & Ciclo fechado para todos os 256 bytes. & Erro $= 0{,}00\%$ \\
-        Somatória da DRS & Verificação de $\sum \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado \\
-        Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$. & Erro rel. $< 0{,}4\%$ ($\mu(d) \ge 0{,}01$); erro abs. $< 0{,}003$ \\
-        GC fora da faixa & Sequências com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas \\
-        Homopolímero $\geq 4$ & Sequências com 4+ bases consecutivas iguais. & Rejeitadas \\
-        Peeling em grafos canônicos & Instâncias determinísticas com $K$ droplets de grau 1 e triangular. & Recuperação $= 100\%$ \\
+        Conversão bytes $\leftrightarrow$ DNA & Ciclo fechado para todos os 256 bytes e vetores aleatórios. & Taxa de erro $= 0{,}00\%$ \\
+        Somatória da DRS & Verificação de $\sum \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado numericamente \\
+        Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$. & Erro relativo $< 0{,}4\%$; erro absoluto $< 0{,}003$ \\
+        GC fora da faixa & Sequências artificiais com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas com sucesso \\
+        Homopolímero $\geq 4$ & Sequências com 4+ bases consecutivas iguais. & Rejeitadas com sucesso \\
+        Peeling em grafos canônicos & Instâncias determinísticas com $K$ droplets unitários e triangular. & Taxa de recuperação $= 100\%$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Com esses testes unitários e funcionais validados, a infraestrutura de software mostrou-se consistente para a execução das baterias de ensaios descritas no capítulo seguinte.
+Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte, confirmando a consistência dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.

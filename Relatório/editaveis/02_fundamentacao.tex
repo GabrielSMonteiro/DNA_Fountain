@@ -40,7 +40,13 @@ Com os blocos definidos, cada byte é convertido em uma sequência de quatro nuc
     \end{tabular}
 \end{table}
 
-Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$)~\cite{shannon1948}. Contudo, sob restrições físico-químicas de viabilidade biológica (como conteúdo GC entre 45\% e 55\% e ausência de homopolímeros com mais de 3 bases), a capacidade informacional do canal de DNA restrito cai para aproximadamente $1{,}83$ bits por nucleotídeo~\cite{erlich2017}. A densidade líquida pioneira de $1{,}57$ bits/nt alcançada por Erlich e Zielinski representa cerca de $78{,}5\%$ do limite não restrito de 2 bits/nt e cerca de $86\%$ da capacidade de Shannon sob restrições biológicas ($\approx 1{,}83$ bits/nt). Este mapeamento é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis, desde que a sequência de DNA não tenha sido corrompida durante a síntese ou o sequenciamento.
+Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$ bits/nt)~\cite{shannon1948}. Na literatura de armazenamento em DNA, distinguem-se com rigor três patamares de capacidade teórica e prática~\cite{erlich2017}:
+\begin{enumerate}
+    \item \textbf{Capacidade não restrita} ($2{,}0$ bits/nt): limite informacional de Shannon para um canal ideal de quatro símbolos equiprováveis sem qualquer restrição de sequência;
+    \item \textbf{Capacidade máxima sob restrições físico-químicas} ($1{,}98$ bits/nt): capacidade combinatória teórica de sequências que respeitam estritamente a janela de conteúdo GC (45\% a 55\%) e o limite de homopolímeros ($\le 3$ bases idênticas consecutivas);
+    \item \textbf{Capacidade prática do meio} ($\approx 1{,}83$ bits/nt): limite operacional de Shannon após descontar a sobrecarga necessária de endereçamento/indexação de sequências desordenadas no pool molecular, primers de anelamento para amplificação por PCR e tolerância ao dropout molecular.
+\end{enumerate}
+Nesse contexto, a densidade de informação líquida pioneira de $1{,}57$ bits/nt alcançada experimentalmente por Erlich e Zielinski~\cite{erlich2017} corresponde a $78{,}5\%$ do limite irrestrito de 2 bits/nt, $79{,}3\%$ da capacidade sob restrições físico-químicas ($1{,}98$ bits/nt) e expressivos $85{,}8\%$ (cerca de $86\%$) da capacidade prática do canal ($\approx 1{,}83$ bits/nt). Este mapeamento de 2 bits por base é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis na ausência de ruído físico.
 
 A simplicidade deste esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
 
@@ -82,7 +88,7 @@ Essas restrições biológicas \textbf{não constituem erros físicos de canal},
 
 Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessário utilizar alguma forma de codificação redundante que permita a recuperação dos dados mesmo quando parte das sequências é perdida. Nesse contexto, os \textbf{códigos de apagamento} (\emph{erasure codes}) são a classe de códigos corretores de erros adequada ao problema.
 
-Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Nesse tipo de código, o transmissor gera exatamente $N$ pacotes codificados a partir de $K$ pacotes de dados originais, com uma taxa de codificação $R = K/N$ definida previamente. O receptor precisa receber pelo menos $K$ pacotes quaisquer dentre os $N$ transmitidos para reconstruir a mensagem original. Contudo, se a taxa de perda do canal exceder $1 - R$, a decodificação falha e não há mecanismo para solicitar pacotes adicionais~\cite{mackay2003}.
+Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Nesse tipo de código, o codificador gera um número fixo $N$ de pacotes a partir de $K$ blocos originais, com uma taxa de código $R_c = K/N$ congelada em tempo de projeto. Caso a perda real do canal exceda o orçamento estático de paridade ($1 - R_c$), a decodificação torna-se impossível sem uma nova rodada de transmissão ou redimensionamento estrutural do código~\cite{mackay2003}. Em canais de armazenamento molecular em pool, nos quais não há canal de retorno em tempo real (\emph{feedback}) para negociar retransmissões durante a síntese, essa rigidez impõe um dilema entre desperdício excessivo de síntese (se a perda for superestimada) ou perda irreversível de dados (se a perda for subestimada).
 
 Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgotável), por outro lado, pertencem à classe de códigos de canal para canais de apagamento de \textbf{taxa variável} (\emph{rateless codes}), não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
 
@@ -155,11 +161,22 @@ onde o parâmetro $R$ e o índice de pico $m$ são definidos por:
     R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}, \qquad m = \left\lfloor\frac{K}{R}\right\rfloor
 \end{equation}
 
-Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores elevados de $c$ ou reduzidos de $\delta$ podem fazer com que $R$ se aproxime ou supere $K$, levando a $\lfloor K/R \rfloor \le 0$ ou $R < \delta$. Para manter a integridade numérica da amostragem em software, a implementação desenvolvida adota explicitamente as seguintes salvaguardas de fronteira:
-\begin{equation}
-    \label{eq:m_adaptado}
-    m = \max\left(1, \min\left(K, \left\lfloor\frac{K}{R}\right\rfloor\right)\right), \qquad \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
-\end{equation}
+Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores extremos de parâmetros podem violar pressupostos analíticos implícitos na formulação assintótica de Luby. Para manter a integridade numérica da amostragem em software, a implementação desenvolvida adota explicitamente duas salvaguardas defensivas de fronteira:
+\begin{enumerate}
+    \item \textbf{Salvaguarda para $R > K$ ($m \le 0$)}: Quando $c$ é elevado em mensagens curtas, o valor calculado de $R$ pode se aproximar ou superar a própria quantidade de blocos $K$, resultando em $\lfloor K/R \rfloor = 0$. Como os graus dos droplets devem ser inteiros pertencentes a $\{1, \ldots, K\}$, o índice de pico é delimitado computacionalmente por:
+    \begin{equation}
+        \label{eq:m_adaptado}
+        m = \max\left(1, \min\left(K, \left\lfloor\frac{K}{R}\right\rfloor\right)\right)
+    \end{equation}
+    Essa salvaguarda é ativada na grade experimental deste trabalho em instâncias com $K=16$ sob $c \ge 0{,}5$ (por exemplo, com $c=0{,}8$ e $\delta=0{,}10$, tem-se $R \approx 18{,}48 > 16$, fixando $m=1$).
+    
+    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria uma probabilidade estritamente negativa em $\tau(m)$, violando os axiomas de Kolmogorov da teoria das probabilidades. Para evitar massas negativas, adota-se a proteção:
+    \begin{equation}
+        \label{eq:tau_adaptado}
+        \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
+    \end{equation}
+    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, de modo que essa salvaguarda específica atua como guarda estrutural do software contra configurações hipotéticas degeneradas.
+\end{enumerate}
 
 Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
 
@@ -200,12 +217,13 @@ O algoritmo pode ser formalizado nos seguintes passos:
     \item \textbf{Iteração}: Enquanto a fila não estiver vazia:
     \begin{enumerate}
         \item Retirar um droplet $y$ de grau 1 da fila.
-        \item Identificar o bloco fonte $b_i$ associado a $y$ e registrar $b_i = y$ como bloco descoberto.
+        \item Identificar o único bloco fonte $b_i$ associado a $y$. Se $b_i$ já foi desvendado em passo anterior (droplet redundante), descartar $y$ e prosseguir para a próxima iteração.
+        \item Caso $b_i$ seja inédito, registrar $b_i = y$ como bloco descoberto.
         \item Para cada droplet $y'$ que contém $b_i$ em seus vizinhos:
         \begin{enumerate}
             \item Atualizar o payload de $y'$: $y' \leftarrow y' \oplus b_i$.
             \item Remover $b_i$ da lista de vizinhos de $y'$, reduzindo seu grau em 1.
-            \item Se o grau de $y'$ se tornar igual a 1, inserir $y'$ na fila.
+            \item Se o grau residual de $y'$ for reduzido a zero (equação redundante satisfeita), descartar $y'$. Se o grau de $y'$ se tornar igual a 1, inserir $y'$ na fila de processamento.
         \end{enumerate}
     \end{enumerate}
     
@@ -254,21 +272,20 @@ Para avaliar quantitativamente o desempenho do simulador sob diferentes configur
         P_{\text{succ}} = \frac{\text{número de decodificações completas}}{\text{número total de execuções}}
     \end{equation}
     
-    \item \textbf{Overhead relativo} ($\epsilon$): a fração de droplets adicionais em relação ao número mínimo teórico $K$. Definido como:
+    \item \textbf{Overhead relativo nominal e efetivo} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$): a sobrecarga de droplets em relação ao número mínimo teórico $K$. Distinguem-se:
+    \begin{enumerate}
+        \item \textbf{Overhead nominal de transmissão}: $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, onde $N_{\text{tx}}$ representa o volume de oligonucleotídeos codificados transmitidos (aprovados no screening biológico);
+        \item \textbf{Overhead efetivo recebido}: $\epsilon_{\text{rx}} = (N_{\text{rx}} - K) / K$, onde $N_{\text{rx}}$ representa o total de oligonucleotídeos que chegam ao decodificador após as perdas estocásticas do canal. Em canal ideal ($p_{\text{loss}} = 0{,}0$), tem-se $N_{\text{rx}} = N_{\text{tx}}$ e $\epsilon_{\text{rx}} = \epsilon_{\text{tx}}$.
+    \end{enumerate}
     
-    \begin{equation}
-        \label{eq:overhead}
-        \epsilon = \frac{N - K}{K}
-    \end{equation}
-    
-    onde $N$ é o número total de droplets gerados (ou recebidos, dependendo do contexto). Um overhead de $\epsilon = 0{,}10$ significa que foram gerados 10\% mais droplets do que o número de blocos fonte.
-    
-    \item \textbf{Taxa de rejeição no screening} ($R_{\text{screen}}$): a proporção de droplets gerados que foram descartados por violar as restrições biológicas de conteúdo GC ou homopolímeros:
+    \item \textbf{Taxa de rejeição no screening} ($R_{\text{screen}}$): a fração de oligonucleotídeos candidatos gerados que violaram as restrições biológicas físico-químicas (conteúdo GC ou homopolímeros) e foram descartados antes da transmissão:
     
     \begin{equation}
         \label{eq:rejeicao}
-        R_{\text{screen}} = \frac{\text{droplets rejeitados}}{\text{droplets gerados (total)}}
+        R_{\text{screen}} = \frac{N_{\text{cand}} - N_{\text{tx}}}{N_{\text{cand}}}
     \end{equation}
+    
+    onde $N_{\text{cand}}$ é o número total de candidatos gerados pelo codificador até atingir a cota de $N_{\text{tx}}$ oligos válidos transmitidos.
     
     \item \textbf{Número de operações XOR}: a contagem total de operações XOR realizadas durante o processo de decodificação por \emph{peeling}. Essa métrica é um indicador direto do custo computacional da decodificação, independente da plataforma de hardware.
     
