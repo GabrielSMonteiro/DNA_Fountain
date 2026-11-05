@@ -4,7 +4,7 @@
 
 Este capítulo define o protocolo experimental adotado para avaliar o simulador desenvolvido. São especificados o ambiente de execução, as variáveis independentes que foram sistematicamente variadas na matriz de ensaios, as variáveis dependentes que foram medidas, os parâmetros controlados mantidos fixos, os cinco cenários experimentais planejados, os procedimentos de análise estatística com intervalos de confiança exatos e testes de hipótese e, por fim, as medidas de reprodutibilidade que asseguram a rastreabilidade completa dos resultados.
 
-\section{Ambiente Experimental}
+\section{Ambiente Experimental e Hipóteses do Canal}
 \label{sec:experimental_environment}
 
 Todos os experimentos foram executados em uma única máquina com a seguinte configuração de hardware e software:
@@ -17,7 +17,14 @@ Todos os experimentos foram executados em uma única máquina com a seguinte con
     \item \textbf{Bibliotecas}: Apenas módulos da biblioteca padrão (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), sem dependências externas para o núcleo do simulador.
 \end{itemize}
 
-Essa escolha deliberada de depender exclusivamente da biblioteca padrão do Python garante que os experimentos possam ser reproduzidos em qualquer ambiente com Python~3.12 instalado, sem necessidade de instalação de pacotes adicionais.
+Essa escolha deliberada de depender exclusivamente da biblioteca padrão do Python garante que os experimentos possam ser reproduzidos no ambiente declarado, sem necessidade de instalação de pacotes adicionais.
+
+Em consonância com a delimitação de escopo estabelecida no Capítulo~\ref{chap:introduction}, o canal de transmissão é modelado sob as seguintes hipóteses operacionais:
+\begin{enumerate}
+    \item \textbf{Canal de Apagamento Estocástico Puro (BEC)}: Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$;
+    \item \textbf{Integridade dos Pacotes Sobreviventes}: Os oligonucleotídeos que sobrevivem ao canal chegam ao decodificador com integridade lógica perfeita, sem mutações de substituição, inserções ou deleções pontuais;
+    \item \textbf{Descarte no Screening como Apagamento Prévio}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador, demandando novas sementes para atingir o volume $N$ estipulado.
+\end{enumerate}
 
 \section{Variáveis Independentes}
 \label{sec:independent_variables}
@@ -91,31 +98,35 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
         \toprule
         \textbf{Tipo} & \textbf{Variável} & \textbf{Valores / Faixa} \\
         \midrule
-        \multirow{5}{*}{Independente}
-            & Quantidade de blocos ($K$) & $\{16, 32, 64\}$ (3 níveis) \\
+        \multirow{5}{*}{\parbox{2.2cm}{Independentes (Grade 216)}}
+            & Quantidade de blocos fonte ($K$) & $\{16, 32, 64\}$ (3 níveis) \\
             & Parâmetro $c$ da DRS & $\{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis) \\
-            & Parâmetro $\delta$ da DRS & $\{0{,}01;\; 0{,}1\}$ (2 níveis) \\
-            & Overhead ($\epsilon$) & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis) \\
-            & Taxa de perda ($p_{\text{loss}}$) & $\{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis) \\
+            & Parâmetro $\delta$ da DRS & $\{0{,}01;\; 0{,}10\}$ (2 níveis) \\
+            & Overhead nominal ($\epsilon$) & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis) \\
+            & Taxa de perda no canal ($p_{\text{loss}}$) & $\{0{,}0;\; 0{,}10;\; 0{,}20\}$ (3 níveis) \\
         \midrule
-        \multirow{7}{*}{Dependente}
-            & Taxa de sucesso & $0\%$ a $100\%$ (com IC de 95\%) \\
-            & Blocos recuperados & $0$ a $K$ \\
-            & $R_{\text{screen}}$ & Taxa de rejeição no screening \\
-            & Droplets recebidos & Contagem efetiva \\
-            & Operações XOR & Total acumulado \\
-            & Ripple (máx / mín) & Dinâmica da fila \\
-            & Tempo de decodificação & Milissegundos \\
+        \multirow{5}{*}{\parbox{2.2cm}{Dependentes (Grade 216)}}
+            & Taxa de sucesso na decodificação & $0\%$ a $100\%$ (com IC de 95\% Clopper--Pearson) \\
+            & Blocos fonte recuperados & $0$ a $K$ \\
+            & Droplets recebidos efetivos & Contagem pós-screening e pós-perda \\
+            & Operações XOR acumuladas & Total computado no peeling \\
+            & Fila do ripple ($R_{\max}$, $R_{\min}$) & Dinâmica da fila instrumentada \\
+            & Tempo total do decodificador & Milissegundos (\texttt{time.perf\_counter}) \\
         \midrule
-        \multirow{8}{*}{Controlada}
-            & Tamanho do bloco ($L$) & $4$ bytes (fixo na matriz fatorial) \\
-            & Screening biológico & Ativado (GC $40$--$60\%$, $H_{\max} = 3$) \\
-            & Mapeamento & $2$ bits/base (fixo) \\
-            & Seed header & $16$ bits, máscara \texttt{0x1B1B} \\
-            & Padding & \emph{Zero-padding} (\texttt{0x00}) \\
-            & Carga útil & Sintética pseudoaleatória controlada \\
-            & CRC-8 & Ativo (\texttt{0x07}) \\
-            & Scrambler & Ativo (\texttt{0x5A5A}) \\
+        \multirow{2}{*}{\parbox{2.2cm}{Ensaio Dedicado (Screening)}}
+            & Taxa de rejeição ($R_{\text{screen}}$) & Descarte em 2.000 oligos candidatos ($K=32$) \\
+            & Grau médio amostrado ($\bar{d}$) & Subconjuntos aceito e rejeitado vs. DRS \\
+        \midrule
+        \multirow{9}{*}{Controladas}
+            & Tamanho do bloco ($L$) & $4$ bytes (fixo em todos os ensaios) \\
+            & Screening na grade principal & Ativado (janela GC $40$--$60\%$, $H_{\max} = 3$) \\
+            & Scrambler pseudoaleatório & Ativado (combinação XOR determinística) \\
+            & Mapeamento digital $\to$ DNA & $2$ bits/base direto (fixo) \\
+            & Cabeçalho de seed & $16$ bits (2 bytes), máscara \texttt{0x1B1B} \\
+            & Política de padding & \emph{Zero-padding} determinístico (\texttt{0x00}) \\
+            & Carga útil binária & Sintética pseudoaleatória governada por seed \\
+            & Checksum CRC-8 & Ativo com polinômio \texttt{0x07} \\
+            & Repetições por ponto fatorial & $n = 100$ repetições independentes \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -127,13 +138,13 @@ Cinco cenários experimentais foram planejados para investigar, de forma isolada
 
 \subsection{Experimento 1: Validação sob Condições de Referência}
 
-O primeiro cenário tem como objetivo avaliar o comportamento probabilístico do pipeline sob condições operacionais de referência, com canal ideal ($p_{\text{loss}} = 0$) e overhead elevado ($\epsilon = 1{,}00$). Diferentemente dos testes unitários determinísticos (que empregam grafos canônicos com solução garantida), o processo de geração sob a DRS é estocástico. Sob essas condições de referência, avalia-se se o overhead é suficiente para manter o ripple ativo até a decodificação completa, permitindo contrastar o regime estável de $K=32$ e $K=64$ com a maior vulnerabilidade estocástica de $K=16$.
+O primeiro cenário tem como objetivo avaliar o comportamento probabilístico do pipeline sob condições operacionais de referência, com canal ideal ($p_{\text{loss}} = 0$) e overhead elevado ($\epsilon = 1{,}00$). Diferentemente dos testes unitários determinísticos (que empregam grafos canônicos com solução garantida), o processo de geração sob a DRS é estocástico. Sob essas condições de referência, avalia-se se o overhead é suficiente para manter o ripple ativo até a decodificação completa, permitindo contrastar o regime de alta recuperação de $K=32$ e $K=64$ com a maior vulnerabilidade estocástica de $K=16$.
 
 \subsection{Experimento 2: Impacto do Overhead}
 
-O segundo cenário investiga a relação entre o overhead relativo $\epsilon$ e a taxa de sucesso na decodificação. Os parâmetros $c$, $\delta$ e $p_{\text{loss}}$ são mantidos em valores de referência, variando-se o overhead entre $25\%$, $50\%$ e $100\%$ para cada valor de $K$.
+O segundo cenário investiga a relação entre o overhead relativo $\epsilon$ e a taxa de sucesso na decodificação. Os parâmetros $\delta = 0{,}10$ e $p_{\text{loss}} = 0{,}0$ são mantidos fixos, cruzando-se os três níveis de overhead ($\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$) com as três quantidades de blocos fonte ($K \in \{16, 32, 64\}$) e as quatro constantes da DRS ($c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$), totalizando 36 configurações avaliadas.
 
-O objetivo é mapear a transição entre decodificação incompleta e decodificação estável, identificando o patamar a partir do qual a taxa de sucesso atinge patamares elevados de recuperação.
+O objetivo é mapear a transição entre decodificação incompleta e decodificação bem-sucedida, identificando o patamar a partir do qual a taxa de sucesso atinge patamares elevados de recuperação.
 
 \subsection{Experimento 3: Impacto dos Parâmetros $c$ e $\delta$}
 
@@ -188,7 +199,7 @@ Para a taxa de sucesso na decodificação (variável binária associada a $n$ en
 \end{equation}
 com $\alpha = 0{,}05$. Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
 
-Para a comparação de proporções de sucesso entre pares de configurações experimentais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal, adequado a amostras com contagens discretas, adotando-se $\alpha = 0{,}05$ como limiar de significância estatística.
+Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), as baterias de ensaios entre diferentes configurações constituem sequências pseudoaleatórias independentes (amostras independentes de Bernoulli), satisfazendo os pressupostos clássicos do teste de Fisher sobre tabelas de contingência $2 \times 2$. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
 
 \section{Reprodutibilidade}
 \label{sec:reproducibility}
