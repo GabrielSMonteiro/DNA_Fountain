@@ -23,7 +23,7 @@ Em consonância com a delimitação de escopo estabelecida no Capítulo~\ref{cha
 \begin{enumerate}
     \item \textbf{Canal de Apagamento Estocástico Puro (BEC)}: Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$, de modo que a quantidade de droplets recebidos segue uma distribuição binomial $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
     \item \textbf{Integridade dos Pacotes Sobreviventes}: Os oligonucleotídeos que sobrevivem ao canal chegam ao decodificador com integridade lógica perfeita, sem mutações de substituição, inserções ou deleções pontuais;
-    \item \textbf{Rejeição Prévia no Screening com Reposição}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador e sorteadas novamente com novas sementes com reposição até que o volume estipulado de $N_{\text{tx}}$ oligonucleotídeos aprovados seja transmitido. Esse descarte de candidatos não se confunde com o apagamento estocástico do canal.
+    \item \textbf{Rejeição Prévia no Screening com Substituição Determinística}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador. Os candidatos rejeitados são substituídos por novos candidatos gerados com seeds incrementais, até atingir o total estipulado de $N_{\text{tx}}$ sequências aprovadas e transmitidas. Esse descarte prévio de candidatos não se confunde com o apagamento estocástico do canal de transmissão.
 \end{enumerate}
 
 \section{Variáveis Independentes}
@@ -38,7 +38,7 @@ As variáveis independentes são os parâmetros do pipeline sistematicamente var
 
     \item \textbf{Parâmetro $\delta$ da DRS}: Balizador formal de projeto da cauda da distribuição. Valores avaliados: $\delta \in \{0{,}01;\; 0{,}1\}$ (2 níveis).
 
-    \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ é o número de droplets gerados. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis), correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
+    \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ denota o número de oligonucleotídeos aprovados no screening e transmitidos, isto é, $N = N_{\text{tx}}$. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis), correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
 
     \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis), abrangendo desde canal sem ruído até perda estocástica de $20\%$ dos pacotes.
 \end{itemize}
@@ -94,18 +94,19 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
     \small
     \caption{Consolidação dos parâmetros e variáveis experimentais.}
     \label{tab:parametros_experimentais}
-    \begin{tabular}{llp{7cm}}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{llp{7.5cm}}
         \toprule
         \textbf{Tipo} & \textbf{Variável} & \textbf{Valores / Faixa} \\
         \midrule
-        \multirow{5}{*}{\parbox{2.2cm}{Independentes (Grade 216)}}
+        \multirow{5}{*}{\parbox{2.5cm}{Independentes (Grade 216)}}
             & Quantidade de blocos fonte ($K$) & $\{16, 32, 64\}$ (3 níveis) \\
             & Parâmetro $c$ da DRS & $\{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis) \\
             & Parâmetro $\delta$ da DRS & $\{0{,}01;\; 0{,}10\}$ (2 níveis) \\
             & Overhead nominal ($\epsilon$) & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis) \\
             & Taxa de perda no canal ($p_{\text{loss}}$) & $\{0{,}0;\; 0{,}10;\; 0{,}20\}$ (3 níveis) \\
         \midrule
-        \multirow{5}{*}{\parbox{2.2cm}{Dependentes (Grade 216)}}
+        \multirow{5}{*}{\parbox{2.5cm}{Dependentes (Grade 216)}}
             & Taxa de sucesso na decodificação & $0\%$ a $100\%$ (com IC de 95\% Clopper--Pearson) \\
             & Blocos fonte recuperados & $0$ a $K$ \\
             & Droplets recebidos efetivos & Contagem pós-screening e pós-perda \\
@@ -113,11 +114,11 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
             & Fila do ripple ($R_{\max}$, $R_{\min}$) & Dinâmica da fila instrumentada \\
             & Tempo total do decodificador & Milissegundos (\texttt{time.perf\_counter}) \\
         \midrule
-        \multirow{2}{*}{\parbox{2.2cm}{Ensaio Dedicado (Screening)}}
+        \multirow{2}{*}{\parbox{2.5cm}{Ensaio Dedicado (Screening)}}
             & Taxa de rejeição ($R_{\text{screen}}$) & Descarte em 2.000 oligos candidatos ($K=32$) \\
             & Grau médio amostrado ($\bar{d}$) & Subconjuntos aceito e rejeitado vs. DRS \\
         \midrule
-        \multirow{9}{*}{Controladas}
+        \multirow{9}{*}{\parbox{2.5cm}{Controladas}}
             & Tamanho do bloco ($L$) & $4$ bytes (fixo em todos os ensaios) \\
             & Screening na grade principal & Ativado (janela GC $40$--$60\%$, $H_{\max} = 3$) \\
             & Scrambler pseudoaleatório & Ativado (combinação XOR determinística) \\
@@ -128,7 +129,8 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
             & Checksum CRC-8 & Ativo com polinômio \texttt{0x07} \\
             & Repetições por ponto fatorial & $n = 100$ repetições independentes \\
         \bottomrule
-    \end{tabular}
+    \end{tabular}%
+    }
 \end{table}
 
 \section{Cenários Experimentais}
@@ -207,7 +209,7 @@ Para a comparação de proporções de sucesso entre configurações experimenta
 A reprodutibilidade dos experimentos apoia-se em quatro medidas metodológicas fundamentais:
 
 \begin{enumerate}
-    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython 3.12.7), com as seeds e arquivos CSV fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas de amostragem do módulo \texttt{random}. Medições de tempo físico de CPU refletem a carga do sistema operacional e apresentam variações normais entre execuções.
+    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython 3.12.7), com as seeds e arquivos CSV fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas de amostragem do módulo \texttt{random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
 
     \item \textbf{Registro integral em CSV}: Os dados de cada bateria são exportados em arquivos CSV (\texttt{resultados\_10.csv}, \texttt{resultados\_30.csv}, \texttt{resultados\_100.csv}), contendo para cada ponto paramétrico os hiperparâmetros e as métricas amostradas.
 

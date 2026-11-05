@@ -24,15 +24,15 @@ A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para as 
         \textbf{$K$} & \textbf{$c$} & \textbf{Overhead ($\epsilon$)} & \textbf{Sucesso (\%)} & \textbf{XORs Médios} & \textbf{Ripple Máx.} & \textbf{Tempo (ms)} \\
         \midrule
         16 & 0{,}1 & 0{,}50 & 49{,}0 & 51{,}7 & 4{,}6 & 0{,}61 \\
-        16 & 0{,}1 & 1{,}00 & 90{,}0 & 107{,}6 & 11{,}9 & 0{,}85 \\
+        16 & 0{,}1 & 1{,}00 & 90{,}0 & 107{,}6 & 11{,}9 & 0{,}84 \\
         16 & 0{,}3 & 1{,}00 & 91{,}0 & 73{,}0 & 15{,}4 & 0{,}83 \\
         \midrule
         32 & 0{,}1 & 0{,}50 & 85{,}0 & 196{,}0 & 10{,}5 & 1{,}32 \\
-        32 & 0{,}1 & 1{,}00 & 100{,}0 & 270{,}8 & 20{,}6 & 1{,}77 \\
+        32 & 0{,}1 & 1{,}00 & 100{,}0 & 270{,}8 & 20{,}6 & 1{,}79 \\
         32 & 0{,}3 & 1{,}00 & 93{,}0 & 185{,}9 & 25{,}3 & 1{,}56 \\
         \midrule
         64 & 0{,}1 & 0{,}50 & 88{,}0 & 466{,}6 & 16{,}1 & 2{,}73 \\
-        64 & 0{,}1 & 1{,}00 & 100{,}0 & 688{,}4 & 34{,}2 & 3{,}69 \\
+        64 & 0{,}1 & 1{,}00 & 100{,}0 & 688{,}4 & 34{,}2 & 3{,}60 \\
         64 & 0{,}3 & 1{,}00 & 97{,}0 & 459{,}8 & 42{,}4 & 3{,}37 \\
         \bottomrule
     \end{tabular}
@@ -40,7 +40,7 @@ A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para as 
 
 Os resultados confirmam que, com overhead $\epsilon = 1{,}00$, canal ideal ($p_{\text{loss}} = 0{,}0$) e parametrização $c = 0{,}1$ e $\delta = 0{,}10$, foram observadas 100 recuperações completas em 100 execuções para $K = 32$ e $K = 64$ (taxa observada de 100\%, correspondendo ao intervalo de confiança exato de Clopper--Pearson a 95\% de $[96{,}4\%, 100{,}0\%]$). Em todas as execuções bem-sucedidas, a integridade dos dados recuperados foi confirmada byte a byte contra os blocos fonte originais, sem qualquer discrepância.
 
-Para $K = 16$, a taxa de sucesso observada foi de 90\% para $c = 0{,}1$ (IC 95\%: $[82{,}4\%, 95{,}1\%]$) e 91\% para $c = 0{,}3$ (IC 95\%: $[83{,}6\%, 95{,}8\%]$). A análise das falhas é compatível com a interrupção prematura do \emph{ripple} em subgrafos nos quais todos os droplets remanescentes possuem grau 2 ou superior em relação às variáveis pendentes (configuração análoga a \emph{stopping sets} do decodificador por peeling, nos quais inexistem equações unitárias para desbloquear a propagação de crença), enquanto a ausência total de arestas cobrindo um bloco fonte (nó isolado de grau 0 no grafo) foi identificada em 1 das 100 execuções (afetando 1 dos 1.600 blocos avaliados). À medida que $K$ cresce para 32 e 64, a amostragem da DRS e a conectividade do grafo tornam-se menos vulneráveis a flutuações estocásticas nas configurações avaliadas.
+Para $K = 16$ sob a configuração $c = 0{,}1$, $\delta = 0{,}10$, $\epsilon = 1{,}00$ e $p_{\text{loss}} = 0{,}0$, a taxa de sucesso observada foi de 90\% (10 falhas em 100 execuções; IC 95\%: $[82{,}4\%, 95{,}1\%]$). A análise detalhada dessas 10 falhas revelou que 9 delas (90\% das falhas observadas) decorreram de \emph{stopping sets} (subgrafos nos quais todos os droplets remanescentes possuíam grau 2 ou superior em relação às variáveis pendentes, esgotando a fila de equações unitárias), enquanto em apenas 1 das falhas (10\% das falhas, afetando 1 dos 1.600 blocos avaliados nas 100 rodadas, ou $0{,}06\%$) ocorreu a ausência total de arestas cobrindo um bloco fonte (nó isolado de grau 0 no grafo). Sob $c = 0{,}3$, observaram-se 91\% de sucesso (IC 95\%: $[83{,}6\%, 95{,}8\%]$). À medida que $K$ cresce para 32 e 64, a amostragem da DRS e a conectividade do grafo tornam-se menos vulneráveis a flutuações estocásticas nas configurações avaliadas.
 
 \section{Efeito do Screening Biológico}
 \label{sec:results_biological_screening}
@@ -121,14 +121,14 @@ A análise da Figura~\ref{fig:dinamica_ripple} e da Tabela~\ref{tab:ripple_metri
 \begin{enumerate}
     \item A métrica ``Ripple Máx. Médio'' na Tabela~\ref{tab:ripple_metricas} reporta a média amostral dos picos máximos atingidos pela fila instrumentada (\texttt{collections.deque}) ao longo de 100 execuções independentes sob overhead intermediário $\epsilon = 0{,}50$. Por sua vez, a Figura~\ref{fig:dinamica_ripple} exibe a trajetória de uma única execução sob overhead pleno ($\epsilon = 1{,}00$), razão pela qual os picos pontuais observados no gráfico diferem das médias tabuladas sob $\epsilon = 0{,}50$;
     \item Na configuração recomendada ($c = 0{,}1$, $\epsilon = 1{,}00$), a fila é alimentada de forma gradual ao longo das iterações, atingindo pico moderado de 22 elementos e sustentando entradas contínuas de droplets unitários até a recuperação completa dos 32 blocos fonte (32/32);
-    \item Na configuração com $c = 0{,}5$, a DRS sofre deslocamento de pico para $m = \lfloor 32/16{,}32 \rfloor = 1$, onde cerca de 73\% dos droplets concentram-se no grau 1. Isso faz com que a fila seja inundada inicialmente (pico de 50 elementos). O laço de decodificação é executado por 64 iterações ao retirar pacotes da fila, porém a maioria corresponde a droplets redundantes cobrindo blocos já descobertos. Pela ausência de droplets com graus intermediários para conectar os blocos restantes via XOR, a decodificação estagna sem cobrir a totalidade da mensagem (recuperando 31 de 32 blocos);
+    \item Na configuração com $c = 0{,}5$, a DRS sofre deslocamento de pico para $m = \lfloor 32/16{,}32 \rfloor = 1$, onde cerca de 73\% dos droplets concentram-se no grau 1. Isso faz com que a fila seja inundada inicialmente (pico de 50 elementos). O laço de decodificação é executado por 64 iterações ao retirar pacotes da fila, porém a maioria corresponde a droplets redundantes cobrindo blocos já descobertos. Pela escassez de droplets com graus intermediários para conectar os blocos restantes via XOR, a execução encerrou com um bloco pendente (recuperando 31 de 32 blocos) após o esgotamento das equações unitárias úteis na fila de processamento;
     \item O valor do ripple mínimo médio ser registrado como 1,0 em todas as linhas da Tabela~\ref{tab:ripple_metricas} decorre da definição de instrumentação: a medição amostral é computada dentro do laço de decodificação (\texttt{while ripple:}), momento em que a fila contém no mínimo um elemento ativo. O esvaziamento final (tamanho zero) representa a condição de saída do laço, não sendo capturado como estado intermediário da fila.
 \end{enumerate}
 
 \section{Overhead versus Taxa de Sucesso}
 \label{sec:results_overhead_success_rate}
 
-A relação entre o overhead relativo enviado $\epsilon = (N - K)/K$ e a probabilidade de reconstrução bem-sucedida é uma das características centrais dos \emph{fountain codes}. A teoria assintótica prevê que, para $K \to \infty$, a taxa de sucesso transita abruptamente de 0 para 1 em overheads próximos a zero. Em sistemas práticos com $K$ pequeno ou moderado, contudo, essa transição assume a forma de uma curva gradual.
+A relação entre o overhead relativo enviado $\epsilon = (N - K)/K$ e a probabilidade de reconstrução bem-sucedida é uma das características centrais dos \emph{fountain codes}. Na grade experimental, $N$ denota o número de oligonucleotídeos aprovados no screening e transmitidos, isto é, $N = N_{\text{tx}}$. A teoria assintótica prevê que, para $K \to \infty$, a taxa de sucesso transita abruptamente de 0 para 1 em overheads próximos a zero. Em sistemas práticos com $K$ pequeno ou moderado, contudo, essa transição assume a forma de uma curva gradual.
 
 A Tabela~\ref{tab:overhead_sucesso} sintetiza as taxas de sucesso obtidas para diferentes níveis de overhead em canal limpo ($p_{\text{loss}} = 0{,}0$) com $\delta = 0{,}10$.
 
@@ -219,7 +219,7 @@ A Tabela~\ref{tab:impacto_c_delta} detalha o impacto sistemático de $c$ e $\del
     }
 \end{table}
 
-A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simultâneo do grau médio amostrado ($\bar{d}$) e da taxa de sucesso em função de $c$, para os dois valores de $\delta$ avaliados ($0{,}10$ e $0{,}01$).
+A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simultâneo do grau médio teórico ($\mathbb{E}_\mu[D]$) e da taxa de sucesso em função de $c$, para os dois valores de $\delta$ avaliados ($0{,}10$ e $0{,}01$).
 
 \begin{figure}[htbp]
     \centering
@@ -230,7 +230,7 @@ A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simult
 
 A correlação exposta na Figura~\ref{fig:impacto_c_delta} esclarece as nuances da DRS em regimes finitos:
 \begin{enumerate}
-    \item \textbf{Degeneração da distribuição para $c \ge 0{,}5$}: Quando $c$ assume valores elevados ($0{,}5$ ou $0{,}8$), a fórmula teórica resulta em $R = 16{,}32$ ou $26{,}10$ para $K = 32$. Como $R$ aproxima-se ou supera a metade de $K$, o índice do pico da distribuição corretiva, dado por $m = \lfloor K/R \rfloor$, colapsa para $1$. Para $c = 0{,}5$, cerca de 73{,}1\% da massa normalizada concentra-se em grau 1 ($\mu(1) \approx 0{,}731$, $\mu(2) \approx 0{,}139$); para $c = 0{,}8$, a concentração em grau 1 agrava-se para $\mu(1) \approx 0{,}825$ ($\mu(2) \approx 0{,}090$). Com isso, o grau médio amostrado cai drasticamente de $4{,}95$ para $1{,}85$ e $1{,}55$. Com menor participação de droplets combinatórios e conectividade insuficiente para a conclusão do peeling nas instâncias avaliadas, o resultado é 0\% de sucesso;
+    \item \textbf{Degeneração da distribuição para $c \ge 0{,}5$}: Quando $c$ assume valores elevados ($0{,}5$ ou $0{,}8$), a fórmula teórica resulta em $R = 16{,}32$ ou $26{,}10$ para $K = 32$. Como $R$ aproxima-se ou supera a metade de $K$, o índice do pico da distribuição corretiva, dado por $m = \lfloor K/R \rfloor$, colapsa para $1$. Para $c = 0{,}5$, cerca de 73{,}1\% da massa normalizada concentra-se em grau 1 ($\mu(1) \approx 0{,}731$, $\mu(2) \approx 0{,}139$); para $c = 0{,}8$, a concentração em grau 1 agrava-se para $\mu(1) \approx 0{,}825$ ($\mu(2) \approx 0{,}090$). Com isso, o grau médio teórico $\mathbb{E}_\mu[D]$ cai drasticamente de $4{,}95$ para $1{,}85$ e $1{,}55$ (acompanhado de perto pelo grau médio amostrado $\bar{d}_{\text{emp}}$). Com menor participação de droplets combinatórios e conectividade insuficiente para a conclusão do peeling nas instâncias avaliadas, resultou-se em 0 sucessos em 100 execuções no cenário $K=32, \epsilon=0{,}50, p_{\text{loss}}=0{,}0$ (IC 95\%: $[0{,}0\%, 3{,}6\%]$);
     
     \item \textbf{Efeito de $\delta$ e dinâmica de graus baixos}: Ao contrário de uma suposição intuitiva de que $\delta$ menor concentraria a massa em graus baixos, a redução de $\delta$ de $0{,}10$ para $0{,}01$ sob $c = 0{,}1$ praticamente mantém inalterado o grau médio global ($\bar{d}$ passa de $4{,}945$ para $4{,}961$). A queda expressiva de desempenho (sucesso reduzido de $85{,}0\%$ para $33{,}0\%$) é consistente com a redistribuição interna de probabilidades: com $R$ aumentando de $3{,}26$ para $4{,}57$, o pico analítico $m$ recua de $9$ para $7$, e a probabilidade de droplets de grau 2 sofre redução sensível ($\mu(2)$ decresce de $\approx 0{,}338$ para $\approx 0{,}257$). Com menos droplets binários para alimentar o processo logo após a queima dos graus unitários, o ripple atinge um pico menor ($7{,}2$ vs. $10{,}5$) e esgota-se precocemente antes de cobrir o grafo;
     
@@ -242,7 +242,7 @@ A caracterização de $c = 0{,}1$ e $\delta = 0{,}10$ como a configuração mais
 \section{Resiliência do Sistema a Perdas no Canal}
 \label{sec:results_system_resilience}
 
-A capacidade de operar sobre canais não confiáveis sem necessidade de retransmissão é o principal atrativo das arquiteturas baseadas em \emph{fountain codes}. Para quantificar essa tolerância, o simulador foi submetido a probabilidades de apagamento estocástico $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$, correspondendo a perdas de até 20\% dos droplets transmitidos.
+A capacidade de operar sobre canais não confiáveis sem necessidade de retransmissão é o principal atrativo das arquiteturas baseadas em \emph{fountain codes}. Para quantificar essa tolerância, o simulador foi submetido a probabilidades de apagamento estocástico $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$, correspondendo a uma probabilidade de apagamento de até 0{,}20 por oligonucleotídeo transmitido.
 
 A Tabela~\ref{tab:resiliencia_canal} compara as taxas de sucesso e as operações XOR sob perdas no canal para a parametrização recomendada ($c = 0{,}1$, $\delta = 0{,}10$) em diferentes níveis de overhead.
 
@@ -292,7 +292,7 @@ O custo computacional do pipeline foi quantificado por duas métricas complement
 
 O tempo mensurado contempla a execução completa do método de decodificação (\texttt{decoder.decodificar()}), englobando: (1) a conversão de nucleotídeos em bytes; (2) a extração da \emph{seed} ofuscada; (3) a checagem CRC-8; (4) a regeneração dos índices de vizinhança; (5) a montagem da tabela reversa de adjacências; e (6) as iterações do \emph{peeling} com propagação de XORs.
 
-A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$).
+A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$). As medições temporais individuais foram persistidas no arquivo \texttt{tempos\_brutos\_decodificacao.json} no repositório do projeto, a partir do qual foram calculados a média amostral, o desvio-padrão amostral, a mediana e os valores extremos via script determinístico \texttt{salvar\_estatisticas\_custo.py}.
 
 \begin{table}[htbp]
     \centering
@@ -304,7 +304,7 @@ A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodifica�
         \toprule
         \textbf{$K$} & \textbf{Tempo Médio (ms)} & \textbf{Desvio-padrão (ms)} & \textbf{Mediana (ms)} & \textbf{Mín.--Máx. (ms)} & \textbf{XORs Médios} & \textbf{XORs/Bloco} \\
         \midrule
-        16 & 0{,}85 & 0{,}04 & 0{,}84 & 0{,}71 -- 0{,}99 & 107{,}6 & 6{,}73 \\
+        16 & 0{,}84 & 0{,}04 & 0{,}84 & 0{,}71 -- 0{,}99 & 107{,}6 & 6{,}73 \\
         32 & 1{,}79 & 0{,}12 & 1{,}77 & 1{,}65 -- 2{,}48 & 270{,}8 & 8{,}46 \\
         64 & 3{,}60 & 0{,}19 & 3{,}55 & 3{,}35 -- 4{,}51 & 688{,}4 & 10{,}76 \\
         \bottomrule
@@ -323,9 +323,9 @@ A Figura~\ref{fig:custo_computacional} apresenta a evolução do tempo médio de
 
 A teoria de códigos LT prevê complexidade assintótica de decodificação de ordem $O(K \ln(K/\delta))$ operações de símbolos~\cite{luby2002}. Os dados empíricos observados na faixa restrita $K \le 64$ são compatíveis com essa tendência teórica, embora uma série de apenas três pontos amostrais não permita inferir conclusivamente o regime assintótico:
 \begin{itemize}
-    \item O tempo médio total de decodificação manteve-se na escala de milissegundos (de 0{,}85~ms para $K = 16$ até 3{,}60~ms para $K = 64$), permanecendo sempre abaixo de 5~ms em ambiente Windows~11 com Python 3.12 interpretado;
+    \item O tempo médio total de decodificação manteve-se na escala de milissegundos (de 0{,}84~ms para $K = 16$ até 3{,}60~ms para $K = 64$), permanecendo sempre abaixo de 5~ms em ambiente Windows~11 com Python 3.12 interpretado;
     \item O número médio de operações XOR por bloco fonte cresceu de forma moderada ($6{,}73 \to 8{,}46 \to 10{,}76$), evidenciando a eficiência do decodificador com indexação reversa em grafo bipartido;
-    \item A baixa dispersão temporal observada (desvios-padrão de 0{,}04 a 0{,}19~ms) e a proximidade entre média e mediana indicam execuções estáveis, com variações pontuais atribuíveis ao escalonamento de processos e coletas de lixo do interpretador Python sob o sistema operacional multitarefa.
+    \item A baixa dispersão temporal observada (desvios-padrão de 0{,}04 a 0{,}19~ms) e a proximidade entre média e mediana indicam execuções estáveis, com variações associadas ao escalonamento de processos, à carga do sistema operacional e ao comportamento interpretativo do ambiente de execução.
 \end{itemize}
 
 Ressalta-se que esses resultados caracterizam pequenas instâncias de estudo ($K \le 64$), adequadas à experimentação controlada e didática. Eles não permitem inferir diretamente o desempenho assintótico para arquivos de grande escala ($K \ge 10^4$), nos quais a alocação de memória e o overhead de interpretação em Python tornam recomendável o emprego de linguagens compiladas de baixo nível (como C/C++ ou Rust) ou aceleração em hardware dedicado.

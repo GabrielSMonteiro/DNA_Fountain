@@ -111,7 +111,7 @@ draw_box(ax, 71, 33, 26, 24, '5. Canal Estocástico', 'channel.py', [
     '• Modelo BEC sem memória (i.i.d.)',
     '• Probabilidade de perda p_loss',
     '• PRNG dedicado (seed independente)',
-    '• N_rx = Binomial(N_tx, 1 - p_loss)',
+    '• N_rx ~ Binomial(N_tx, 1 - p_loss)',
     '• Oligos íntegros transmitidos'
 ], c_chan_bg, c_chan_border, '#B91C1C')
 
@@ -122,9 +122,9 @@ draw_arrow(ax, 84, 57, 84, 68, 'N_rx oligos')
 draw_box(ax, 71, 68, 26, 24, '6. Peeling Decoder', 'lt_codec.py', [
     '• Conversão DNA -> bytes & CRC-8',
     '• Extração de seed e regeneração',
-    '• Montagem do grafo bipartido reverso',
-    '• Fila de prioridade (Ripple)',
-    '• Propagação de XORs e descarte red.'
+    '• Inversão do scrambling aditivo',
+    '• Fila de processamento FIFO (deque)',
+    '• Propagação XOR e resolução de nós'
 ], c_dec_bg, c_dec_border, '#7E22CE')
 
 # 7. Metricas e Saida (inferior)
@@ -148,3 +148,4 @@ plt.savefig(pdf_path, bbox_inches='tight')
 plt.savefig(png_path, bbox_inches='tight', dpi=300)
 plt.close()
 print(f"Diagrama gerado com sucesso em {pdf_path}")
+

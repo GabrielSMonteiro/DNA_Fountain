@@ -103,7 +103,7 @@ for idx, k in enumerate(ks):
             xs, ys = zip(*pontos)
             ax.plot(xs, ys, marker=marcadores[c], color=cores[c], label=f'$c={c}$')
     
-    ax.set_title(f'Tamanho de Bloco $K = {k}$')
+    ax.set_title(f'$K = {k}$')
     ax.set_xlabel('Overhead Enviado $\\epsilon$ (%)')
     ax.set_xticks([25, 50, 100])
     ax.grid(True, linestyle=':', alpha=0.6)
@@ -140,9 +140,9 @@ for d, cor, est in [('0.1', '#1f77b4', '-'), ('0.01', '#ff7f0e', '--')]:
     ax1.plot(c_x, g_y, marker='o', color=cor, linestyle=est, label=f'$\\delta = {d}$')
     ax2.plot(c_x, s_y, marker='s', color=cor, linestyle=est, label=f'$\\delta = {d}$')
 
-ax1.set_title('Grau Médio Amostrado ($\\bar{d}$)')
+ax1.set_title('Grau Médio Teórico $\\mathbb{E}_\\mu[D]$')
 ax1.set_xlabel('Parâmetro $c$')
-ax1.set_ylabel('Grau Médio')
+ax1.set_ylabel('Grau Médio Teórico $\\mathbb{E}_\\mu[D]$')
 ax1.grid(True, linestyle=':', alpha=0.6)
 ax1.legend(frameon=True)
 
@@ -231,7 +231,7 @@ lines1, labels1 = ax2.get_legend_handles_labels()
 lines2, labels2 = ax2_twin.get_legend_handles_labels()
 ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
 
-fig.suptitle('Custo Computacional e Escalabilidade do Peeling Decoder ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
+fig.suptitle('Custo Computacional da Decodificação ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
 plt.close(fig)
