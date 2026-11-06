@@ -15,7 +15,7 @@ Beyond its high physical density, DNA exhibits remarkable physicochemical stabil
 
 However, DNA data storage also faces substantial technological challenges. The chemical synthesis of oligonucleotides—the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)—remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, it is essential to distinguish laboratory proofs of concept—widely demonstrated in academic literature—from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
-The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized in vitro; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
+The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized \emph{in vitro}; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
 
 \section{Digital-to-DNA Encoding}
 \label{sec:digital_to_dna_encoding}
@@ -101,7 +101,7 @@ Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate c
     \item No real-time feedback channel is required between receiver and transmitter during transmission.
 \end{itemize}
 
-These characteristics make fountain codes uniquely suited for DNA data storage planning, where the precise fraction of oligonucleotides surviving synthesis, storage, and sequencing cannot be rigidly forecasted. Crucially, this rateless flexibility operates during digital in silico generation before synthesis; once a fixed physical oligonucleotide library is produced in vitro, no new molecules are autonomously generated during readout, and recovery remains strictly conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
+These characteristics make fountain codes uniquely suited for DNA data storage planning, where the precise fraction of oligonucleotides surviving synthesis, storage, and sequencing cannot be rigidly forecasted. Crucially, this rateless flexibility operates during digital \emph{in silico} generation before synthesis; once a fixed physical oligonucleotide library is produced \emph{in vitro}, no new molecules are autonomously generated during readout, and recovery remains strictly conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
 
 \section{LT Codes}
 \label{sec:lt_codes}

@@ -23,6 +23,9 @@ plt.rcParams.update({
 output_dir = os.path.join('Relatório', 'figuras')
 os.makedirs(output_dir, exist_ok=True)
 
+# Helper formatter for decimal commas (ABNT compliance)
+comma_fmt = FuncFormatter(lambda x, pos: f"{x:g}".replace('.', ','))
+
 # 1. Load CSV data
 rows = []
 with open('resultados_100.csv', 'r', encoding='utf-8-sig') as f:
@@ -69,9 +72,9 @@ desc2, met2 = dec2.decodificar([o["dna"] for o in oligos2], sol2)
 hist_ripple2 = met2["ripple_historico"]
 
 fig, ax = plt.subplots(figsize=(6.5, 3.8))
-ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', markersize=4, color='#1f77b4', label=f'Recommended Configuration ($c=0.1$, $\\delta=0.10$) - Recovered: {len(desc1)}/{K}')
+ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', markersize=4, color='#1f77b4', label=f'Recommended Configuration ($c=0{{,}}1$, $\\delta=0{{,}}10$) - Recovered: {len(desc1)}/{K}')
 if hist_ripple2:
-    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', markersize=4, color='#d62728', linestyle='--', label=f'Degenerate Configuration ($c=0.5$, $\\delta=0.10$) - Recovered: {len(desc2)}/{K}')
+    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', markersize=4, color='#d62728', linestyle='--', label=f'Degenerate Configuration ($c=0{{,}}5$, $\\delta=0{{,}}10$) - Recovered: {len(desc2)}/{K}')
 
 ax.set_xlabel('Peeling Decoding Processing Step')
 ax.set_ylabel('Ripple Queue Size')
@@ -81,7 +84,7 @@ ax.grid(True, linestyle=':', alpha=0.6)
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.png'), dpi=300)
 plt.close(fig)
-print('Figure 1 (grafico_ripple) generated in English.')
+print('Figure 1 (grafico_ripple) generated with decimal comma.')
 
 # -------------------------------------------------------------
 # FIGURE 2: Overhead vs Success Rate (Panels for K=16, 32, 64)
@@ -89,7 +92,7 @@ print('Figure 1 (grafico_ripple) generated in English.')
 fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.8), sharey=True)
 ks = ['16', '32', '64']
 c_vals = ['0.1', '0.3', '0.5', '0.8']
-c_labels = {'0.1': '$c=0.1$', '0.3': '$c=0.3$', '0.5': '$c=0.5$', '0.8': '$c=0.8$'}
+c_labels = {'0.1': '$c=0{,}1$', '0.3': '$c=0{,}3$', '0.5': '$c=0{,}5$', '0.8': '$c=0{,}8$'}
 cores = {'0.1': '#1f77b4', '0.3': '#2ca02c', '0.5': '#ff7f0e', '0.8': '#d62728'}
 marcadores = {'0.1': 'o', '0.3': 's', '0.5': '^', '0.8': 'D'}
 
@@ -118,14 +121,14 @@ for idx, k in enumerate(ks):
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.png'), dpi=300)
 plt.close(fig)
-print('Figure 2 (grafico_overhead_sucesso) generated in English.')
+print('Figure 2 (grafico_overhead_sucesso) generated with decimal comma.')
 
 # -------------------------------------------------------------
 # FIGURE 3: Impact of c and delta on Mean Degree and Success (K=32)
 # -------------------------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
 
-for d, cor, est, d_label in [('0.1', '#1f77b4', '-', '$\\delta = 0.10$'), ('0.01', '#ff7f0e', '--', '$\\delta = 0.01$')]:
+for d, cor, est, d_label in [('0.1', '#1f77b4', '-', '$\\delta = 0{,}10$'), ('0.01', '#ff7f0e', '--', '$\\delta = 0{,}01$')]:
     pts_grau = []
     pts_succ = []
     for c in ['0.1', '0.3', '0.5', '0.8']:
@@ -142,15 +145,21 @@ for d, cor, est, d_label in [('0.1', '#1f77b4', '-', '$\\delta = 0.10$'), ('0.01
     ax1.plot(c_x, g_y, marker='o', color=cor, linestyle=est, label=d_label)
     ax2.plot(c_x, s_y, marker='s', color=cor, linestyle=est, label=d_label)
 
-ax1.set_title('Theoretical Mean Degree $\\mathbb{E}_\\mu[D]$')
+ax1.set_title('(a) Theoretical Mean Degree')
 ax1.set_xlabel('Parameter $c$')
 ax1.set_ylabel('Theoretical Mean Degree $\\mathbb{E}_\\mu[D]$')
+ax1.set_xticks([0.1, 0.3, 0.5, 0.8])
+ax1.set_xticklabels(['0,1', '0,3', '0,5', '0,8'])
+ax1.yaxis.set_major_formatter(comma_fmt)
 ax1.grid(True, linestyle=':', alpha=0.6)
 ax1.legend(frameon=True)
 
-ax2.set_title('Success Rate (%)')
+ax2.set_title('(b) Success Rate')
 ax2.set_xlabel('Parameter $c$')
 ax2.set_ylabel('Success Rate (%)')
+ax2.set_xticks([0.1, 0.3, 0.5, 0.8])
+ax2.set_xticklabels(['0,1', '0,3', '0,5', '0,8'])
+ax2.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{int(y)}"))
 ax2.grid(True, linestyle=':', alpha=0.6)
 ax2.legend(frameon=True)
 
@@ -158,7 +167,7 @@ ax2.legend(frameon=True)
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.png'), dpi=300)
 plt.close(fig)
-print('Figure 3 (grafico_impacto_c_delta) generated in English.')
+print('Figure 3 (grafico_impacto_c_delta) generated with decimal comma.')
 
 # -------------------------------------------------------------
 # FIGURE 4: Resilience under Channel Erasures (K=32 and K=64)
@@ -166,10 +175,10 @@ print('Figure 3 (grafico_impacto_c_delta) generated in English.')
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8), sharey=True)
 
 oh_cores = {'0.25': '#1f77b4', '0.5': '#ff7f0e', '1.0': '#2ca02c'}
-oh_labels = {'0.25': '$\\epsilon = 0.25$ (25%)', '0.5': '$\\epsilon = 0.50$ (50%)', '1.0': '$\\epsilon = 1.00$ (100%)'}
+oh_labels = {'0.25': '$\\epsilon = 0{,}25$ (25%)', '0.5': '$\\epsilon = 0{,}50$ (50%)', '1.0': '$\\epsilon = 1{,}00$ (100%)'}
 oh_marks = {'0.25': '^', '0.5': 's', '1.0': 'o'}
 
-for k, ax, titulo in [('32', ax1, '$K=32$'), ('64', ax2, '$K=64$')]:
+for k, ax, titulo in [('32', ax1, '(a) $K = 32$'), ('64', ax2, '(b) $K = 64$')]:
     for oh in ['0.25', '0.5', '1.0']:
         pts = []
         for r in rows:
@@ -192,7 +201,7 @@ ax1.legend(loc='lower left', frameon=True)
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.png'), dpi=300)
 plt.close(fig)
-print('Figure 4 (grafico_resiliencia) generated in English.')
+print('Figure 4 (grafico_resiliencia) generated with decimal comma.')
 
 # -------------------------------------------------------------
 # FIGURE 5: Computational Cost (Runtime and XORs)
@@ -210,10 +219,11 @@ xors_por_bloco = [107.6 / 16, 270.8 / 32, 688.4 / 64]
 
 # Panel 1: Runtime
 ax1.errorbar(ks_num, tempos_med, yerr=tempos_std, fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Mean Runtime (±1 std. dev.)')
-ax1.set_title('Decoding Runtime (ms)')
+ax1.set_title('(a) Decoding Runtime')
 ax1.set_xlabel('Source Block Count ($K$)')
 ax1.set_ylabel('Runtime (ms)')
 ax1.set_xticks(ks_num)
+ax1.yaxis.set_major_formatter(comma_fmt)
 ax1.grid(True, linestyle=':', alpha=0.6)
 ax1.legend(frameon=True)
 
@@ -221,11 +231,13 @@ ax1.legend(frameon=True)
 ax2.plot(ks_num, xors_totais, '-s', color='#ff7f0e', label='Total XORs')
 ax2_twin = ax2.twinx()
 ax2_twin.plot(ks_num, xors_por_bloco, '--^', color='#2ca02c', label='XORs per Block ($/K$)')
-ax2.set_title('Decoding XOR Operations')
+ax2.set_title('(b) XOR Operations')
 ax2.set_xlabel('Source Block Count ($K$)')
 ax2.set_ylabel('Total XOR Operations', color='#ff7f0e')
 ax2_twin.set_ylabel('XORs per Source Block', color='#2ca02c')
 ax2.set_xticks(ks_num)
+ax2.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{int(y)}"))
+ax2_twin.yaxis.set_major_formatter(comma_fmt)
 ax2.grid(True, linestyle=':', alpha=0.6)
 
 # Combine legends
@@ -237,6 +249,6 @@ ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
 plt.close(fig)
-print('Figure 5 (grafico_custo_computacional) generated in English.')
+print('Figure 5 (grafico_custo_computacional) generated with decimal comma.')
 
-print('All 5 figures successfully generated in English with standard decimal point format!')
+print('All 5 figures successfully generated in English with standardized decimal comma (ABNT format)!')
