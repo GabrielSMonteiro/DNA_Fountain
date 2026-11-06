@@ -3,6 +3,7 @@ import statistics
 import time
 import random
 import os
+import sys
 import matplotlib.pyplot as plt
 from dna_fountain.config import DNAFountainConfig
 from dna_fountain.soliton import RobustSoliton
@@ -68,52 +69,68 @@ def rodar_benchmark_k(K, c=0.1, delta=0.1, folga=1.0, p_perda=0.0, repeticoes=10
         "xor_per_block": xor_per_block
     }
 
-print("Executando baterias para K in (16, 32, 64)...")
-res = {}
-for K in (16, 32, 64):
-    res[K] = rodar_benchmark_k(K)
-    print(f"K={K}: Média={res[K]['mean_t']:.2f} ms, Desvio={res[K]['std_t']:.2f} ms, Mediana={res[K]['med_t']:.2f} ms, Min={res[K]['min_t']:.2f} ms, Max={res[K]['max_t']:.2f} ms, XORs={res[K]['mean_xor']:.1f}")
+def main():
+    json_path = "tempos_brutos_decodificacao.json"
+    rodar_novo = "--novo-benchmark" in sys.argv
+    
+    if rodar_novo or not os.path.exists(json_path):
+        print("Executando novas medições de benchmark para K in (16, 32, 64)...")
+        res = {}
+        for K in (16, 32, 64):
+            res[K] = rodar_benchmark_k(K)
+            print(f"K={K}: Média={res[K]['mean_t']:.2f} ms, Desvio={res[K]['std_t']:.2f} ms, Mediana={res[K]['med_t']:.2f} ms, Min={res[K]['min_t']:.2f} ms, Max={res[K]['max_t']:.2f} ms, XORs={res[K]['mean_xor']:.1f}")
+        
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump({k: {m: v for m, v in val.items() if m != 'tempos_brutos_ms'} for k, val in res.items()}, f, indent=2)
+        print(f"Dados arquivados com sucesso em {json_path}")
+    else:
+        print(f"Lendo medições arquivadas de {json_path} (use --novo-benchmark para reexecutar medições)...")
+        with open(json_path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        res = {int(k): v for k, v in raw.items()}
+        for K in (16, 32, 64):
+            print(f"K={K}: Média={res[K]['mean_t']:.2f} ms, Desvio={res[K]['std_t']:.2f} ms, Mediana={res[K]['med_t']:.2f} ms, Min={res[K]['min_t']:.2f} ms, Max={res[K]['max_t']:.2f} ms, XORs={res[K]['mean_xor']:.1f}")
 
-# Salva dados brutos em JSON para reprodutibilidade
-with open("tempos_brutos_decodificacao.json", "w", encoding="utf-8") as f:
-    json.dump({k: {m: v for m, v in val.items() if m != 'tempos_brutos_ms'} for k, val in res.items()}, f, indent=2)
+    # Atualiza grafico_custo_computacional.pdf e png
+    plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
 
-# Atualiza grafico_custo_computacional.pdf e png
-plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
+    ks_num = [16, 32, 64]
+    tempos_med = [res[k]['mean_t'] for k in ks_num]
+    tempos_std = [res[k]['std_t'] for k in ks_num]
+    xors_totais = [res[k]['mean_xor'] for k in ks_num]
+    xors_por_bloco = [res[k]['xor_per_block'] for k in ks_num]
 
-ks_num = [16, 32, 64]
-tempos_med = [res[k]['mean_t'] for k in ks_num]
-tempos_std = [res[k]['std_t'] for k in ks_num]
-xors_totais = [res[k]['mean_xor'] for k in ks_num]
-xors_por_bloco = [res[k]['xor_per_block'] for k in ks_num]
+    ax1.errorbar(ks_num, tempos_med, yerr=tempos_std, fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Tempo Médio (±1 desvio-padrão)')
+    ax1.set_title('Tempo de Decodificação (ms)')
+    ax1.set_xlabel('Quantidade de Blocos Fonte ($K$)')
+    ax1.set_ylabel('Tempo (ms)')
+    ax1.set_xticks(ks_num)
+    ax1.grid(True, linestyle=':', alpha=0.6)
+    ax1.legend(frameon=True)
 
-ax1.errorbar(ks_num, tempos_med, yerr=tempos_std, fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Tempo Médio (±1 desvio-padrão)')
-ax1.set_title('Tempo de Decodificação (ms)')
-ax1.set_xlabel('Quantidade de Blocos Fonte ($K$)')
-ax1.set_ylabel('Tempo (ms)')
-ax1.set_xticks(ks_num)
-ax1.grid(True, linestyle=':', alpha=0.6)
-ax1.legend(frameon=True)
+    ax2.plot(ks_num, xors_totais, '-s', color='#ff7f0e', label='Total de XORs')
+    ax2_twin = ax2.twinx()
+    ax2_twin.plot(ks_num, xors_por_bloco, '--^', color='#2ca02c', label='XORs por Bloco ($/K$)')
+    ax2.set_title('Operações XOR na Decodificação')
+    ax2.set_xlabel('Número de Blocos Fonte ($K$)')
+    ax2.set_ylabel('Total de XORs', color='#ff7f0e')
+    ax2_twin.set_ylabel('XORs por Bloco Fonte', color='#2ca02c')
+    ax2.set_xticks(ks_num)
+    ax2.grid(True, linestyle=':', alpha=0.6)
 
-ax2.plot(ks_num, xors_totais, '-s', color='#ff7f0e', label='Total de XORs')
-ax2_twin = ax2.twinx()
-ax2_twin.plot(ks_num, xors_por_bloco, '--^', color='#2ca02c', label='XORs por Bloco ($/K$)')
-ax2.set_title('Operações XOR na Decodificação')
-ax2.set_xlabel('Número de Blocos Fonte ($K$)')
-ax2.set_ylabel('Total de XORs', color='#ff7f0e')
-ax2_twin.set_ylabel('XORs por Bloco Fonte', color='#2ca02c')
-ax2.set_xticks(ks_num)
-ax2.grid(True, linestyle=':', alpha=0.6)
+    lines1, labels1 = ax2.get_legend_handles_labels()
+    lines2, labels2 = ax2_twin.get_legend_handles_labels()
+    ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
 
-lines1, labels1 = ax2.get_legend_handles_labels()
-lines2, labels2 = ax2_twin.get_legend_handles_labels()
-ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
+    fig.suptitle('Custo Computacional e Escalabilidade do Peeling Decoder ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
+    output_dir = os.path.join('Relatório', 'figuras')
+    os.makedirs(output_dir, exist_ok=True)
+    fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
+    fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
+    plt.close(fig)
+    print("Gráfico atualizado em Relatório/figuras/grafico_custo_computacional.pdf")
 
-fig.suptitle('Custo Computacional e Escalabilidade do Peeling Decoder ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
-output_dir = os.path.join('Relatório', 'figuras')
-fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
-fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
-plt.close(fig)
-print("Gráfico atualizado em Relatório/figuras/grafico_custo_computacional.pdf")
+if __name__ == "__main__":
+    main()
 

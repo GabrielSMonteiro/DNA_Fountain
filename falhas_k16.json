@@ -1,48 +1,56 @@
 [
   {
     "repeticao": 3,
+    "seed_base_cenario": 1601132,
     "recuperados": 3,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 18,
+    "seed_base_cenario": 1601132,
     "recuperados": 0,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 32,
+    "seed_base_cenario": 1601132,
     "recuperados": 0,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 41,
+    "seed_base_cenario": 1601132,
     "recuperados": 2,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 60,
+    "seed_base_cenario": 1601132,
     "recuperados": 6,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 72,
+    "seed_base_cenario": 1601132,
     "recuperados": 4,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 83,
+    "seed_base_cenario": 1601132,
     "recuperados": 2,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 85,
+    "seed_base_cenario": 1601132,
     "recuperados": 15,
     "blocos_isolados_grau0": [
       1
@@ -51,12 +59,14 @@
   },
   {
     "repeticao": 86,
+    "seed_base_cenario": 1601132,
     "recuperados": 0,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"
   },
   {
     "repeticao": 94,
+    "seed_base_cenario": 1601132,
     "recuperados": 5,
     "blocos_isolados_grau0": [],
     "categoria": "stopping_set_esgotamento_ripple"

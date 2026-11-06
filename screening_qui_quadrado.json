@@ -10,11 +10,11 @@
   "aceitos": 1195,
   "rejeitados": 805,
   "graus_de_liberdade": 17,
-  "chi2_calculado": 24.5057,
+  "chi2_calculado": 25.6678,
   "tabela_classes": [
     {
       "classe": "d=1",
-      "observado": 115,
+      "observado": 117,
       "esperado": 97.52
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "classe": "d=9",
-      "observado": 244,
+      "observado": 242,
       "esperado": 270.31
     },
     {

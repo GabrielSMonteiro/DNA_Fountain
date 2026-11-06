@@ -19,7 +19,7 @@ def salvar():
         [13, 14], [15, 16], [17, 18], [19, 20, 21], [22, 23, 24, 25], list(range(26, 33))
     ]
     
-    obs = [115, 412, 162, 74, 50, 32, 20, 23, 244, 7, 6, 8, 7, 9, 3, 6, 3, 14]
+    obs = [117, 412, 162, 74, 50, 32, 20, 23, 242, 7, 6, 8, 7, 9, 3, 6, 3, 14]
     n_aceitos = sum(obs)
     esp = [round(n_aceitos * sum(soliton.mu[d] for d in c), 2) for c in classes]
     

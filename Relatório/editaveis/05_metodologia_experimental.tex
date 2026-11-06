@@ -17,11 +17,11 @@ Todos os experimentos foram executados em uma única máquina com a seguinte con
     \item \textbf{Bibliotecas}: Apenas módulos da biblioteca padrão (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), sem dependências externas para o núcleo do simulador.
 \end{itemize}
 
-Essa escolha deliberada de depender exclusivamente da biblioteca padrão do Python garante que os experimentos possam ser reproduzidos no ambiente declarado, sem necessidade de instalação de pacotes adicionais.
+O núcleo do simulador depende exclusivamente da biblioteca padrão do Python. A execução da suíte de testes automatizados e a regeneração das figuras utilizam dependências de desenvolvimento (\texttt{pytest} e \texttt{matplotlib}), descritas no arquivo de requisitos da versão experimental (\texttt{requirements-dev.txt}).
 
 Em consonância com a delimitação de escopo estabelecida no Capítulo~\ref{chap:introduction}, o canal de transmissão é modelado sob as seguintes hipóteses operacionais:
 \begin{enumerate}
-    \item \textbf{Canal de Apagamento Estocástico Puro (BEC)}: Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$, de modo que a quantidade de droplets recebidos segue uma distribuição binomial $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
+    \item \textbf{Canal de Apagamento de Pacotes (abstração BEC)}: Canal de apagamento de pacotes, com eventos Bernoulli independentes por oligonucleotídeo, usado como abstração do canal molecular. Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$, de modo que a quantidade de droplets recebidos segue uma distribuição binomial $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
     \item \textbf{Integridade dos Pacotes Sobreviventes}: Os oligonucleotídeos que sobrevivem ao canal chegam ao decodificador com integridade lógica perfeita, sem mutações de substituição, inserções ou deleções pontuais;
     \item \textbf{Rejeição Prévia no Screening com Substituição Determinística}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador. Os candidatos rejeitados são substituídos por novos candidatos gerados com seeds incrementais, até atingir o total estipulado de $N_{\text{tx}}$ sequências aprovadas e transmitidas. Esse descarte prévio de candidatos não se confunde com o apagamento estocástico do canal de transmissão.
 \end{enumerate}
@@ -40,7 +40,7 @@ As variáveis independentes são os parâmetros do pipeline sistematicamente var
 
     \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ denota o número de oligonucleotídeos aprovados no screening e transmitidos, isto é, $N = N_{\text{tx}}$. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis), correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
 
-    \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis), abrangendo desde canal sem ruído até perda estocástica de $20\%$ dos pacotes.
+    \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis), abrangendo desde canal sem ruído até probabilidade de apagamento de até 0{,}20 por oligonucleotídeo transmitido.
 \end{itemize}
 
 \section{Variáveis Dependentes}
@@ -152,7 +152,7 @@ O objetivo é mapear a transição entre decodificação incompleta e decodifica
 
 O terceiro cenário avalia como os parâmetros da distribuição robusta de soliton afetam o desempenho do sistema. Para cada par $(c, \delta)$, são medidos a taxa de sucesso, o grau médio amostrado $\bar{d}$, o valor de $R$, o número de operações XOR e a dinâmica do \emph{ripple}.
 
-Esse experimento permite observar o compromisso entre robustez e custo: valores moderados ($c=0{,}1$) sustentam a conectividade do grafo, enquanto valores elevados ($c \ge 0{,}5$) deslocam o pico $m = \lfloor K/R \rfloor$ para graus unitários, reduzindo o grau médio e provocando o colapso precoce do processo de peeling em regimes de poucos blocos.
+Esse experimento permite observar o compromisso entre robustez e custo: valores moderados ($c=0{,}1$) sustentam a conectividade do grafo, enquanto valores elevados de $c$ podem deslocar o índice do termo corretivo para graus baixos, com efeitos dependentes de $K$ e $\delta$. A avaliação experimental investiga em quais configurações essa concentração favorece ou prejudica a recuperação da mensagem original.
 
 \subsection{Experimento 4: Impacto do Screening Biológico}
 
@@ -211,7 +211,7 @@ A reprodutibilidade dos experimentos apoia-se em cinco medidas metodológicas fu
 \begin{enumerate}
     \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython~3.12.7), com as seeds e arquivos fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas internas de amostragem do módulo \texttt{random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
 
-    \item \textbf{Distinção entre dados agregados e registros individuais}:
+    \item \textbf{Distinção entre dados agregados e registros individuais}: Estão disponíveis publicamente no repositório as matrizes agregadas da grade fatorial e os registros individuais dos ensaios de auditoria especificados:
     \begin{itemize}
         \item \emph{Matrizes de resultados agregados}: Os dados de cada bateria fatorial estão consolidados nos arquivos \texttt{resultados\_10.csv}, \texttt{resultados\_}\allowbreak\texttt{30.csv} e \texttt{resultados\_}\allowbreak\texttt{100.csv}, contendo exatamente 216 linhas cada. Cada linha sintetiza as médias, desvios e taxas observadas sobre as $n$ repetições independentes daquele ponto paramétrico fatorial;
         \item \emph{Registros individuais de custo}: O arquivo \texttt{tempos\_brutos\_decodificacao.json} armazena individualmente as 100 medições de tempo e contagens de XOR obtidas para cada quantidade de blocos $K \in \{16, 32, 64\}$ na validação de desempenho;
@@ -222,14 +222,15 @@ A reprodutibilidade dos experimentos apoia-se em cinco medidas metodológicas fu
     \item \textbf{Automação e regeneração de artefatos}: A execução completa dos experimentos e a geração dos artefatos documentais são governadas por scripts Python dedicados:
     \begin{itemize}
         \item Execução da grade fatorial: \texttt{python run\_experiments.py};
-        \item Estatísticas temporais e de custo: \texttt{python salvar\_estatisticas\_custo.py};
+        \item Estatísticas temporais e de custo (Tabela~\ref{tab:custo_computacional}): \texttt{python}\allowbreak\ \texttt{salvar\_}\allowbreak\texttt{estatisticas\_}\allowbreak\texttt{custo.py} (processa as medições fixadas no JSON arquivado, admitindo a flag opcional \texttt{-\relax-novo-benchmark} para novos testes ativos);
         \item Análise de falhas em $K=16$: \texttt{python analisar\_falhas\_k16.py};
+        \item Histograma do teste $\chi^2$: \texttt{python salvar\_qui\_quadrado.py};
         \item Geração de gráficos vetoriais: \texttt{python gerar\_graficos.py};
         \item Geração do diagrama arquitetural: \texttt{python gerar\_diagrama\_arquitetura.py};
         \item Execução da suíte de testes: \texttt{python -m pytest tests/}.
     \end{itemize}
 
-    \item \textbf{Independência de bibliotecas proprietárias}: O simulador utiliza exclusivamente módulos da biblioteca padrão do interpretador CPython, permitindo replicação direta sem dependências compiladas externas.
+    \item \textbf{Independência de bibliotecas do núcleo}: O núcleo do simulador depende exclusivamente da biblioteca padrão do Python. A execução da suíte de testes e a regeneração das figuras utilizam dependências de desenvolvimento (\texttt{pytest>=8.0.0} e \texttt{matplotlib>=3.8.0}), descritas no arquivo \texttt{requirements-dev.txt} na raiz do repositório.
     
     \item \textbf{Disponibilização do código sob versão imutável}: Todos os módulos do simulador, scripts de instrumentação e bases de dados experimentais estão versionados e publicamente acessíveis no repositório GitHub do projeto: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. Os resultados apresentados nesta monografia correspondem à versão identificada pelo commit \texttt{bb2f0ab}, documentada no arquivo \texttt{README.md} do repositório.
 \end{enumerate}

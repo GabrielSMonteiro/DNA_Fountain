@@ -35,6 +35,7 @@ def analisar():
             isolados = [i for i in range(K) if i not in cobertura]
             falhas.append({
                 'repeticao': rep,
+                'seed_base_cenario': seed_base,
                 'recuperados': len(desc),
                 'blocos_isolados_grau0': isolados,
                 'categoria': 'isolamento_inicial' if isolados else 'stopping_set_esgotamento_ripple'

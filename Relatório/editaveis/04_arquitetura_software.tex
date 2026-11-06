@@ -282,7 +282,7 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 
 \subsection{Dimensionamento de Cabeçalho, Framing e Densidade da Biblioteca}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. A busca avalia sequencialmente as sementes no intervalo fechado de $0$ a $2^{16}-1 = 65.535$ (\texttt{seed = 0} com incremento unitário). Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
 
 Cada oligonucleotídeo sintético do protótipo é estruturado pelo seguinte \emph{framing} binário:
 \begin{equation}
@@ -347,7 +347,7 @@ O componente \texttt{BiologicalScreening} foi submetido a sequências de DNA pro
 
 \subsection{Teste Funcional Determinístico do Peeling Decoder}
 
-Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Em todas as configurações de prova, o algoritmo recuperou $100\%$ dos blocos originais, confirmando que as operações XOR de vizinhança e a remoção de arestas operam sem falhas algorítmicas.
+Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Nos casos canônicos executados, todos os blocos foram recuperados corretamente, sem divergências em relação ao resultado esperado.
 
 \begin{table}[htbp]
     \centering
@@ -355,22 +355,24 @@ Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram exe
     \setlength{\tabcolsep}{4pt}
     \caption{Suíte de testes e validação interna do simulador.}
     \label{tab:suite_testes}
-    \begin{tabular}{p{4.2cm}p{6.0cm}p{4.8cm}}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lclp{5.6cm}p{4.2cm}}
         \toprule
-        \textbf{Teste Unitário} & \textbf{Descrição do Caso} & \textbf{Resultado Observado} \\
+        \textbf{Teste Implementado} & \textbf{Nível} & \textbf{Descrição do Caso} & \textbf{Resultado Observado} \\
         \midrule
-        Conversão bytes $\leftrightarrow$ DNA & Ciclo fechado para todos os 256 bytes e vetores aleatórios. & Taxa de erro $= 0{,}00\%$ \\
-        Somatória da DRS & Verificação de $\sum \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado numericamente \\
-        Amostragem empírica & $10^5$ amostras vs. valores analíticos de $\mu(d)$ para $\mu(d) \ge 0{,}01$. & Erro relativo $< 0{,}4\%$; erro absoluto $< 0{,}003$ \\
-        GC fora da faixa & Sequências artificiais com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas com sucesso \\
-        Homopolímero $\geq 4$ & Sequências com 4+ bases consecutivas iguais. & Rejeitadas com sucesso \\
-        Peeling em grafos canônicos & Instâncias determinísticas com $K$ droplets unitários e triangular. & Taxa de recuperação $= 100\%$ \\
-        Padding e truncamento & Mensagem de tamanho não múltiplo de $L$ com reversão exata. & Recuperação $100\%$ sem ruído \\
-        Amostragem determinística & Mesma semente gera idêntico grau e vizinhança na DRS. & Determinismo estrito verificado \\
-        Consistência encoder/decoder & Vizinhanças sintetizadas pelo encoder conferidas no decoder. & Coincidência total dos índices \\
-        Canais extremos & $p_{\text{loss}} = 0{,}0$ preserva tudo; $p_{\text{loss}} = 1{,}0$ apaga tudo. & Comportamento assintótico exato \\
+        \texttt{test\_conversao\_bytes\_dna} & Unitário & Ciclo fechado bytes $\leftrightarrow$ DNA para todos os 256 bytes e vetor aleatório. & Taxa de erro $= 0{,}00\%$ \\
+        \texttt{test\_somatoria\_drs} & Unitário & Verificação de $\sum_{d=1}^K \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado numericamente \\
+        \texttt{test\_screening\_gc\_limits} & Unitário & Sequências artificiais com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas com sucesso \\
+        \texttt{test\_screening\_homopolimeros} & Unitário & Sequências contendo homopolímeros com comprimento $\ge 4$. & Rejeitadas com sucesso \\
+        \texttt{test\_peeling\_canal\_ideal} & Integração & Pipeline completo com overhead $\epsilon = 1{,}00$ em canal sem perdas. & Recuperação integral ($100\%$) \\
+        \texttt{test\_segmentacao\_padding} & Unitário & Carga útil não múltipla de $L$ com reversão exata do preenchimento. & Recuperação exata sem ruído \\
+        \texttt{test\_amostragem\_seed} & Unitário & Mesma semente gera idêntico grau e vizinhança sem índices duplicados. & Determinismo estrito verificado \\
+        \texttt{test\_consistencia\_codec} & Integração & Confronto das vizinhanças amostradas no codificador e decodificador. & Coincidência total dos índices \\
+        \texttt{test\_canal\_apagamento} & Unitário & Casos-limite determinísticos ($p_{\text{loss}} = 0{,}0$ e $p_{\text{loss}} = 1{,}0$). & Preservação total em $p=0$ e perda total em $p=1$ \\
+        \texttt{test\_exportacao\_csv} & Integração & Execução experimental e gravação/leitura de métricas em formato CSV. & Estrutura e tipos validados \\
         \bottomrule
-    \end{tabular}
+    \end{tabular}%
+    }
 \end{table}
 
 Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte. A execução integral da suíte de 10 testes é realizada via comando \texttt{python -m pytest tests/}, alcançando 100\% de aprovação em aproximadamente 0{,}05 segundos na versão sob commit \texttt{bb2f0ab}, confirmando a conformidade dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.
