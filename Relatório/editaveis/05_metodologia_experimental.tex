@@ -34,7 +34,7 @@ As variáveis independentes são os parâmetros do pipeline sistematicamente var
 \begin{itemize}
     \item \textbf{Quantidade de blocos fonte ($K$)}: Determina o número de segmentos em que a mensagem é particionada. Valores avaliados: $K \in \{16, 32, 64\}$ (3 níveis), representando regimes de blocos finitos para avaliar os limites práticos do \emph{peeling decoder}.
 
-    \item \textbf{Parâmetro $c$ da DRS}: Constante multiplicativa que controla a escala de $R$ na distribuição robusta de soliton. Valores avaliados: $c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis).
+    \item \textbf{Parâmetro $c$ da DRS}: Constante multiplicativa que controla a escala de $R$ na distribuição robusta de soliton. Valores avaliados: $c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis). A grade avalia a DRS clássica nas configurações válidas da formulação analítica e a extensão operacional com $m$ limitado a 1 nos casos de fronteira ($m_{\text{bruto}} < 1$), conforme especificado na Seção~\ref{sec:robust_soliton_distribution}.
 
     \item \textbf{Parâmetro $\delta$ da DRS}: Balizador formal de projeto da cauda da distribuição. Valores avaliados: $\delta \in \{0{,}01;\; 0{,}1\}$ (2 níveis).
 
@@ -57,9 +57,9 @@ As variáveis dependentes são as métricas de saída coletadas pelo simulador e
 
     \item \textbf{Quantidade efetiva de droplets recebidos}: Número de oligonucleotídeos que sobreviveram simultaneamente ao screening biológico e ao canal de apagamento, representando a informação efetivamente disponível ao decodificador.
 
-    \item \textbf{Número total de operações XOR}: Soma acumulada das operações de combinação e propagação executadas durante o \emph{peeling}, servindo como proxy do custo computacional da decodificação.
+    \item \textbf{Operações XOR de propagação do peeling}: Soma acumulada das operações de ou-exclusivo executadas entre blocos durante as atualizações de vizinhança no \emph{peeling}, servindo como métrica do esforço computacional do decodificador.
 
-    \item \textbf{Tamanho da fila do ripple}: Comprimento da fila operacional de droplets processáveis (\emph{ripple}) monitorado a cada passo da decodificação. O valor máximo ($R_{\max}$) registra o pico de droplets unitários simultâneos na fila, enquanto o valor mínimo ($R_{\min}$) reflete a condição de guarda operacional durante o laço ativo de processamento.
+    \item \textbf{Tamanho da fila operacional do ripple}: Comprimento da fila de droplets processáveis monitorado a cada passo da decodificação. O valor máximo ($Q_{\max}$) registra o pico de droplets unitários simultâneos na fila, enquanto o valor mínimo ($Q_{\min}$) reflete a condição de guarda operacional durante o laço ativo de processamento (\texttt{while ripple:}), no qual $Q_{\min} = 1$ por definição da guarda.
 
     \item \textbf{Tempo de decodificação}: Intervalo de tempo em milissegundos consumido pelo método \texttt{decoder.decodificar()}, medido via \texttt{time.perf\_counter()} com resolução de microssegundos.
 \end{itemize}
@@ -111,7 +111,7 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
             & Blocos fonte recuperados & $0$ a $K$ \\
             & Droplets recebidos efetivos & Contagem pós-screening e pós-perda \\
             & Operações XOR acumuladas & Total computado no peeling \\
-            & Fila do ripple ($R_{\max}$, $R_{\min}$) & Dinâmica da fila instrumentada \\
+            & Fila do ripple ($Q_{\max}$, $Q_{\min}$) & Dinâmica da fila instrumentada \\
             & Tempo total do decodificador & Milissegundos (\texttt{time.perf\_counter}) \\
         \midrule
         \multirow{2}{*}{\parbox{2.5cm}{Ensaio Dedicado (Screening)}}
@@ -161,6 +161,8 @@ O quarto cenário isola o impacto das restrições biológicas físico-químicas
 \subsection{Experimento 5: Impacto do Canal de Apagamento}
 
 O quinto cenário avalia a resiliência do sistema sob diferentes taxas de perda, variando $p_{\text{loss}}$ de $0\%$ a $20\%$ em incrementos de $10\%$. Para cada taxa de perda, a bateria é executada com múltiplos valores de overhead para quantificar a degradação e a redundância compensatória.
+
+Cabe explicitar a relação metodológica entre os cenários e a grade experimental: os Cenários 1, 2, 3 e 5 constituem subconjuntos de análise focalizada extraídos da grade fatorial principal de 216 combinações paramétricas ($3 \times 4 \times 2 \times 3 \times 3$), cujas 100 repetições totalizam exatamente $216 \times 100 = 21.600$ execuções completas do simulador. Por sua vez, o Cenário 4 consiste em um ensaio amostral dedicado e independente, concebido especificamente para avaliar a seletividade físico-química e a distribuição de graus sobre uma população isolada de 2.000 oligonucleotídeos candidatos gerados sob carga pseudoaleatória, não se confundindo com as 21.600 execuções da grade fatorial.
 
 A Tabela~\ref{tab:cenarios_experimentais} sintetiza os cinco cenários avaliados.
 

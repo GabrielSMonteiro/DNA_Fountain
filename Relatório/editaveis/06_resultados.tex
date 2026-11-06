@@ -49,7 +49,7 @@ O módulo de screening biológico atua como um filtro de qualidade físico-quím
 
 Durante os ensaios de amostragem dedicada com 2.000 droplets candidatos sobre cargas úteis pseudoaleatórias ($K = 32$, $c = 0{,}1$, $\delta = 0{,}10$), o screening rejeitou 40{,}2\% das sequências geradas (805 de 2.000 candidatos, correspondendo a um intervalo de confiança de Clopper--Pearson a 95\% de $[38{,}1\%, 42{,}4\%]$). Essa taxa reflete a rigidez combinada dos dois critérios: o limite de homopolímero em 3 bases elimina sequências como \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG} e \texttt{TTTT}, enquanto a restrição de GC descarta oligos com desvios em relação à faixa central.
 
-A Tabela~\ref{tab:screening_graus} compara o grau médio teórico da distribuição com os graus médios empíricos observados nos subconjuntos aceito e rejeitado.
+A Tabela~\ref{tab:screening_graus} compara o valor esperado teórico da distribuição populacional com os graus médios empíricos observados sobre o total de 2.000 candidatos e nos subconjuntos aceito e rejeitado.
 
 \begin{table}[htbp]
     \centering
@@ -59,9 +59,10 @@ A Tabela~\ref{tab:screening_graus} compara o grau médio teórico da distribuiç
     \resizebox{0.95\textwidth}{!}{%
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Condição} & \textbf{Grau Médio ($\bar{d}$)} & \shortstack{\textbf{Desvio Relativo à}\\\textbf{Média Teórica (\%)}} & \textbf{Amostras (Oligos)} \\
+        \textbf{Condição Amostral} & \textbf{Grau Médio ($\bar{d}$)} & \shortstack{\textbf{Desvio Relativo à}\\\textbf{Média Teórica (\%)}} & \textbf{Amostras (Oligos)} \\
         \midrule
         Distribuição Teórica ($\mu$) & 4{,}945 & --- & --- \\
+        Total de Candidatos Gerados & 4{,}765 & $-3{,}64$ & 2.000 (100{,}0\%) \\
         Droplets Aceitos (transmitidos) & 4{,}756 & $-3{,}82$ & 1.195 (59{,}8\%) \\
         Droplets Rejeitados (descartados) & 4{,}779 & $-3{,}36$ & 805 (40{,}2\%) \\
         \bottomrule
@@ -69,7 +70,7 @@ A Tabela~\ref{tab:screening_graus} compara o grau médio teórico da distribuiç
     }
 \end{table}
 
-Nas condições avaliadas, foram observadas diferenças limitadas no grau médio amostrado antes e após o filtro biológico, com desvios inferiores a 4\% em relação à média teórica de 4{,}945, calculados como $100 \cdot (\bar{d}_{\text{grupo}} - \bar{d}_{\text{teórico}}) / \bar{d}_{\text{teórico}}$. Como o conteúdo GC e a formação de homopolímeros dependem primariamente do arranjo de bases na carga útil (randomizados pelo \emph{scrambler}) e no cabeçalho de seed, as médias dos graus nos subconjuntos aceito e rejeitado foram próximas nas condições avaliadas.
+A média observada sobre o conjunto de 2.000 candidatos amostrados foi de $4{,}765$ (desvio de $-3{,}64\%$ em relação à média teórica populacional de $4{,}945$, decorrente da flutuação amostral finita). A média ponderada dos dois subconjuntos recompõe com exatidão a média global do ensaio: $(1.195 \times 4{,}756 + 805 \times 4{,}779)/2.000 \approx 4{,}765$. Entre os subconjuntos de droplets aceitos ($4{,}756$) e rejeitados ($4{,}779$), a diferença foi de apenas $0{,}023$ graus (desvio mútuo de $0{,}48\%$), confirmando que o filtro físico-químico opera sobre o arranjo das bases sem impor viés sistemático relevante sobre a distribuição de graus na amostra avaliada.
 
 Para verificar formalmente se a filtragem biológica preserva a distribuição completa de graus e não apenas a média, aplicou-se o teste de aderência qui-quadrado ($\chi^2$ de Pearson) entre as frequências observadas de cada grau nos droplets aceitos e as frequências esperadas sob a DRS teórica $\mu(d)$. A frequência esperada de cada classe $C_j$ foi calculada como $E_j = n_{\text{aceitos}} \sum_{d \in C_j} \mu(d)$, onde $n_{\text{aceitos}} = 1.195$. Os graus 1 a 12, que apresentaram contagem esperada individual superior a 5, foram mantidos como categorias isoladas. Os graus 13 a 32 foram agregados em 6 classes compostas adjacentes ($d \in \{13,14\}$, $\{15,16\}$, $\{17,18\}$, $\{19,20,21\}$, $\{22,23,24,25\}$ e $\{26,\ldots,32\}$), garantindo frequência esperada mínima $\ge 5$ em todas as classes. O agrupamento gerou 18 categorias e $18 - 1 = 17$ graus de liberdade. As frequências observadas e esperadas para cada uma das 18 classes foram arquivadas em formato estruturado no arquivo \texttt{screening\_qui\_quadrado.json}. Obteve-se $\chi^2 = 25{,}66$ ($\text{df} = 17$, $p = 0{,}081$). Como $p > 0{,}05$, não se rejeita a hipótese nula de aderência ao nível de significância de 5\%. Neste ensaio amostral específico, portanto, não foi detectado desvio estatisticamente significativo entre a distribuição dos graus aceitos e a DRS teórica, nas condições desse ensaio (2.000 candidatos sob carga pseudoaleatória com \emph{scrambler}), ressalvando-se que o teste compara os aceitos com a referência teórica e possui poder estatístico limitado para detectar variações sutis em categorias de probabilidade residual.
 
@@ -81,7 +82,7 @@ Conforme a distinção estabelecida na Seção~\ref{sec:ripple_concept}, os resu
 A dinâmica observada no simulador segue três fases características:
 \begin{enumerate}
     \item \textbf{Inicialização}: O decodificador insere na fila todos os droplets recebidos com grau 1 original. Se nenhum pacote de grau 1 estiver presente, a fila inicia vazia e o algoritmo é interrompido de imediato;
-    \item \textbf{Propagação}: A cada passo, um pacote é retirado da fila. Se o bloco correspondente ainda não foi descoberto, ele é registrado e removido (via XOR) de todos os droplets vizinhos. Aqueles vizinhos que atingem grau 1 são adicionados à fila. O tamanho da fila atinge seu ápice ($R_{\max}$) nessa fase;
+    \item \textbf{Propagação}: A cada passo, um pacote é retirado da fila. Se o bloco correspondente ainda não foi descoberto, ele é registrado e removido (via XOR) de todos os droplets vizinhos. Aqueles vizinhos que atingem grau 1 são adicionados à fila. O tamanho da fila atinge seu ápice ($Q_{\max}$) nessa fase;
     \item \textbf{Conclusão}: Nos passos finais, a maioria dos blocos já foi resolvida e poucos novos blocos de grau 1 entram na fila. A fila decresce progressivamente até esvaziar, encerrando o laço.
 \end{enumerate}
 
@@ -92,11 +93,12 @@ A Tabela~\ref{tab:ripple_metricas} apresenta o comportamento médio da fila do \
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Dinâmica do \emph{ripple} em função de $c$ e $\delta$ ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Dinâmica da fila do \emph{ripple} em função de $c$ e $\delta$ ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
     \label{tab:ripple_metricas}
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{cccccc}
         \toprule
-        \textbf{$c$} & \textbf{$\delta$} & \textbf{$R$ Teórico} & \textbf{Ripple Máx. Médio} & \textbf{Ripple Mín. Médio} & \textbf{Sucesso (\%)} \\
+        \textbf{$c$} & \textbf{$\delta$} & \textbf{$R$ Teórico} & \textbf{Pico da Fila ($Q_{\max}$)} & \textbf{Mínimo da Fila ($Q_{\min}$)$^*$} & \textbf{Sucesso (\%)} \\
         \midrule
         0{,}1 & 0{,}10 & 3{,}263 & 10{,}5 & 1{,}0 & 85{,}0 \\
         0{,}1 & 0{,}01 & 4{,}566 & 7{,}2 & 1{,}0 & 33{,}0 \\
@@ -105,7 +107,10 @@ A Tabela~\ref{tab:ripple_metricas} apresenta o comportamento médio da fila do \
         0{,}5 & 0{,}10 & 16{,}315 & 38{,}2 & 1{,}0 & 0{,}0 \\
         0{,}8 & 0{,}10 & 26{,}104 & 39{,}9 & 1{,}0 & 0{,}0 \\
         \bottomrule
-    \end{tabular}
+    \end{tabular}%
+    }
+    \par \vspace{3pt}
+    {\footnotesize $^*$A amostragem de $Q_{\min}$ ocorre durante as iterações ativas (\texttt{while ripple:}); o esvaziamento final (tamanho zero) encerra o laço e não integra o histórico ativo.}
 \end{table}
 
 A Figura~\ref{fig:dinamica_ripple} ilustra a evolução temporal do tamanho da fila do \emph{ripple} ao longo dos passos iterativos de decodificação para $K = 32$ com overhead $\epsilon = 1{,}00$ e canal limpo, contrastando a configuração recomendada ($c = 0{,}1$, $\delta = 0{,}10$) com uma configuração degenerada ($c = 0{,}5$, $\delta = 0{,}10$).
@@ -119,10 +124,10 @@ A Figura~\ref{fig:dinamica_ripple} ilustra a evolução temporal do tamanho da f
 
 A análise da Figura~\ref{fig:dinamica_ripple} e da Tabela~\ref{tab:ripple_metricas} esclarece as diferenças operacionais e a distinção entre médias e execuções individuais:
 \begin{enumerate}
-    \item A métrica ``Ripple Máx. Médio'' na Tabela~\ref{tab:ripple_metricas} reporta a média amostral dos picos máximos atingidos pela fila instrumentada (\texttt{collections.deque}) ao longo de 100 execuções independentes sob overhead intermediário $\epsilon = 0{,}50$. Por sua vez, a Figura~\ref{fig:dinamica_ripple} exibe a trajetória de uma única execução sob overhead pleno ($\epsilon = 1{,}00$), razão pela qual os picos pontuais observados no gráfico diferem das médias tabuladas sob $\epsilon = 0{,}50$;
+    \item A métrica ``Pico da Fila ($Q_{\max}$)'' na Tabela~\ref{tab:ripple_metricas} reporta a média amostral dos picos máximos atingidos pela fila instrumentada (\texttt{collections.deque}) ao longo de 100 execuções independentes sob overhead intermediário $\epsilon = 0{,}50$. Por sua vez, a Figura~\ref{fig:dinamica_ripple} exibe a trajetória de uma única execução sob overhead pleno ($\epsilon = 1{,}00$), razão pela qual os picos pontuais observados no gráfico diferem das médias tabuladas sob $\epsilon = 0{,}50$;
     \item Na configuração recomendada ($c = 0{,}1$, $\epsilon = 1{,}00$), a fila é alimentada de forma gradual ao longo das iterações, atingindo pico moderado de 22 elementos e sustentando entradas contínuas de droplets unitários até a recuperação completa dos 32 blocos fonte (32/32);
     \item Na configuração com $c = 0{,}5$, a DRS sofre deslocamento de pico para $m = \lfloor 32/16{,}32 \rfloor = 1$, onde cerca de 73\% dos droplets concentram-se no grau 1. Isso faz com que a fila seja inundada inicialmente (pico de 50 elementos). O laço de decodificação é executado por 64 iterações ao retirar pacotes da fila, porém a maioria corresponde a droplets redundantes cobrindo blocos já descobertos. Pela escassez de droplets com graus intermediários para conectar os blocos restantes via XOR, a execução encerrou com um bloco pendente (recuperando 31 de 32 blocos) após o esgotamento das equações unitárias úteis na fila de processamento;
-    \item O valor do ripple mínimo médio ser registrado como 1,0 em todas as linhas da Tabela~\ref{tab:ripple_metricas} decorre da definição de instrumentação: a medição amostral é computada dentro do laço de decodificação (\texttt{while ripple:}), momento em que a fila contém no mínimo um elemento ativo. O esvaziamento final (tamanho zero) representa a condição de saída do laço, não sendo capturado como estado intermediário da fila.
+    \item O valor do ripple mínimo médio ($Q_{\min}$) ser registrado como 1,0 em todas as linhas da Tabela~\ref{tab:ripple_metricas} decorre da definição de instrumentação: a medição amostral é computada dentro do laço de decodificação (\texttt{while ripple:}), momento em que a fila contém no mínimo um elemento ativo. O esvaziamento final (tamanho zero) representa a condição de saída do laço, não sendo capturado como estado intermediário da fila.
 \end{enumerate}
 
 \section{Overhead versus Taxa de Sucesso}
@@ -292,7 +297,7 @@ O custo computacional do pipeline foi quantificado por duas métricas complement
 
 O tempo mensurado contempla a execução completa do método de decodificação (\texttt{decoder.decodificar()}), englobando: (1) a conversão de nucleotídeos em bytes; (2) a extração da \emph{seed} ofuscada; (3) a checagem CRC-8; (4) a regeneração dos índices de vizinhança; (5) a montagem da tabela reversa de adjacências; e (6) as iterações do \emph{peeling} com propagação de XORs.
 
-A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$). As médias de tempo e de operações XOR apresentadas contemplam a totalidade das 100 execuções avaliadas por configuração na versão sob commit \texttt{bb2f0ab}, independentemente do desfecho (sucesso ou falha) da decodificação. Cada operação XOR computada corresponde à contagem das operações bit a bit efetivamente realizadas entre blocos de $L = 4$ bytes durante as atualizações de carga útil no processo de \emph{peeling} (\texttt{xor\_blocos}). Ressalta-se que, como as médias computam todas as execuções da bateria, um menor esforço computacional médio pode eventualmente decorrer de encerramento prematuro em instâncias não recuperadas, e não de maior eficiência intrínseca para recuperar a mesma informação. As medições temporais e de operações individuais foram persistidas no arquivo \texttt{tempos\_brutos\_decodificacao.json} no repositório do projeto, a partir do qual foram calculados a média amostral, o desvio-padrão amostral, a mediana e os valores extremos via script determinístico \texttt{salvar\_estatisticas\_custo.py}.
+A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$). As médias de tempo e de operações XOR apresentadas contemplam a totalidade das 100 execuções avaliadas por configuração na versão sob commit \texttt{bb2f0ab}, independentemente do desfecho (sucesso ou falha) da decodificação. Cada operação XOR computada reporta a métrica de \emph{operações XOR de propagação do peeling}, correspondendo à contagem exata das chamadas da rotina \texttt{xor\_blocos} executadas entre blocos de $L = 4$ bytes durante a remoção de arestas de vizinhos no grafo (\texttt{outro["indices"].remove(idx\_bloco)}). Operações lógicas de checagem de integridade por CRC-8 e desfazimento de \emph{scrambling} ocorrem na validação prévia de framing e permanecem deliberadamente fora desse contador. Ressalta-se que, como as médias computam todas as execuções da bateria, um menor esforço computacional médio pode eventualmente decorrer de encerramento prematuro em instâncias não recuperadas, e não de maior eficiência intrínseca para recuperar a mesma informação. As medições temporais e de operações individuais foram persistidas no arquivo \texttt{tempos\_brutos\_decodificacao.json} no repositório do projeto, a partir do qual foram calculados a média amostral, o desvio-padrão amostral, a mediana e os valores extremos via script determinístico \texttt{salvar\_estatisticas\_custo.py}.
 
 \begin{table}[htbp]
     \centering

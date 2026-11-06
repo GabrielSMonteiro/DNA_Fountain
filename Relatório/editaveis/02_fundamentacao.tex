@@ -88,7 +88,7 @@ Essas restrições biológicas \textbf{não constituem erros físicos de canal},
 
 Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessário utilizar alguma forma de codificação redundante que permita a recuperação dos dados mesmo quando parte das sequências é perdida. Nesse contexto, os \textbf{códigos de apagamento} (\emph{erasure codes}) são a classe de códigos corretores de erros adequada ao problema.
 
-Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Nesse tipo de código, o codificador gera um número fixo $N$ de pacotes a partir de $K$ blocos originais, com uma taxa de código $R_c = K/N$ congelada em tempo de projeto. Caso a perda real do canal exceda o orçamento estático de paridade ($1 - R_c$), a decodificação torna-se impossível sem uma nova rodada de transmissão ou redimensionamento estrutural do código~\cite{mackay2003}. Em canais de armazenamento molecular em pool, nos quais não há canal de retorno em tempo real (\emph{feedback}) para negociar retransmissões durante a síntese, essa rigidez impõe um dilema entre desperdício excessivo de síntese (se a perda for superestimada) ou perda irreversível de dados (se a perda for subestimada).
+Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Em um código MDS (\emph{Maximum Distance Separable}) de taxa fixa $R_c = K/N$, o decodificador recupera a mensagem original a partir de quaisquer $K$ símbolos recebidos dentre os $N$ transmitidos; portanto, a garantia teórica de recuperação cobre até $N - K$ apagamentos arbitrários (tolerância fracionária de $1 - R_c$). Se o número de símbolos recebidos ficar abaixo de $K$, a garantia de recuperação desaparece, e o desfecho passa a depender da estrutura do código e do padrão específico de perdas~\cite{mackay2003}. A existência de retransmissão depende do protocolo de comunicação adotado, não apenas do código em si. Em canais de armazenamento molecular em pool, nos quais não há canal de retorno em tempo real (\emph{feedback}) para negociar retransmissões durante a síntese, essa rigidez impõe um dilema entre desperdício excessivo de síntese (se a perda for superestimada) ou perda irreversível de dados (se a perda for subestimada).
 
 Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgotável), por outro lado, pertencem à classe de códigos de canal para canais de apagamento de \textbf{taxa variável} (\emph{rateless codes}), não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
 
@@ -161,24 +161,35 @@ onde o parâmetro $R$ e o índice de pico $m$ são definidos por:
     R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}, \qquad m = \left\lfloor\frac{K}{R}\right\rfloor
 \end{equation}
 
-Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores extremos de parâmetros podem violar pressupostos analíticos implícitos na formulação assintótica de Luby. Para manter a integridade numérica da amostragem em software, a implementação desenvolvida adota explicitamente duas salvaguardas defensivas de fronteira:
+Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores extremos de parâmetros podem violar pressupostos analíticos implícitos na formulação assintótica de Luby. Para manter a integridade operacional da amostragem em software, a implementação desenvolvida adota explicitamente uma extensão operacional modificada da DRS para os casos de fronteira em que o índice bruto satisfaz $m_{\text{bruto}} = \lfloor K/R \rfloor < 1$:
 \begin{enumerate}
-    \item \textbf{Salvaguarda para $R > K$ ($m \le 0$)}: Quando $c$ é elevado em mensagens curtas, o valor calculado de $R$ pode se aproximar ou superar a própria quantidade de blocos $K$, resultando em $\lfloor K/R \rfloor = 0$. Como os graus dos droplets devem ser inteiros pertencentes a $\{1, \ldots, K\}$, o índice de pico é delimitado computacionalmente por:
+    \item \textbf{Salvaguarda para índice bruto $m_{\text{bruto}} < 1$}: Quando $c$ é elevado em mensagens curtas, o valor calculado de $R$ pode se aproximar ou superar a própria quantidade de blocos $K$, resultando em $m_{\text{bruto}} = \lfloor K/R \rfloor = 0$. Como os graus dos droplets sorteados devem ser inteiros pertencentes a $\{1, \ldots, K\}$, o algoritmo impõe o piso inferior computacional $m = 1$, delimitando o índice por:
     \begin{equation}
         \label{eq:m_adaptado}
         m = \max\left(1, \min\left(K, \left\lfloor\frac{K}{R}\right\rfloor\right)\right)
     \end{equation}
-    Na grade avaliada, a correção do índice bruto zero é ativada nas combinações $(K, c, \delta) \in \{(16; 0{,}8; 0{,}10), (16; 0{,}8; 0{,}01), (32; 0{,}8; 0{,}01)\}$. Por exemplo, para $K = 16$, $c = 0{,}8$ e $\delta = 0{,}10$, obtém-se $R \approx 16{,}241$ e $\lfloor K/R \rfloor = 0$, sendo adotado $m = 1$.
+    Sob essa salvaguarda, o laço dos graus intermediários $d \in \{1, \ldots, m-1\}$ torna-se vazio (haja vista que $m - 1 = 0$), de modo que a componente $\frac{R}{d \cdot K}$ não é atribuída a nenhum grau. Em vez disso, o termo corretivo de pico $\tau(m) = \max\left(0, \frac{R}{K}\ln\left(\frac{R}{\delta}\right)\right)$ é alocado integralmente em $d = 1$, definindo a variante operacional:
+    \begin{equation}
+        \label{eq:tau_modificado_caso1}
+        \tau(d) = \begin{cases}
+            \max\left(0{,}0, \dfrac{R}{K} \cdot \ln\!\left(\dfrac{R}{\delta}\right)\right), & \text{se } d = 1 \\[10pt]
+            0, & \text{se } d > 1
+        \end{cases}
+        \qquad (\text{para } m_{\text{bruto}} < 1)
+    \end{equation}
+    Essa atribuição concentra toda a massa da função auxiliar $\tau(d)$ no grau unitário. Em seguida, a distribuição completa é normalmente renormalizada por $\mu(d) = (\rho(d) + \tau(d)) / \beta$, onde $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. Trata-se, portanto, de uma variante modificada da DRS adotada pelo simulador para manter a consistência numérica no domínio finito, e não da DRS clássica estrita.
     
-    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria um termo corretivo negativo em $\tau(m)$, fora das condições usuais da construção, motivo pelo qual a implementação adota uma salvaguarda numérica defensiva:
+    Na grade avaliada, essa variante é ativada exclusivamente em três combinações paramétricas: $(K, c, \delta) \in \{(16; 0{,}8; 0{,}10), (16; 0{,}8; 0{,}01), (32; 0{,}8; 0{,}01)\}$. Por exemplo, para $K = 16$, $c = 0{,}8$ e $\delta = 0{,}10$, obtém-se $R \approx 16{,}241$ e $m_{\text{bruto}} = 0$, sendo adotado $m = 1$;
+    
+    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso hipotético em que $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria um termo corretivo negativo em $\tau(m)$, motivo pelo qual a implementação adota uma salvaguarda numérica defensiva:
     \begin{equation}
         \label{eq:tau_adaptado}
         \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
     \end{equation}
-    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, de modo que essa salvaguarda atua como guarda estrutural do software contra configurações hipotéticas degeneradas.
+    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, atuando essa salvaguarda como guarda estrutural preventiva.
 \end{enumerate}
 
-Na implementação computacional, a função corretiva $\tau(d)$ é construída utilizando o índice $m$ após aplicação das salvaguardas das Equações~(\ref{eq:m_adaptado}) e~(\ref{eq:tau_adaptado}), garantindo $1 \le m \le K$ e $\tau(m) \ge 0$ em todos os ramos.
+Dessa forma, a grade experimental avalia a DRS clássica nas configurações válidas da formulação teórica original e a extensão operacional modificada nos casos de fronteira em que $m_{\text{bruto}} < 1$.
 
 Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
 
@@ -231,6 +242,9 @@ O algoritmo pode ser formalizado nos seguintes passos:
     
     \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, o processo de peeling é interrompido sem recuperar a totalidade dos blocos por ausência de equações residuais de grau 1 na fila (o que não exclui a possibilidade de resolução por eliminação gaussiana sobre $GF(2)$, embora o algoritmo de peeling linear tenha estagnado).
 \end{enumerate}
+
+\subsection{Conceito de Ripple e Fila Operacional}
+\label{sec:ripple_concept}
 
 O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Na definição original de Luby~\cite{luby2002}, o \emph{ripple} é formalizado como o conjunto de símbolos fonte (variáveis de entrada) cobertos por símbolos codificados liberados, mas ainda não processados pelo decodificador. No presente simulador, a métrica instrumentada corresponde ao comprimento da fila de droplets de grau 1 mantida em memória (\texttt{collections.deque}), a qual armazena operacionalmente os pacotes que atingem grau 1 durante o processo, podendo conter droplets redundantes associados a um mesmo símbolo fonte já desvendado. Essa fila operacional é empregada como indicador prático da dinâmica de decodificação, embora sua cardinalidade não coincida necessariamente com a do ripple teórico original de Luby.
 

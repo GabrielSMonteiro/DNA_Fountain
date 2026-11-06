@@ -72,7 +72,7 @@ A Tabela~\ref{tab:rastreabilidade_requisitos} estabelece a matriz de rastreabili
         RF04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna...()} & \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} \\
         RF05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc\_limits}, \texttt{homopolimeros} \\
         RF06 & \texttt{channel.py} & \texttt{ErasureChannel.transmitir()} & \texttt{test\_canal\_apagamento\_extremos} \\
-        RF07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & \texttt{test\_peeling\_canal\_ideal} \\
+        RF07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & Casos canônicos e \texttt{test\_peeling\_canal\_ideal} \\
         RF08 & \texttt{experiments.py} & \texttt{experimento()} / exportação CSV & \texttt{test\_exportacao\_metricas\_csv} \\
         \bottomrule
     \end{tabular}%
@@ -347,7 +347,7 @@ O componente \texttt{BiologicalScreening} foi submetido a sequências de DNA pro
 
 \subsection{Teste Funcional Determinístico do Peeling Decoder}
 
-Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Nos casos canônicos executados, todos os blocos foram recuperados corretamente, sem divergências em relação ao resultado esperado.
+Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Nos casos canônicos executados, todos os blocos foram recuperados corretamente, sem divergências em relação ao resultado esperado. Essa validação estrutural do algoritmo complementa o teste de integração fim a fim (\texttt{test\_peeling\_canal\_ideal}), que avalia o pipeline sob semente fixa, distinguindo-se ambos das baterias fatoriais estocásticas de 100 repetições descritas no Capítulo~\ref{chap:experimental_methodology}.
 
 \begin{table}[htbp]
     \centering
@@ -364,7 +364,7 @@ Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram exe
         \texttt{test\_somatoria\_drs} & Unitário & Verificação de $\sum_{d=1}^K \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado numericamente \\
         \texttt{test\_screening\_gc\_limits} & Unitário & Sequências artificiais com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas com sucesso \\
         \texttt{test\_screening\_homopolimeros} & Unitário & Sequências contendo homopolímeros com comprimento $\ge 4$. & Rejeitadas com sucesso \\
-        \texttt{test\_peeling\_canal\_ideal} & Integração & Pipeline completo com overhead $\epsilon = 1{,}00$ em canal sem perdas. & Recuperação integral ($100\%$) \\
+        \texttt{test\_peeling\_canal\_ideal} & Integração & Pipeline completo ($K=32$, $\epsilon = 1{,}00$, canal sem perdas e seed fixa). & Recuperação integral ($100\%$ dos blocos) \\
         \texttt{test\_segmentacao\_padding} & Unitário & Carga útil não múltipla de $L$ com reversão exata do preenchimento. & Recuperação exata sem ruído \\
         \texttt{test\_amostragem\_seed} & Unitário & Mesma semente gera idêntico grau e vizinhança sem índices duplicados. & Determinismo estrito verificado \\
         \texttt{test\_consistencia\_codec} & Integração & Confronto das vizinhanças amostradas no codificador e decodificador. & Coincidência total dos índices \\
