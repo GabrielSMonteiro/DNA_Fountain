@@ -2,6 +2,9 @@
 % FOLHA DE APROVAÇÃO
 % ---------------------------------------------------------
 
+\IfFileExists{editaveis/folha_aprovacao.pdf}{
+	\includepdf{editaveis/folha_aprovacao.pdf}
+}{
 \begin{folhadeaprovacao}
 
 \begin{center}
@@ -22,7 +25,7 @@
     \vspace*{\fill}
 \end{center}
 
-Trabalho aprovado. \imprimirlocal, \imprimirdata.
+Trabalho aprovado. \imprimirlocal, \dataaprovacao.
 
 \vspace{1cm}
 
@@ -59,3 +62,4 @@ Trabalho aprovado. \imprimirlocal, \imprimirdata.
 \end{center}
 
 \end{folhadeaprovacao}
+}

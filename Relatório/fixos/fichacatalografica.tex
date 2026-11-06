@@ -1,3 +1,6 @@
+\IfFileExists{editaveis/ficha_catalografica.pdf}{
+	\includepdf{editaveis/ficha_catalografica.pdf}
+}{
 \begin{fichacatalografica}
 	\vspace*{\fill}					% Posição vertical
 	\hrule							% Linha horizontal
@@ -7,11 +10,12 @@
 	\imprimirautor
 	
 	\hspace{0.5cm} \imprimirtitulo  / \imprimirautor. --
-	\imprimirlocal, \imprimirdata-
+	\imprimirlocal, \imprimirdata.
 	
 	\hspace{0.5cm} \pageref{LastPage} p. : il. (algumas color.) ; 30 cm.\\
 	
 	\hspace{0.5cm} \imprimirorientadorRotulo~\imprimirorientador\\
+	\hspace{0.5cm} \imprimircoorientadorRotulo~\imprimircoorientador\\
 	
 	\hspace{0.5cm}
 	\parbox[t]{\textwidth}{\imprimirtipotrabalho~--~\imprimirinstituicao,
@@ -21,9 +25,10 @@
 		1. \imprimirpalavrachaveum.
 		2. \imprimirpalavrachavedois.
 		I. \imprimirorientador.
-		II. \href{https://unb.br/}{Universidade de Brasília}.
-		III. \href{https://fcte.unb.br/}{Faculdade de Ciências e Tecnologias em Engenharia -- FCTE}.
-		IV. \imprimirtitulo\\ 			
+		II. \imprimircoorientador.
+		III. \href{https://unb.br/}{Universidade de Brasília}.
+		IV. \href{https://fcte.unb.br/}{Faculdade de Ciências e Tecnologias em Engenharia -- FCTE}.
+		V. \imprimirtitulo\\ 			
     
 	% \hspace{8.75cm} CDU \nomecdu\\
 	
@@ -31,3 +36,4 @@
 	\end{center}
 	\hrule
 \end{fichacatalografica}
+}

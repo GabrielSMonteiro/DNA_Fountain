@@ -1,6 +1,7 @@
 import csv
 import os
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 
 # Configurar estilo visual academico
@@ -18,6 +19,13 @@ plt.rcParams.update({
     'lines.markersize': 6,
     'figure.autolayout': True
 })
+
+def virgula_formatter(x, pos):
+    if abs(x - round(x)) < 1e-9:
+        return f'{int(round(x))}'
+    return f'{x:g}'.replace('.', ',')
+
+vf = FuncFormatter(virgula_formatter)
 
 output_dir = os.path.join('Relatório', 'figuras')
 os.makedirs(output_dir, exist_ok=True)
@@ -68,19 +76,21 @@ desc2, met2 = dec2.decodificar([o["dna"] for o in oligos2], sol2)
 hist_ripple2 = met2["ripple_historico"]
 
 fig, ax = plt.subplots(figsize=(6.5, 3.8))
-ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', markersize=4, color='#1f77b4', label=f'Configuração Recomendada ($c=0.1$, $\\delta=0.10$) - Recuperados: {len(desc1)}/{K}')
+ax.plot(range(1, len(hist_ripple1) + 1), hist_ripple1, marker='o', markersize=4, color='#1f77b4', label=f'Configuração Recomendada ($c=0{{,}}1$, $\\delta=0{{,}}10$) - Recuperados: {len(desc1)}/{K}')
 if hist_ripple2:
-    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', markersize=4, color='#d62728', linestyle='--', label=f'Configuração Degenerada ($c=0.5$, $\\delta=0.10$) - Recuperados: {len(desc2)}/{K}')
+    ax.plot(range(1, len(hist_ripple2) + 1), hist_ripple2, marker='s', markersize=4, color='#d62728', linestyle='--', label=f'Configuração Degenerada ($c=0{{,}}5$, $\\delta=0{{,}}10$) - Recuperados: {len(desc2)}/{K}')
 
+ax.xaxis.set_major_formatter(vf)
+ax.yaxis.set_major_formatter(vf)
 ax.set_xlabel('Passo de Processamento do Peeling')
 ax.set_ylabel('Tamanho da Fila do Ripple')
-ax.set_title('Evolução do Tamanho da Fila do Ripple ($K=32$, $\\epsilon=1.00$, $p_{\\text{loss}}=0.0$)')
+ax.set_title('Evolução do Tamanho da Fila do Ripple ($K=32$, $\\epsilon=1{{,}}00$, $p_{\\text{loss}}=0{{,}}0$)')
 ax.legend(loc='upper right', frameon=True)
 ax.grid(True, linestyle=':', alpha=0.6)
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.png'), dpi=300)
 plt.close(fig)
-print('Figura 1 (grafico_ripple) gerada.')
+print('Figura 1 (grafico_ripple) gerada com virgula decimal.')
 
 # -------------------------------------------------------------
 # FIGURA 2: Overhead vs Taxa de Sucesso (Painéis para K=16, 32, 64)
@@ -88,11 +98,14 @@ print('Figura 1 (grafico_ripple) gerada.')
 fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.8), sharey=True)
 ks = ['16', '32', '64']
 c_vals = ['0.1', '0.3', '0.5', '0.8']
+c_labels = {'0.1': '$c=0{,}1$', '0.3': '$c=0{,}3$', '0.5': '$c=0{,}5$', '0.8': '$c=0{,}8$'}
 cores = {'0.1': '#1f77b4', '0.3': '#2ca02c', '0.5': '#ff7f0e', '0.8': '#d62728'}
 marcadores = {'0.1': 'o', '0.3': 's', '0.5': '^', '0.8': 'D'}
 
 for idx, k in enumerate(ks):
     ax = axes[idx]
+    ax.xaxis.set_major_formatter(vf)
+    ax.yaxis.set_major_formatter(vf)
     for c in c_vals:
         pontos = []
         for r in rows:
@@ -101,7 +114,7 @@ for idx, k in enumerate(ks):
         pontos.sort(key=lambda x: x[0])
         if pontos:
             xs, ys = zip(*pontos)
-            ax.plot(xs, ys, marker=marcadores[c], color=cores[c], label=f'$c={c}$')
+            ax.plot(xs, ys, marker=marcadores[c], color=cores[c], label=c_labels[c])
     
     ax.set_title(f'$K = {k}$')
     ax.set_xlabel('Overhead Enviado $\\epsilon$ (%)')
@@ -112,18 +125,22 @@ for idx, k in enumerate(ks):
     if idx == 1:
         ax.legend(loc='center left', frameon=True)
 
-fig.suptitle('Taxa de Sucesso na Decodificação em Função do Overhead ($\\delta = 0.10$, $p_{\\text{loss}} = 0.0$)', fontsize=12)
+fig.suptitle('Taxa de Sucesso na Decodificação em Função do Overhead ($\\delta = 0{,}10$, $p_{\\text{loss}} = 0{,}0$)', fontsize=12)
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.png'), dpi=300)
 plt.close(fig)
-print('Figura 2 (grafico_overhead_sucesso) gerada.')
+print('Figura 2 (grafico_overhead_sucesso) gerada com virgula decimal.')
 
 # -------------------------------------------------------------
 # FIGURA 3: Impacto de c e delta no Grau Médio e Sucesso (K=32)
 # -------------------------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
+ax1.xaxis.set_major_formatter(vf)
+ax1.yaxis.set_major_formatter(vf)
+ax2.xaxis.set_major_formatter(vf)
+ax2.yaxis.set_major_formatter(vf)
 
-for d, cor, est in [('0.1', '#1f77b4', '-'), ('0.01', '#ff7f0e', '--')]:
+for d, cor, est, d_label in [('0.1', '#1f77b4', '-', '$\\delta = 0{,}10$'), ('0.01', '#ff7f0e', '--', '$\\delta = 0{,}01$')]:
     pts_grau = []
     pts_succ = []
     for c in ['0.1', '0.3', '0.5', '0.8']:
@@ -137,8 +154,8 @@ for d, cor, est in [('0.1', '#1f77b4', '-'), ('0.01', '#ff7f0e', '--')]:
     c_x, g_y = zip(*pts_grau)
     _, s_y = zip(*pts_succ)
     
-    ax1.plot(c_x, g_y, marker='o', color=cor, linestyle=est, label=f'$\\delta = {d}$')
-    ax2.plot(c_x, s_y, marker='s', color=cor, linestyle=est, label=f'$\\delta = {d}$')
+    ax1.plot(c_x, g_y, marker='o', color=cor, linestyle=est, label=d_label)
+    ax2.plot(c_x, s_y, marker='s', color=cor, linestyle=est, label=d_label)
 
 ax1.set_title('Grau Médio Teórico $\\mathbb{E}_\\mu[D]$')
 ax1.set_xlabel('Parâmetro $c$')
@@ -152,19 +169,23 @@ ax2.set_ylabel('Sucesso (%)')
 ax2.grid(True, linestyle=':', alpha=0.6)
 ax2.legend(frameon=True)
 
-fig.suptitle('Impacto dos Parâmetros $c$ e $\\delta$ na DRS e no Sucesso ($K=32$, $\\epsilon=0.50$, $p_{\\text{loss}}=0.0$)', fontsize=12)
+fig.suptitle('Impacto dos Parâmetros $c$ e $\\delta$ na DRS e no Sucesso ($K=32$, $\\epsilon=0{,}50$, $p_{\\text{loss}}=0{,}0$)', fontsize=12)
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.png'), dpi=300)
 plt.close(fig)
-print('Figura 3 (grafico_impacto_c_delta) gerada.')
+print('Figura 3 (grafico_impacto_c_delta) gerada com virgula decimal.')
 
 # -------------------------------------------------------------
 # FIGURA 4: Resiliência sob Perdas no Canal (K=32 e K=64)
 # -------------------------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8), sharey=True)
+ax1.xaxis.set_major_formatter(vf)
+ax1.yaxis.set_major_formatter(vf)
+ax2.xaxis.set_major_formatter(vf)
+ax2.yaxis.set_major_formatter(vf)
 
 oh_cores = {'0.25': '#1f77b4', '0.5': '#ff7f0e', '1.0': '#2ca02c'}
-oh_labels = {'0.25': '$\\epsilon = 0.25$ (25%)', '0.5': '$\\epsilon = 0.50$ (50%)', '1.0': '$\\epsilon = 1.00$ (100%)'}
+oh_labels = {'0.25': '$\\epsilon = 0{,}25$ (25%)', '0.5': '$\\epsilon = 0{,}50$ (50%)', '1.0': '$\\epsilon = 1{,}00$ (100%)'}
 oh_marks = {'0.25': '^', '0.5': 's', '1.0': 'o'}
 
 for k, ax, titulo in [('32', ax1, '$K=32$'), ('64', ax2, '$K=64$')]:
@@ -186,16 +207,20 @@ for k, ax, titulo in [('32', ax1, '$K=32$'), ('64', ax2, '$K=64$')]:
 ax1.set_ylabel('Taxa de Sucesso (%)')
 ax1.legend(loc='lower left', frameon=True)
 
-fig.suptitle('Resiliência do Sistema sob Perdas Estocásticas no Canal ($c=0.1$, $\\delta=0.10$)', fontsize=12)
+fig.suptitle('Resiliência do Sistema sob Perdas Estocásticas no Canal ($c=0{,}1$, $\\delta=0{,}10$)', fontsize=12)
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.png'), dpi=300)
 plt.close(fig)
-print('Figura 4 (grafico_resiliencia) gerada.')
+print('Figura 4 (grafico_resiliencia) gerada com virgula decimal.')
 
 # -------------------------------------------------------------
 # FIGURA 5: Custo Computacional (Tempo e XORs)
 # -------------------------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
+ax1.xaxis.set_major_formatter(vf)
+ax1.yaxis.set_major_formatter(vf)
+ax2.xaxis.set_major_formatter(vf)
+ax2.yaxis.set_major_formatter(vf)
 
 ks_num = [16, 32, 64]
 tempos_med = [0.84, 1.79, 3.60]
@@ -218,6 +243,7 @@ ax1.legend(frameon=True)
 # Painel 2: XORs
 ax2.plot(ks_num, xors_totais, '-s', color='#ff7f0e', label='Total de XORs')
 ax2_twin = ax2.twinx()
+ax2_twin.yaxis.set_major_formatter(vf)
 ax2_twin.plot(ks_num, xors_por_bloco, '--^', color='#2ca02c', label='XORs por Bloco ($/K$)')
 ax2.set_title('Operações XOR na Decodificação')
 ax2.set_xlabel('Número de Blocos Fonte ($K$)')
@@ -231,11 +257,10 @@ lines1, labels1 = ax2.get_legend_handles_labels()
 lines2, labels2 = ax2_twin.get_legend_handles_labels()
 ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
 
-fig.suptitle('Custo Computacional da Decodificação ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
+fig.suptitle('Custo Computacional da Decodificação ($c=0{,}1$, $\\delta=0{,}10$, $\\epsilon=1{,}00$)', fontsize=12)
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
 plt.close(fig)
-print('Figura 5 (grafico_custo_computacional) gerada.')
+print('Figura 5 (grafico_custo_computacional) gerada com virgula decimal.')
 
-print('Todos os 5 graficos foram gerados com sucesso!')
-
+print('Todos os 5 graficos foram gerados com sucesso com virgula decimal!')

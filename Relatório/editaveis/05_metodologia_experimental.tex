@@ -84,7 +84,7 @@ Para garantir a validade interna dos experimentos, os seguintes parâmetros perm
 
     \item \textbf{CRC-8}: Ativo por padrão com polinômio gerador \texttt{0x07}.
 
-    \item \textbf{Scrambler}: Ativo por padrão com offset aritmético \texttt{0x5A5A}.
+    \item \textbf{Scrambler}: Ativo por padrão como máscara aditiva pseudoaleatória via XOR com offset \texttt{0x5A5A}.
 \end{itemize}
 
 A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáveis independentes, dependentes e controladas do protocolo experimental.
@@ -131,6 +131,7 @@ A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáve
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 \section{Cenários Experimentais}
@@ -182,6 +183,7 @@ A Tabela~\ref{tab:cenarios_experimentais} sintetiza os cinco cenários avaliados
         5 & Canal de Apagamento & $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$ & Resiliência, overhead mínimo \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 \section{Repetições e Procedimentos Estatísticos}
@@ -196,14 +198,14 @@ Para cada métrica contínua reportada (tempo de decodificação e contagem de o
     \item \textbf{Mediana e dispersão}: quartis e extremos para caracterização de assimetria.
 \end{itemize}
 
-Para a taxa de sucesso na decodificação (variável binária associada a $n$ ensaios de Bernoulli), além da frequência observada $\hat{p} = k/n$, foram calculados intervalos de confiança exatos de Clopper--Pearson ao nível de 95\%, derivados dos quantis da distribuição Beta:
+Para a taxa de sucesso na decodificação (variável binária associada a $n$ ensaios de Bernoulli), além da frequência observada $\hat{p} = k/n$, foram calculados intervalos de confiança exatos de Clopper--Pearson~\cite{clopper1934} ao nível de 95\%, derivados dos quantis da distribuição Beta:
 \begin{equation}
     \label{eq:clopper_pearson}
     \text{IC}_{95\%} = \left[ Q_{\text{Beta}}\!\left(\frac{\alpha}{2}; k, n - k + 1\right), \; Q_{\text{Beta}}\!\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
 \end{equation}
 com $\alpha = 0{,}05$ e $Q_{\text{Beta}}(p; a, b)$ denotando o quantil de ordem $p$ da distribuição Beta com parâmetros $a$ e $b$. Nos casos de fronteira, adota-se $L = 0$ quando $k = 0$ (nenhum sucesso) e $U = 1$ quando $k = n$ (sucesso total). Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
 
-Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), foram utilizados fluxos pseudoaleatórios distintos, sem pareamento deliberado entre configurações, tratados como amostras independentes na análise estatística. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
+Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal~\cite{fisher1922}. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), foram utilizados fluxos pseudoaleatórios distintos, sem pareamento deliberado entre configurações, tratados como amostras independentes na análise estatística. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
 
 \section{Reprodutibilidade e Rastreabilidade Experimental}
 \label{sec:reproducibility}
@@ -211,7 +213,7 @@ Para a comparação de proporções de sucesso entre configurações experimenta
 A reprodutibilidade dos experimentos apoia-se em cinco medidas metodológicas fundamentais:
 
 \begin{enumerate}
-    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython~3.12.7), com as seeds e arquivos fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas internas de amostragem do módulo \texttt{random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
+    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython~3.12.7), com as seeds e arquivos fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas internas de amostragem do módulo \texttt{random}~\cite{python_random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
 
     \item \textbf{Distinção entre dados agregados e registros individuais}: Estão disponíveis publicamente no repositório as matrizes agregadas da grade fatorial e os registros individuais dos ensaios de auditoria especificados:
     \begin{itemize}

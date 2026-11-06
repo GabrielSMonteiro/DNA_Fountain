@@ -38,6 +38,7 @@ Com os blocos definidos, cada byte é convertido em uma sequência de quatro nuc
         11 & T \\
         \hline
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$ bits/nt)~\cite{shannon1948}. Na literatura de armazenamento em DNA, distinguem-se com rigor três patamares de capacidade teórica e prática~\cite{erlich2017}:
@@ -46,7 +47,7 @@ Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotíd
     \item \textbf{Capacidade máxima sob restrições físico-químicas} ($1{,}98$ bits/nt): capacidade combinatória teórica de sequências que respeitam estritamente a janela de conteúdo GC (45\% a 55\%) e o limite de homopolímeros ($\le 3$ bases idênticas consecutivas);
     \item \textbf{Capacidade estimada no modelo de armazenamento de Erlich e Zielinski} ($\approx 1{,}83$ bits/nt): limite operacional de Shannon após descontar a sobrecarga necessária de endereçamento/indexação de sequências desordenadas no pool molecular e a tolerância ao dropout molecular sob as hipóteses do modelo analisado pelos autores.
 \end{enumerate}
-Nesse contexto, a densidade de informação líquida pioneira de $1{,}57$ bits/nt alcançada experimentalmente por Erlich e Zielinski~\cite{erlich2017} corresponde a $78{,}5\%$ do limite irrestrito de 2 bits/nt, $79{,}3\%$ da capacidade sob restrições físico-químicas ($1{,}98$ bits/nt) e expressivos $85{,}8\%$ (cerca de $86\%$) da capacidade prática estimada no modelo de referência ($\approx 1{,}83$ bits/nt). Este mapeamento de 2 bits por base é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis na ausência de ruído físico.
+Nesse contexto, a densidade de informação líquida pioneira de $1{,}57$ bits/nt alcançada experimentalmente por \citeonline{erlich2017} corresponde a $78{,}5\%$ do limite irrestrito de 2 bits/nt, $79{,}3\%$ da capacidade sob restrições físico-químicas ($1{,}98$ bits/nt) e expressivos $85{,}8\%$ (cerca de $86\%$) da capacidade prática estimada no modelo de referência ($\approx 1{,}83$ bits/nt). Este mapeamento de 2 bits por base é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis na ausência de ruído físico.
 
 A simplicidade deste esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
 
@@ -78,7 +79,7 @@ Independentemente dos erros do canal, nem todas as sequências de DNA podem ser 
 \begin{itemize}
     \item \textbf{Conteúdo GC}: a proporção de bases G e C em relação ao comprimento total da sequência deve estar dentro de uma faixa aceitável, tipicamente entre 40\% e 60\%. Sequências com conteúdo GC muito baixo ou muito alto apresentam temperaturas de desnaturação (\emph{melting temperature}) atípicas, o que dificulta a amplificação por PCR (\emph{Polymerase Chain Reaction}) e introduz viés no sequenciamento~\cite{erlich2017}. Neste trabalho, adotou-se uma janela de GC entre 40\% e 60\%, adotada como configuração do protótipo, mais permissiva que a faixa de 45--55\% utilizada no experimento original.
     
-    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Neste trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por Erlich e Zielinski~\cite{erlich2017}.
+    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Neste trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por \citeonline{erlich2017}.
 \end{itemize}
 
 Essas restrições biológicas \textbf{não constituem erros físicos de canal}, mas sim filtros de aceitabilidade aplicados ainda na etapa de codificação. Quando um droplet gerado viola os limites de GC ou homopolímeros no \emph{screening}, ele é descartado antes do envio e outro droplet é gerado em seu lugar. Essa distinção entre erros estocásticos do canal e critérios de filtragem é essencial para a compreensão do sistema.
@@ -90,7 +91,7 @@ Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessári
 
 Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Em um código MDS (\emph{Maximum Distance Separable}) de taxa fixa $R_c = K/N$, quaisquer $K$ símbolos recebidos são suficientes para recuperar a mensagem, o que garante correção de até $N - K$ apagamentos. Abaixo desse limiar, a recuperação já não é garantida e depende da estrutura do código e do padrão de perdas~\cite{mackay2003}. A existência de retransmissão depende do protocolo adotado, não apenas do código em si. Em canais de armazenamento molecular em pool, nos quais não há canal de retorno em tempo real (\emph{feedback}) para negociar retransmissões durante a síntese, essa rigidez impõe um dilema entre desperdício excessivo de síntese (se a perda for superestimada) ou perda irreversível de dados (se a perda for subestimada).
 
-Os \textbf{\emph{fountain codes}} (códigos fountain ou códigos de fonte inesgotável), por outro lado, pertencem à classe de códigos de canal para canais de apagamento de \textbf{taxa variável} (\emph{rateless codes}), não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
+Os \textbf{\emph{fountain codes}} (ou códigos \emph{fountain}), por outro lado, pertencem à classe de códigos de canal sem taxa fixa (\emph{rateless codes}) projetados para canais de apagamento, não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
 
 \begin{itemize}
     \item O transmissor pode gerar um fluxo potencialmente inesgotável de pacotes codificados a partir dos $K$ blocos originais, flexibilizando a geração de sequências e o dimensionamento da redundância antes da síntese química.
@@ -105,7 +106,7 @@ Essas propriedades tornam os \emph{fountain codes} vantajosos no planejamento do
 \section{Códigos LT}
 \label{sec:lt_codes}
 
-Os códigos LT (\emph{Luby Transform}), propostos por Michael Luby em 2002~\cite{luby2002}, foram os primeiros \emph{fountain codes} práticos. A ideia central dos códigos LT é gerar cada pacote codificado --- chamado de \textbf{droplet} --- por meio da combinação de um subconjunto aleatório dos blocos originais utilizando a operação de ou-exclusivo (XOR) sobre o corpo finito binário $GF(2)$.
+Os códigos LT (\emph{Luby Transform}), propostos por \citeonline{luby2002}, foram os primeiros \emph{fountain codes} práticos. A ideia central dos códigos LT é gerar cada pacote codificado --- chamado de \textbf{droplet} --- por meio da combinação de um subconjunto aleatório dos blocos originais utilizando a operação de ou-exclusivo (XOR) sobre o corpo finito binário $GF(2)$.
 
 O processo de geração de um droplet segue três passos:
 
@@ -131,7 +132,7 @@ A escolha da distribuição de probabilidade para o grau $d$ é o fator determin
 \section{Distribuição Robusta de Soliton}
 \label{sec:robust_soliton_distribution}
 
-A distribuição de probabilidade utilizada para sortear o grau dos droplets é o componente teórico central dos códigos LT. Luby~\cite{luby2002} propôs inicialmente a \textbf{Distribuição Ideal de Soliton} $\rho(d)$, definida como:
+A distribuição de probabilidade utilizada para sortear o grau dos droplets é o componente teórico central dos códigos LT. \citeonline{luby2002} propôs inicialmente a \textbf{Distribuição Ideal de Soliton} $\rho(d)$, definida como:
 
 \begin{equation}
     \label{eq:ideal_soliton}
@@ -196,7 +197,7 @@ Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição ro
 \begin{itemize}
     \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o índice de máximo da função corretiva $\tau(d)$, dado por $m = \lfloor K/R \rfloor$, para graus muito baixos ($m=1$ ou $m=2$). Cabe enfatizar a distinção entre o índice $m$, que maximiza o termo corretivo $\tau(d)$, e a moda global da distribuição $\mu(d)$: para $K = 32$ e $c = 0{,}5$, a translação do pico de $\tau$ para $m=1$ faz com que cerca de 73\% da massa de probabilidade total concentre-se no próprio grau 1, reduzindo expressivamente o grau médio teórico e privando o sistema de conexões intermediárias. Nas configurações avaliadas, o grau médio amostrado diminuiu quando $c$ passou de 0,1 para 0,8, refletindo a redução discreta de $m$; contudo, isso não estabelece monotonicidade estrita em toda a reta real de $c$, haja vista que pequenas oscilações locais podem surgir para variações infinitesimais nos parâmetros da distribuição.
     
-    \item O parâmetro $\delta$ orienta o dimensionamento assintótico da cauda da distribuição. De acordo com a formalização original de Luby~\cite{luby2002}, ao receber $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets sob a DRS, o processo de decodificação assegura sucesso na recuperação com probabilidade de pelo menos $1 - \delta$ sob as hipóteses assintóticas do modelo. A garantia teórica assintótica de Luby é apresentada como referência clássica da teoria; ela não se transfere automaticamente às distribuições empíricas de droplets aceitos após screening biológico nem às configurações em blocos finitos ajustadas pelas salvaguardas.
+    \item O parâmetro $\delta$ orienta o dimensionamento assintótico da cauda da distribuição. De acordo com a formalização original de \citeonline{luby2002}, ao receber $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets sob a DRS, o processo de decodificação assegura sucesso na recuperação com probabilidade de pelo menos $1 - \delta$ sob as hipóteses assintóticas do modelo. A garantia teórica assintótica de Luby é apresentada como referência clássica da teoria; ela não se transfere automaticamente às distribuições empíricas de droplets aceitos após screening biológico nem às configurações em blocos finitos ajustadas pelas salvaguardas.
 \end{itemize}
 
 A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rho(d)$ e $\tau(d)$, dividida pela constante de normalização $\beta$:
@@ -246,14 +247,14 @@ O algoritmo pode ser formalizado nos seguintes passos:
 \subsection{Conceito de Ripple e Fila Operacional}
 \label{sec:ripple_concept}
 
-O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Na definição original de Luby~\cite{luby2002}, o \emph{ripple} é formalizado como o conjunto de símbolos fonte (variáveis de entrada) cobertos por símbolos codificados liberados, mas ainda não processados pelo decodificador. No presente simulador, a métrica instrumentada corresponde ao comprimento da fila de droplets de grau 1 mantida em memória (\texttt{collections.deque}), a qual armazena operacionalmente os pacotes que atingem grau 1 durante o processo, podendo conter droplets redundantes associados a um mesmo símbolo fonte já desvendado. Essa fila operacional é empregada como indicador prático da dinâmica de decodificação, embora sua cardinalidade não coincida necessariamente com a do ripple teórico original de Luby.
+O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Na definição original de \citeonline{luby2002}, o \emph{ripple} é formalizado como o conjunto de símbolos fonte (variáveis de entrada) cobertos por símbolos codificados liberados, mas ainda não processados pelo decodificador. No presente simulador, a métrica instrumentada corresponde ao comprimento da fila de droplets de grau 1 mantida em memória (\texttt{collections.deque}), a qual armazena operacionalmente os pacotes que atingem grau 1 durante o processo, podendo conter droplets redundantes associados a um mesmo símbolo fonte já desvendado. Essa fila operacional é empregada como indicador prático da dinâmica de decodificação, embora sua cardinalidade não coincida necessariamente com a do ripple teórico original de Luby.
 
 A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
 
 \section{Arquitetura DNA Fountain}
 \label{sec:dna_fountain_architecture}
 
-A arquitetura \textbf{DNA Fountain}, proposta por Erlich e Zielinski em 2017~\cite{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original.
+A arquitetura \textbf{DNA Fountain}, proposta por \citeonline{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original.
 
 O pipeline do DNA Fountain, conforme modelado neste trabalho, opera da seguinte forma:
 

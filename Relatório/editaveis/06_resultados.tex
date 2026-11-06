@@ -36,6 +36,7 @@ A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para as 
         64 & 0{,}3 & 1{,}00 & 97{,}0 & 459{,}8 & 42{,}4 & 3{,}37 \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 Os resultados confirmam que, com overhead $\epsilon = 1{,}00$, canal ideal ($p_{\text{loss}} = 0{,}0$) e parametrização $c = 0{,}1$ e $\delta = 0{,}10$, foram observadas 100 recuperações completas em 100 execuções para $K = 32$ e $K = 64$ (taxa observada de 100\%, correspondendo ao intervalo de confiança exato de Clopper--Pearson a 95\% de $[96{,}4\%, 100{,}0\%]$). Em todas as execuções bem-sucedidas, a integridade dos dados recuperados foi confirmada byte a byte contra os blocos fonte originais, sem qualquer discrepância.
@@ -68,6 +69,7 @@ A Tabela~\ref{tab:screening_graus} compara o valor esperado teórico da distribu
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A média observada sobre o conjunto de 2.000 candidatos amostrados foi de $4{,}765$ (desvio de $-3{,}64\%$ em relação à média teórica populacional de $4{,}945$, decorrente da flutuação amostral finita). A média ponderada dos dois subconjuntos recompõe com exatidão a média global do ensaio: $(1.195 \times 4{,}756 + 805 \times 4{,}779)/2.000 \approx 4{,}765$. Nas condições avaliadas, as médias dos graus dos candidatos aceitos ($4{,}756$) e rejeitados ($4{,}779$) foram próximas (diferença de apenas $0{,}023$ graus); o teste de aderência não detectou desvio estatisticamente significativo entre a distribuição dos graus aceitos e a DRS teórica.
@@ -111,6 +113,7 @@ A Tabela~\ref{tab:ripple_metricas} apresenta o comportamento médio da fila do \
     }
     \par \vspace{3pt}
     {\footnotesize $^*$A amostragem de $Q_{\min}$ ocorre durante as iterações ativas (\texttt{while ripple:}); o esvaziamento final (tamanho zero) encerra o laço e não integra o histórico ativo.}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Figura~\ref{fig:dinamica_ripple} ilustra a evolução temporal do tamanho da fila do \emph{ripple} ao longo dos passos iterativos de decodificação para $K = 32$ com overhead $\epsilon = 1{,}00$ e canal limpo, contrastando a configuração recomendada ($c = 0{,}1$, $\delta = 0{,}10$) com uma configuração degenerada ($c = 0{,}5$, $\delta = 0{,}10$).
@@ -120,6 +123,7 @@ A Figura~\ref{fig:dinamica_ripple} ilustra a evolução temporal do tamanho da f
     \includegraphics[width=0.78\textwidth]{figuras/grafico_ripple.pdf}
     \caption{Evolução do tamanho da fila do \emph{ripple} durante os passos da decodificação por peeling ($K = 32$, $\epsilon = 1{,}00$, $p_{\text{loss}} = 0{,}0$). Execução ilustrativa única; a taxa de sucesso agregada para a configuração $c = 0{,}5$ é de 0\% (0/100).}
     \label{fig:dinamica_ripple}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 A análise da Figura~\ref{fig:dinamica_ripple} e da Tabela~\ref{tab:ripple_metricas} esclarece as diferenças operacionais e a distinção entre médias e execuções individuais:
@@ -164,6 +168,7 @@ A Tabela~\ref{tab:overhead_sucesso} sintetiza as taxas de sucesso obtidas para d
         64 & 0{,}8 & 0{,}0 & 0{,}0 & 3{,}0 \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Figura~\ref{fig:overhead_sucesso} exibe graficamente os pontos amostrais e as linhas guia da taxa de sucesso em função do overhead enviado para cada quantidade de blocos fonte ($K = 16$, $K = 32$ e $K = 64$) e diferentes constantes $c \in \{0{,}1; 0{,}3; 0{,}5; 0{,}8\}$.
@@ -173,6 +178,7 @@ A Figura~\ref{fig:overhead_sucesso} exibe graficamente os pontos amostrais e as 
     \includegraphics[width=\textwidth]{figuras/grafico_overhead_sucesso.pdf}
     \caption{Taxa de sucesso na decodificação em função do overhead enviado ($\delta = 0{,}10$, $p_{\text{loss}} = 0{,}0$).}
     \label{fig:overhead_sucesso}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 A visualização na Figura~\ref{fig:overhead_sucesso} demonstra que, nos níveis de overhead avaliados ($\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$), a resposta torna-se mais pronunciada à medida que $K$ cresce:
@@ -222,6 +228,7 @@ A Tabela~\ref{tab:impacto_c_delta} detalha o impacto sistemático de $c$ e $\del
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simultâneo do grau médio teórico ($\mathbb{E}_\mu[D]$) e da taxa de sucesso em função de $c$, para os dois valores de $\delta$ avaliados ($0{,}10$ e $0{,}01$).
@@ -231,6 +238,7 @@ A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simult
     \includegraphics[width=0.88\textwidth]{figuras/grafico_impacto_c_delta.pdf}
     \caption{Impacto dos parâmetros $c$ e $\delta$ na distribuição de graus e na taxa de sucesso ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
     \label{fig:impacto_c_delta}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 A correlação exposta na Figura~\ref{fig:impacto_c_delta} esclarece as nuances da DRS em regimes finitos:
@@ -242,7 +250,7 @@ A correlação exposta na Figura~\ref{fig:impacto_c_delta} esclarece as nuances 
     \item \textbf{Relação com operações XOR}: À medida que o grau médio diminui, o número médio de operações XOR realizadas durante a decodificação também se reduz (de 196{,}0 para 65{,}4). No entanto, essa economia computacional reflete na verdade a incapacidade de avanço do decodificador, que aborta o processamento por esgotamento de conexões válidas.
 \end{enumerate}
 
-A caracterização de $c = 0{,}1$ e $\delta = 0{,}10$ como a configuração mais eficiente deve ser qualificada ao regime avaliado. Embora essa combinação tenha se mostrado claramente superior para $K = 32$ e $K = 64$ sob overheads intermediários ($\epsilon = 0{,}50$ e $\epsilon = 1{,}00$), ela não representa um ``ótimo irrestrito''. Primeiramente, $c = 0{,}1$ constitui o menor valor testado na grade, permanecendo inexplorada a faixa $c < 0{,}1$. Em segundo lugar, na comparação específica para $K = 16$ sob overhead restrito ($\epsilon = 0{,}25$) em canal ideal, a parametrização $c = 0{,}3$ superou estatisticamente $c = 0{,}1$, registrando $36{,}0\%$ de sucesso contra apenas $8{,}0\%$ (teste exato de Fisher bicaudal, $p = 2{,}2 \times 10^{-6}$). Em regimes extremamente curtos, um valor moderadamente maior de $c$ eleva a probabilidade de sortear droplets unitários iniciais, fator determinante para disparar o peeling em amostras pequenas.
+A caracterização de $c = 0{,}1$ e $\delta = 0{,}10$ como a configuração mais eficiente deve ser qualificada ao regime avaliado. Embora essa combinação tenha se mostrado claramente superior para $K = 32$ e $K = 64$ sob overheads intermediários ($\epsilon = 0{,}50$ e $\epsilon = 1{,}00$), ela não representa um ``ótimo irrestrito''. Primeiramente, $c = 0{,}1$ constitui o menor valor testado na grade, permanecendo inexplorada a faixa $c < 0{,}1$. Em segundo lugar, na comparação específica para $K = 16$ sob overhead restrito ($\epsilon = 0{,}25$) em canal ideal, a parametrização $c = 0{,}3$ superou estatisticamente $c = 0{,}1$, registrando $36{,}0\%$ de sucesso contra apenas $8{,}0\%$ (teste exato de Fisher bicaudal, $p = 2{,}2 \times 10^{-6}$); já para $K = 32$, a diferença observada entre $c = 0{,}3$ e $c = 0{,}1$ ($38{,}0\%$ vs. $30{,}0\%$) não atingiu significância estatística ($p \approx 0{,}30$, teste de Fisher bicaudal). Para $K = 16$, a vantagem de $c = 0{,}3$ sob redundância restrita decorre fundamentalmente da dinâmica da DRS: com $c = 0{,}1$, tem-se $R \approx 2{,}03$ e o índice de pico corretivo situa-se em $m = 7$, resultando em $\mu(1) \approx 0{,}112$ e $\mu(2) \approx 0{,}333$; ao passar para $c = 0{,}3$, obtém-se $R \approx 6{,}09$ e o pico recua para $m = 2$, elevando ligeiramente $\mu(1)$ para $0{,}150$ e concentrando expressivos $\mu(2) \approx 0{,}701$ da massa de probabilidade em droplets de grau 2 (mais que o dobro de $0{,}333$). Essa concentração em grau 2 fornece uma densa reserva de equações binárias prontas para se tornarem unitárias assim que o primeiro bloco é desvendado, sustentando a tração contínua do peeling e reduzindo o risco de estagnação precoce em orçamentos curtos de pacotes.
 
 \section{Resiliência do Sistema a Perdas no Canal}
 \label{sec:results_system_resilience}
@@ -273,6 +281,7 @@ A Tabela~\ref{tab:resiliencia_canal} compara as taxas de sucesso e as operaçõe
         64 & 1{,}00 & 100{,}0\% & 98{,}0\% & 92{,}0\% & 520{,}1 \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Figura~\ref{fig:resiliencia_canal} ilustra graficamente o comportamento da taxa de recuperação em função de $p_{\text{loss}}$ para os três patamares de overhead ($\epsilon = 0{,}25$, $\epsilon = 0{,}50$ e $\epsilon = 1{,}00$) para $K = 32$ e $K = 64$.
@@ -282,6 +291,7 @@ A Figura~\ref{fig:resiliencia_canal} ilustra graficamente o comportamento da tax
     \includegraphics[width=0.88\textwidth]{figuras/grafico_resiliencia.pdf}
     \caption{Resiliência do sistema sob perdas estocásticas no canal ($c = 0{,}1$, $\delta = 0{,}10$).}
     \label{fig:resiliencia_canal}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 Os resultados demonstram que o efeito de um canal de apagamento com probabilidade $p_{\text{loss}}$ equivale a uma redução direta do overhead efetivo esperado recebido pelo decodificador. Matematicamente, a quantidade média esperada de droplets que atinge o destino é dada por $\mathbb{E}[N_{\text{rec}}] = N(1 - p_{\text{loss}})$, resultando em um overhead efetivo esperado $\mathbb{E}[\epsilon_{\text{ef}}] = (1 + \epsilon)(1 - p_{\text{loss}}) - 1$.
@@ -315,6 +325,7 @@ A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodifica�
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Figura~\ref{fig:custo_computacional} apresenta a evolução do tempo médio de decodificação (com barras de dispersão de $\pm 1$ desvio-padrão) e das operações XOR em função da quantidade de blocos $K$.
@@ -324,6 +335,7 @@ A Figura~\ref{fig:custo_computacional} apresenta a evolução do tempo médio de
     \includegraphics[width=0.88\textwidth]{figuras/grafico_custo_computacional.pdf}
     \caption{Custo computacional total do decodificador em função de $K$ ($c = 0{,}1$, $\delta = 0{,}10$, $\epsilon = 1{,}00$, $p_{\text{loss}} = 0{,}0$).}
     \label{fig:custo_computacional}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 A teoria de códigos LT prevê complexidade assintótica de decodificação de ordem $O(K \ln(K/\delta))$ operações de símbolos~\cite{luby2002}. Os dados empíricos observados na faixa restrita $K \le 64$ são compatíveis com essa tendência teórica, embora uma série de apenas três pontos amostrais não permita inferir conclusivamente o regime assintótico:
@@ -341,7 +353,7 @@ Ressalta-se que esses resultados caracterizam pequenas instâncias de estudo ($K
 Para assegurar o rigor acadêmico deste trabalho, é essencial delimitar com precisão o escopo e as limitações dos resultados apresentados:
 
 \begin{enumerate}
-    \item \textbf{Canal de transmissão simplificado}: O simulador modela o canal de armazenamento em DNA como um canal abstrato de apagamento binário sem memória (BEC), no qual os droplets chegam íntegros ou são inteiramente descartados. Na prática bioquímica, os canais de síntese, conservação química e sequenciamento de DNA sofrem também erros pontuais de substituição, inserções e deleções (indels), além de viés de cobertura não uniforme dependente do contexto da sequência~\cite{heckel2017, shomorony2022}. Dessa forma, os resultados de resiliência aqui relatados refletem o desempenho sob a hipótese de canal simplificado de apagamento puro, sem ruídos de fase ou mutações pontuais. Adicionalmente, as probabilidades de apagamento avaliadas constituem cenários controlados de simulação, não estimativas calibradas para um protocolo laboratorial particular;
+    \item \textbf{Canal de transmissão simplificado}: O simulador modela o canal de armazenamento em DNA como um canal abstrato de apagamento binário sem memória (BEC), no qual os droplets chegam íntegros ou são inteiramente descartados. Na prática bioquímica, os canais de síntese, conservação química e sequenciamento de DNA sofrem também erros pontuais de substituição, inserções e deleções (indels), além de viés de cobertura não uniforme dependente do contexto da sequência~\cite{heckel2019, shomorony2022}. Dessa forma, os resultados de resiliência aqui relatados refletem o desempenho sob a hipótese de canal simplificado de apagamento puro, sem ruídos de fase ou mutações pontuais. Adicionalmente, as probabilidades de apagamento avaliadas constituem cenários controlados de simulação, não estimativas calibradas para um protocolo laboratorial particular;
     
     \item \textbf{Escala do número de blocos ($K$)}: Os ensaios experimentais concentraram-se na faixa $K \in \{16, 32, 64\}$. Essa escolha foi intencional para viabilizar a exploração exaustiva de uma matriz de 216 combinações paramétricas com 100 repetições cada (21.600 ensaios). Embora essa faixa seja representativa para entender a dinâmica de transição e o comportamento da DRS em pequenos regimes, sistemas de arquivamento real em DNA~\cite{erlich2017} operam com $K$ na ordem de dezenas ou centenas de milhares de blocos, onde os efeitos de borda da DRS são diluídos e o overhead requerido decresce para a faixa de 5\% a 10\%;
     

@@ -52,6 +52,7 @@ A Tabela~\ref{tab:requisitos_funcionais} sintetiza os requisitos funcionais e su
         RF08 & Coletar métricas estatísticas e exportar em CSV. \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 A Tabela~\ref{tab:rastreabilidade_requisitos} estabelece a matriz de rastreabilidade de engenharia de software, mapeando formalmente cada requisito funcional aos respectivos componentes de implementação e aos testes automatizados desenvolvidos.
@@ -77,6 +78,7 @@ A Tabela~\ref{tab:rastreabilidade_requisitos} estabelece a matriz de rastreabili
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 \subsection{Requisitos Não-Funcionais}
@@ -100,7 +102,7 @@ Os requisitos não-funcionais estabelecem as restrições de qualidade e arquite
 \section{Decisões Arquiteturais}
 \label{sec:architectural_decisions}
 
-O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de Erlich e Zielinski~\cite{erlich2017}) empregam extensões em Cython e rotinas especializadas para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
+O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de \citeonline{erlich2017}) empregam extensões em Cython e rotinas especializadas para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
 
 \begin{enumerate}
     \item \textbf{Isolamento de Responsabilidades}: Cada fase lógica do pipeline foi encapsulada em uma classe ou módulo independente, com interfaces bem definidas. O codificador (\texttt{DNAFountainEncoder}) desconhece o algoritmo de reconstrução do decodificador (\texttt{DNAFountainDecoder}), e o canal (\texttt{ErasureChannel}) opera de forma autocontida, sem acesso a metadados internos dos droplets.
@@ -163,6 +165,7 @@ A Tabela~\ref{tab:modulos_sistema} sintetiza a organização modular do simulado
         \texttt{main.py} & Pipeline didático com rastreamento visual no terminal. \\
         \bottomrule
     \end{tabular}
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 \section{Modelos de Dados}
@@ -197,6 +200,7 @@ A Figura~\ref{fig:diagrama_arquitetura} ilustra a arquitetura conceitual e o flu
     \includegraphics[width=\textwidth]{figuras/diagrama_arquitetura.pdf}
     \caption{Arquitetura modular e fluxo de processamento de dados do simulador DNA Fountain.}
     \label{fig:diagrama_arquitetura}
+    \fonte{Elaborado pelo autor (2026).}
 \end{figure}
 
 O funcionamento do simulador é executado em dez etapas sequenciais, descritas a seguir:
@@ -234,12 +238,12 @@ Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do
 
 \subsection{Mecanismo de Scrambling e Auto-Inversão}
 
-Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $\mathbf{s}$ inicializada pela própria \emph{seed} do droplet e combina os bytes via operação XOR:
+Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $\mathbf{s}$ via PRNG inicializado por $(\text{seed} \oplus \texttt{0x5A5A})$ e combina os bytes via operação XOR bit a bit:
 \begin{equation}
     \label{eq:scramble}
     y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})
 \end{equation}
-A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre $GF(2)$: como $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
+A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre o corpo finito binário $GF(2)$: como $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
 
 \subsection{Papel e Cobertura do CRC-8 no Pipeline de Enquadramento}
 
@@ -282,7 +286,7 @@ Para garantir reprodutibilidade rigorosa e evitar contaminação estatística en
 
 \subsection{Dimensionamento de Cabeçalho, Framing e Densidade da Biblioteca}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. A busca avalia sequencialmente as sementes no intervalo fechado de $0$ a $2^{16}-1 = 65.535$ (\texttt{seed = 0} com incremento unitário). Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de Erlich e Zielinski~\cite{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
+No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. A busca avalia sequencialmente as sementes no intervalo fechado de $0$ a $2^{16}-1 = 65.535$ (\texttt{seed = 0} com incremento unitário). Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de \citeonline{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
 
 Cada oligonucleotídeo sintético do protótipo é estruturado pelo seguinte \emph{framing} binário:
 \begin{equation}
@@ -373,6 +377,7 @@ Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram exe
         \bottomrule
     \end{tabular}%
     }
+    \fonte{Elaborado pelo autor (2026).}
 \end{table}
 
 Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte. A execução integral da suíte de 10 testes é realizada via comando \texttt{python -m pytest tests/}, alcançando 100\% de aprovação em aproximadamente 0{,}05 segundos na versão sob commit \texttt{bb2f0ab}, confirmando a conformidade dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.
