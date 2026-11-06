@@ -19,7 +19,7 @@ From a fault-tolerance perspective, the scheme exhibited fragility: the loss of 
 
 \subsection{Goldman et al. (2013)}
 
-The following year, \citeonline{goldman2013} proposed a significantly more sophisticated encoding scheme published in \emph{Nature}. The authors utilized a base-3 (trit) mapping with alphabet rotation, where each trit was mapped to one of three bases distinct from the preceding base, thereby preventing consecutive base repetitions by construction. This design inherently eliminated homopolymers of length greater than 1.
+The following year, \citeonline{goldman2013} proposed a more sophisticated encoding scheme published in \emph{Nature}. The authors utilized a base-3 (trit) mapping with alphabet rotation, where each trit was mapped to one of three bases distinct from the preceding base, thereby preventing consecutive base repetitions by construction. This design inherently eliminated homopolymers of length greater than 1.
 
 \citeonline{goldman2013} also introduced redundancy through overlapping segments: each region of the file was covered by four partially overlapping oligonucleotides, enabling data recovery even in the presence of individual segment loss. Although the theoretical encoding potential of the rotating scheme was 1.58 bits per nucleotide (disregarding redundancy), the effective net density resulting from four-fold overlapping and indexing overhead in that experimental configuration was approximately $0.33$ bits per nucleotide, which does not constitute an invariant upper bound for all overlap-based schemes. Thus, despite its biological elegance, the practical storage density in that trial remained substantially below channel capacity.
 
@@ -29,7 +29,7 @@ Moreover, overlap redundancy operated at a fixed rate set at design time, limiti
 
 \citeonline{grass2015} approached long-term storage from a distinct perspective, focusing on physical DNA preservation via silica encapsulation. From an information-theoretic standpoint, the authors employed Reed--Solomon codes over the finite field $GF(47)$ (mapping field elements to base triplets to avoid homopolymer runs), organized into two hierarchical tiers: an inner code to correct substitution errors within each oligonucleotide and an outer code to recover lost oligonucleotides.
 
-This hierarchical error-correction strategy represented a notable advance over prior schemes by treating intra-oligo substitutions and whole-sequence erasures as separate error processes. The authors experimentally demonstrated error-free recovery of 83 kilobytes of data after accelerated aging equivalent to 2,000 years under ambient conditions.
+This hierarchical error-correction strategy represented an important step forward over prior schemes by treating intra-oligo substitutions and whole-sequence erasures as separate error processes. The authors experimentally demonstrated error-free recovery of 83 kilobytes of data after accelerated aging equivalent to 2,000 years under ambient conditions.
 
 Nonetheless, like \citeonline{goldman2013}, the scheme of \citeonline{grass2015} relied on fixed-rate coding: redundancy was predetermined statically and could not adapt dynamically to channel conditions. Moreover, Reed--Solomon decoding complexity is quadratic in the general case, posing computational bottlenecks for larger data volumes.
 
@@ -61,7 +61,7 @@ The authors experimentally validated error-free encoding and decoding of a 2.14-
 
 \citeonline{organick2018} expanded the scale of DNA data storage to hundreds of megabytes, encoding 200 megabytes across more than 13 million oligonucleotides. The work demonstrated large-scale random access using selective primer libraries, enabling the retrieval of individual files from a complex heterogeneous pool without sequencing the entire molecular library.
 
-Regarding coding strategy, \citeonline{organick2018} employed a hierarchical approach based on concatenated Reed--Solomon codes (an inner code per oligo and an outer code across oligos) with fixed redundancy, distinct from the rateless methodology of DNA Fountain. While achieving impressive scalability, error-free recovery depended critically on high sequencing coverage, and redundancy overhead remained statically defined at design time.
+Regarding coding strategy, \citeonline{organick2018} employed a hierarchical approach based on concatenated Reed--Solomon codes (an inner code per oligo and an outer code across oligos) with fixed redundancy, distinct from the rateless methodology of DNA Fountain. While achieving substantial scalability, error-free recovery depended critically on high sequencing coverage, and redundancy overhead remained statically defined at design time.
 
 \section{Theoretical Foundations and Capacity Bounds}
 \label{sec:related_theoretical}
@@ -83,7 +83,7 @@ In the realm of rateless codes, degree distribution optimization for short messa
 
 The storage architecture proposed by \citeonline{bornholt2016} included a software pipeline for encoding and decoding geared toward end-to-end wet-lab validation (synthesis, storage, sequencing), with software closely coupled to their specific experimental setup.
 
-\citeonline{press2020} developed the HEDGES (\emph{Hash Encoded, Decoded by Greedy Exhaustive Search}) system, an error-correcting code designed specifically for the DNA channel capable of correcting insertions and deletions in addition to substitutions. The HEDGES implementation represented a notable contribution, focusing primarily on intra-strand indels and localized errors.
+\citeonline{press2020} developed the HEDGES (\emph{Hash Encoded, Decoded by Greedy Exhaustive Search}) system, an error-correcting code designed specifically for the DNA channel capable of correcting insertions and deletions in addition to substitutions. The HEDGES implementation represented an important contribution, focusing primarily on intra-strand indels and localized errors.
 
 \citeonline{chandak2019} explored Low-Density Parity-Check (LDPC) codes for DNA storage, evaluating tradeoffs between synthesis costs and sequencing coverage, representing a structural approach distinct from rateless fountain codes.
 

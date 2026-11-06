@@ -243,7 +243,7 @@ To randomize binary payloads and mitigate localized homopolymer formation during
     \label{eq:scramble}
     y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})
 \end{equation}
-A key computational property of this approach is self-inversion in boolean algebra over $GF(2)$: since $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, the decoder recovers original payload $y$ by executing the exact same mask-generation routine with the seed extracted from the header, requiring no lookup tables or auxiliary metadata.
+A key computational property of this approach is self-inversion in boolean algebra over $GF(2)$: since $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, the decoder recovers the original payload $y$ by executing the exact same mask-generation routine with the seed extracted from the header, requiring no lookup tables or auxiliary metadata.
 
 \subsection{Role and Coverage of CRC-8 in the Framing Pipeline}
 
@@ -277,11 +277,11 @@ To ensure strict reproducibility and avoid statistical cross-contamination betwe
 \begin{enumerate}
     \item \textbf{Seed PRNG (Neighbor Index Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical graphs.
 
-    Interoperability between encoder and decoder strictly requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatching graphs and fail decoding. While CPython~3.12 guarantees deterministic repeatability across declared environments, long-term archival storage or migration to FPGA hardware recommends a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
+    Interoperability between encoder and decoder strictly requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatched graphs and cause decoding to fail. While CPython~3.12 guarantees deterministic repeatability across the declared environments, long-term archival storage or migration to FPGA hardware warrants a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
 
     \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random} instance initialized by the global experiment seed (\texttt{seed\_experimento}). This guarantees that channel loss draws never interfere with droplet encoding PRNG streams.
 
-    \item \textbf{Batch Experiment Master PRNG}: The \texttt{experimento()} routine accepts a \texttt{seed\_base} parameter governing synthetic instance generation and channel losses. With fixed \texttt{seed\_base}, execution deterministically reproduces the exact same sequence of synthetic instances and stochastic events in the declared environment (CPython~3.12.7), ensuring algorithmic repeatability (though CPU runtimes naturally vary with operating system scheduling).
+    \item \textbf{Batch Experiment Master PRNG}: The \texttt{experimento()} routine accepts a \texttt{seed\_base} parameter governing synthetic instance generation and channel losses. With a fixed \texttt{seed\_base}, execution deterministically reproduces the exact same sequence of synthetic instances and stochastic events in the declared environment (CPython~3.12.7), ensuring algorithmic repeatability (though CPU runtimes naturally vary with operating system scheduling).
 \end{enumerate}
 
 \subsection{Header Sizing, Framing, and Library Storage Density}
@@ -364,16 +364,16 @@ To verify the algorithmic correctness of the peeling decoder engine, canonical g
         \toprule
         \textbf{Implemented Test} & \textbf{Level} & \textbf{Case Description} & \textbf{Observed Outcome} \\
         \midrule
-        \texttt{test\_conversao\_bytes\_dna} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
+        \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
         \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across diverse $K$, $c$, $\delta$. & Numerically confirmed \\
         \texttt{test\_screening\_gc\_limits} & Unit & Synthetic sequences with GC $< 40\%$ and GC $> 60\%$. & Successfully rejected \\
         \texttt{test\_screening\_homopolimeros} & Unit & Sequences containing homopolymers of length $\ge 4$. & Successfully rejected \\
         \texttt{test\_peeling\_canal\_ideal} & Integration & Full pipeline ($K=32$, $\epsilon = 1.00$, lossless channel, fixed seed). & Complete recovery ($100\%$ of blocks) \\
-        \texttt{test\_segmentacao\_padding} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
-        \texttt{test\_amostragem\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
-        \texttt{test\_consistencia\_codec} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
-        \texttt{test\_canal\_apagamento} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
-        \texttt{test\_exportacao\_csv} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
+        \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
+        \texttt{test\_amostragem\_}\allowbreak\texttt{deterministica\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
+        \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
+        \texttt{test\_canal\_apagamento\_}\allowbreak\texttt{extremos} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
+        \texttt{test\_exportacao\_}\allowbreak\texttt{metricas\_csv} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
         \bottomrule
     \end{tabular}%
     }
