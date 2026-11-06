@@ -75,7 +75,7 @@ if hist_ripple2:
 
 ax.set_xlabel('Peeling Decoding Processing Step')
 ax.set_ylabel('Ripple Queue Size')
-ax.set_title('Ripple Queue Length Evolution ($K=32$, $\\epsilon=1.00$, $p_{\\text{loss}}=0.0$)')
+# Internal title removed to avoid repeating external LaTeX caption
 ax.legend(loc='upper right', frameon=True)
 ax.grid(True, linestyle=':', alpha=0.6)
 fig.savefig(os.path.join(output_dir, 'grafico_ripple.pdf'))
@@ -114,7 +114,7 @@ for idx, k in enumerate(ks):
     if idx == 1:
         ax.legend(loc='center left', frameon=True)
 
-fig.suptitle('Decoding Success Rate as a Function of Overhead ($\\delta = 0.10$, $p_{\\text{loss}} = 0.0$)', fontsize=12)
+# Internal suptitle removed to avoid repeating external LaTeX caption
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_overhead_sucesso.png'), dpi=300)
 plt.close(fig)
@@ -154,7 +154,7 @@ ax2.set_ylabel('Success Rate (%)')
 ax2.grid(True, linestyle=':', alpha=0.6)
 ax2.legend(frameon=True)
 
-fig.suptitle('Impact of Parameters $c$ and $\\delta$ on RSD and Success Rate ($K=32$, $\\epsilon=0.50$, $p_{\\text{loss}}=0.0$)', fontsize=12)
+# Internal suptitle removed to avoid repeating external LaTeX caption
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_impacto_c_delta.png'), dpi=300)
 plt.close(fig)
@@ -180,7 +180,7 @@ for k, ax, titulo in [('32', ax1, '$K=32$'), ('64', ax2, '$K=64$')]:
             px, py = zip(*pts)
             ax.plot(px, py, marker=oh_marks[oh], color=oh_cores[oh], label=oh_labels[oh])
     
-    ax.set_title(f'Source Blocks {titulo}')
+    ax.set_title(titulo)
     ax.set_xlabel('Erasure Probability $p_{\\text{loss}}$ (%)')
     ax.set_xticks([0, 10, 20])
     ax.grid(True, linestyle=':', alpha=0.6)
@@ -188,7 +188,7 @@ for k, ax, titulo in [('32', ax1, '$K=32$'), ('64', ax2, '$K=64$')]:
 ax1.set_ylabel('Success Rate (%)')
 ax1.legend(loc='lower left', frameon=True)
 
-fig.suptitle('System Resilience under Stochastic Channel Erasures ($c=0.1$, $\\delta=0.10$)', fontsize=12)
+# Internal suptitle removed to avoid repeating external LaTeX caption
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_resiliencia.png'), dpi=300)
 plt.close(fig)
@@ -233,7 +233,7 @@ lines1, labels1 = ax2.get_legend_handles_labels()
 lines2, labels2 = ax2_twin.get_legend_handles_labels()
 ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True)
 
-fig.suptitle('Decoder Computational Cost ($c=0.1$, $\\delta=0.10$, $\\epsilon=1.00$)', fontsize=12)
+# Internal suptitle removed to avoid repeating external LaTeX caption
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.pdf'))
 fig.savefig(os.path.join(output_dir, 'grafico_custo_computacional.png'), dpi=300)
 plt.close(fig)
