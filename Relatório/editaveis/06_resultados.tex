@@ -1,367 +1,367 @@
 % !TEX root = ../main.tex
-\chapter{Resultados e Discussão}
+\chapter{Results and Discussion}
 \label{chap:results}
 
-Este capítulo apresenta e discute os resultados obtidos a partir das simulações computacionais do pipeline DNA Fountain, executadas de acordo com a metodologia descrita no Capítulo~\ref{chap:experimental_methodology}. Foram avaliadas 216 combinações paramétricas, com 100 repetições independentes para cada configuração, totalizando 21.600 execuções completas do processo de codificação, transmissão e decodificação.
+This chapter presents and discusses the results obtained from computational simulations of the DNA Fountain pipeline, conducted in accordance with the methodology detailed in Chapter~\ref{chap:experimental_methodology}. A total of 216 parameter combinations were evaluated, with 100 independent repetitions for each configuration, yielding 21,600 complete executions of encoding, transmission, and decoding.
 
-Os dados coletados permitem analisar a validade funcional do simulador, o impacto do screening biológico sobre a distribuição de graus, a dinâmica do \emph{ripple} durante a decodificação por peeling, a relação entre overhead e taxa de sucesso, a sensibilidade aos parâmetros da distribuição robusta de soliton, a resiliência a perdas no canal e o custo computacional do sistema.
+The collected data enable an in-depth analysis of the simulator's functional validity, the effect of biological screening on degree distributions, ripple queue dynamics during peeling decoding, the relationship between overhead and decoding success rate, sensitivity to Robust Soliton Distribution parameters, channel loss resilience, and computational cost.
 
-\section{Validação Funcional do Simulador}
+\section{Functional Validation of the Simulator}
 \label{sec:results_functional_validation}
 
-A validação funcional do simulador teve como objetivo verificar empiricamente se o pipeline opera corretamente em condições nominais, sem introduzir corrupções de dados ou falhas lógicas no fluxo de codificação e decodificação. Para isso, foram avaliados cenários em canal ideal ($p_{\text{loss}} = 0$) com overhead relativo elevado ($\epsilon = 1{,}00$, correspondente a $N = 2K$), utilizando os parâmetros de referência $c = 0{,}1$ e $\delta = 0{,}10$.
+Functional validation of the simulator aimed to empirically confirm that the pipeline operates correctly under nominal conditions, without introducing logical corruptions or data defects in the encoding and decoding flows. To this end, baseline scenarios were evaluated over an ideal channel ($p_{\text{loss}} = 0$) with elevated relative overhead ($\epsilon = 1.00$, corresponding to $N = 2K$), using reference parameters $c = 0.1$ and $\delta = 0.10$.
 
-A Tabela~\ref{tab:validacao_funcional} apresenta o desempenho observado para as três quantidades de blocos fonte avaliadas ($K \in \{16, 32, 64\}$) sob essas condições, além de comparações com $\epsilon = 0{,}50$.
+Table~\ref{tab:validacao_funcional} presents the performance observed across the three evaluated source block counts ($K \in \{16, 32, 64\}$) under these conditions, alongside comparisons with $\epsilon = 0.50$.
 
 \begin{table}[htbp]
     \centering
     \small
     \setlength{\tabcolsep}{5pt}
-    \caption{Resultados da validação funcional em canal ideal ($p_{\text{loss}} = 0{,}0$, $\delta = 0{,}10$, 100 execuções).}
+    \caption{Functional validation results over an ideal channel ($p_{\text{loss}} = 0.0$, $\delta = 0.10$, 100 runs).}
     \label{tab:validacao_funcional}
     \begin{tabular}{ccccccc}
         \toprule
-        \textbf{$K$} & \textbf{$c$} & \textbf{Overhead ($\epsilon$)} & \textbf{Sucesso (\%)} & \textbf{XORs Médios} & \textbf{Ripple Máx.} & \textbf{Tempo (ms)} \\
+        \textbf{$K$} & \textbf{$c$} & \textbf{Overhead ($\epsilon$)} & \textbf{Success (\%)} & \textbf{Mean XORs} & \textbf{Peak Ripple} & \textbf{Runtime (ms)} \\
         \midrule
-        16 & 0{,}1 & 0{,}50 & 49{,}0 & 51{,}7 & 4{,}6 & 0{,}61 \\
-        16 & 0{,}1 & 1{,}00 & 90{,}0 & 107{,}6 & 11{,}9 & 0{,}84 \\
-        16 & 0{,}3 & 1{,}00 & 91{,}0 & 73{,}0 & 15{,}4 & 0{,}83 \\
+        16 & 0.1 & 0.50 & 49.0 & 51.7 & 4.6 & 0.61 \\
+        16 & 0.1 & 1.00 & 90.0 & 107.6 & 11.9 & 0.84 \\
+        16 & 0.3 & 1.00 & 91.0 & 73.0 & 15.4 & 0.83 \\
         \midrule
-        32 & 0{,}1 & 0{,}50 & 85{,}0 & 196{,}0 & 10{,}5 & 1{,}32 \\
-        32 & 0{,}1 & 1{,}00 & 100{,}0 & 270{,}8 & 20{,}6 & 1{,}79 \\
-        32 & 0{,}3 & 1{,}00 & 93{,}0 & 185{,}9 & 25{,}3 & 1{,}56 \\
+        32 & 0.1 & 0.50 & 85.0 & 196.0 & 10.5 & 1.32 \\
+        32 & 0.1 & 1.00 & 100.0 & 270.8 & 20.6 & 1.79 \\
+        32 & 0.3 & 1.00 & 93.0 & 185.9 & 25.3 & 1.56 \\
         \midrule
-        64 & 0{,}1 & 0{,}50 & 88{,}0 & 466{,}6 & 16{,}1 & 2{,}73 \\
-        64 & 0{,}1 & 1{,}00 & 100{,}0 & 688{,}4 & 34{,}2 & 3{,}60 \\
-        64 & 0{,}3 & 1{,}00 & 97{,}0 & 459{,}8 & 42{,}4 & 3{,}37 \\
+        64 & 0.1 & 0.50 & 88.0 & 466.6 & 16.1 & 2.73 \\
+        64 & 0.1 & 1.00 & 100.0 & 688.4 & 34.2 & 3.60 \\
+        64 & 0.3 & 1.00 & 97.0 & 459.8 & 42.4 & 3.37 \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-Os resultados confirmam que, com overhead $\epsilon = 1{,}00$, canal ideal ($p_{\text{loss}} = 0{,}0$) e parametrização $c = 0{,}1$ e $\delta = 0{,}10$, foram observadas 100 recuperações completas em 100 execuções para $K = 32$ e $K = 64$ (taxa observada de 100\%, correspondendo ao intervalo de confiança exato de Clopper--Pearson a 95\% de $[96{,}4\%, 100{,}0\%]$). Em todas as execuções bem-sucedidas, a integridade dos dados recuperados foi confirmada byte a byte contra os blocos fonte originais, sem qualquer discrepância.
+The results confirm that, under overhead $\epsilon = 1.00$, ideal channel ($p_{\text{loss}} = 0.0$), and reference parameters $c = 0.1$ and $\delta = 0.10$, 100 complete recoveries were observed in 100 executions for $K = 32$ and $K = 64$ (100\% observed success rate, corresponding to a 95\% exact Clopper--Pearson confidence interval of $[96.4\%, 100.0\%]$). In all successful executions, reconstructed data integrity was verified byte-for-byte against the original source blocks with zero discrepancies.
 
-Para $K = 16$ sob a configuração $c = 0{,}1$, $\delta = 0{,}10$, $\epsilon = 1{,}00$ e $p_{\text{loss}} = 0{,}0$, a taxa de sucesso observada foi de 90\% (10 falhas em 100 execuções; IC 95\%: $[82{,}4\%, 95{,}1\%]$). A análise detalhada dessas 10 falhas, documentada no arquivo \texttt{falhas\_k16.json} (gerado pelo script \texttt{analisar\_falhas\_k16.py}), permitiu classificá-las em duas causas operacionais: (1) ausência de cobertura de pelo menos um bloco fonte no grafo recebido (ocorrida exclusivamente na repetição 85, em que o bloco 1 não recebeu nenhuma aresta nos 32 droplets gerados, correspondendo a 1 em 1.600 blocos avaliados, ou $0{,}06\%$); e (2) estagnação do peeling sem blocos inicialmente isolados (ocorrida nas 9 falhas restantes, nas quais todos os 16 blocos fonte possuíam pelo menos uma aresta incidente inicial, mas a decodificação estagnou devido ao esgotamento precoce de equações unitárias na presença de configurações não resolvíveis (\emph{stopping sets}), nas quais todos os droplets remanescentes possuíam grau $\ge 2$ em relação às variáveis fonte ainda pendentes). Sob $c = 0{,}3$, observaram-se 91\% de sucesso (IC 95\%: $[83{,}6\%, 95{,}8\%]$). A ampliação de $K$ sob overhead relativo fixado ($\epsilon = 1{,}00$) acarreta aumento proporcional no orçamento total de pacotes transmitidos ($N_{\text{tx}} = 2K$), fornecendo maior volume de oportunidades estocásticas de cobertura e sustentando 100\% de recuperação para $K = 32$ e $K = 64$ nas configurações avaliadas.
+For $K = 16$ under $c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$, and $p_{\text{loss}} = 0.0$, the observed success rate was 90\% (10 failures in 100 runs; 95\% CI: $[82.4\%, 95.1\%]$). A detailed audit of these 10 failures, documented in \texttt{falhas\_k16.json} (generated by \texttt{analisar\_falhas\_k16.py}), revealed two distinct operational causes: (1) lack of coverage for at least one source block in the received graph (occurring exclusively in run 85, where block 1 received zero incident edges across all 32 generated droplets, representing 1 out of 1,600 evaluated blocks, or $0.06\%$); and (2) peeling stall without initially isolated blocks (occurring across the remaining 9 failures, in which all 16 source blocks had at least one initial incident edge, but decoding stalled due to premature exhaustion of degree-1 equations within unsolvable stopping sets where all remaining droplets had degree $\ge 2$ relative to unresolved variables). Under $c = 0.3$, a 91\% success rate was observed (95\% CI: $[83.6\%, 95.8\%]$). Scaling $K$ under fixed relative overhead ($\epsilon = 1.00$) yields a proportionally larger absolute droplet budget ($N_{\text{tx}} = 2K$), providing broader stochastic coverage opportunities and sustaining 100\% recovery for $K = 32$ and $K = 64$ under evaluated configurations.
 
-\section{Efeito do Screening Biológico}
+\section{Effect of Biological Screening}
 \label{sec:results_biological_screening}
 
-O módulo de screening biológico atua como um filtro de qualidade físico-química, rejeitando sequências de DNA candidatas que violem a janela de conteúdo GC ($40\% \le \text{GC} \le 60\%$) ou que contenham homopolímeros com comprimento superior a 3 nucleotídeos idênticos consecutivos.
+The biological screening module acts as a physicochemical quality filter, rejecting candidate DNA sequences that violate the GC content window ($40\% \le \text{GC} \le 60\%$) or contain homopolymer runs exceeding 3 consecutive identical nucleotides.
 
-Durante os ensaios de amostragem dedicada com 2.000 droplets candidatos sobre cargas úteis pseudoaleatórias ($K = 32$, $c = 0{,}1$, $\delta = 0{,}10$), o screening rejeitou 40{,}2\% das sequências geradas (805 de 2.000 candidatos, correspondendo a um intervalo de confiança de Clopper--Pearson a 95\% de $[38{,}1\%, 42{,}4\%]$). Essa taxa reflete a rigidez combinada dos dois critérios: o limite de homopolímero em 3 bases elimina sequências como \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG} e \texttt{TTTT}, enquanto a restrição de GC descarta oligos com desvios em relação à faixa central.
+During dedicated sampling trials with 2,000 candidate droplets generated over pseudorandom payloads ($K = 32$, $c = 0.1$, $\delta = 0.10$), screening rejected 40.2\% of candidate sequences (805 out of 2,000 candidates, corresponding to a 95\% Clopper--Pearson confidence interval of $[38.1\%, 42.4\%]$). This rejection rate reflects the combined stringency of both criteria: the 3-base homopolymer threshold eliminates sequences such as \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG}, and \texttt{TTTT}, while GC boundaries discard oligos deviating from the central window.
 
-A Tabela~\ref{tab:screening_graus} compara o valor esperado teórico da distribuição populacional com os graus médios empíricos observados sobre o total de 2.000 candidatos e nos subconjuntos aceito e rejeitado.
+Table~\ref{tab:screening_graus} compares the theoretical expected value of the population distribution with empirical mean degrees observed across the total 2,000 candidates and within the accepted and rejected subsets.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Comparação do grau médio antes e após o screening biológico ($K = 32$, $c = 0{,}1$, $\delta = 0{,}10$).}
+    \caption{Comparison of mean degree before and after biological screening ($K = 32$, $c = 0.1$, $\delta = 0.10$).}
     \label{tab:screening_graus}
     \resizebox{0.95\textwidth}{!}{%
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Condição Amostral} & \textbf{Grau Médio ($\bar{d}$)} & \shortstack{\textbf{Desvio Relativo à}\\\textbf{Média Teórica (\%)}} & \textbf{Amostras (Oligos)} \\
+        \textbf{Sample Condition} & \textbf{Mean Degree ($\bar{d}$)} & \shortstack{\textbf{Relative Deviation from}\\\textbf{Theoretical Mean (\%)}} & \textbf{Samples (Oligos)} \\
         \midrule
-        Distribuição Teórica ($\mu$) & 4{,}945 & --- & --- \\
-        Total de Candidatos Gerados & 4{,}765 & $-3{,}64$ & 2.000 (100{,}0\%) \\
-        Droplets Aceitos (transmitidos) & 4{,}756 & $-3{,}82$ & 1.195 (59{,}8\%) \\
-        Droplets Rejeitados (descartados) & 4{,}779 & $-3{,}36$ & 805 (40{,}2\%) \\
+        Theoretical Distribution ($\mu$) & 4.945 & --- & --- \\
+        Total Generated Candidates & 4.765 & $-3.64$ & 2,000 (100.0\%) \\
+        Accepted Droplets (transmitted) & 4.756 & $-3.82$ & 1,195 (59.8\%) \\
+        Rejected Droplets (discarded) & 4.779 & $-3.36$ & 805 (40.2\%) \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A média observada sobre o conjunto de 2.000 candidatos amostrados foi de $4{,}765$ (desvio de $-3{,}64\%$ em relação à média teórica populacional de $4{,}945$, decorrente da flutuação amostral finita). A média ponderada dos dois subconjuntos recompõe com exatidão a média global do ensaio: $(1.195 \times 4{,}756 + 805 \times 4{,}779)/2.000 \approx 4{,}765$. Nas condições avaliadas, as médias dos graus dos candidatos aceitos ($4{,}756$) e rejeitados ($4{,}779$) foram próximas (diferença de apenas $0{,}023$ graus); o teste de aderência não detectou desvio estatisticamente significativo entre a distribuição dos graus aceitos e a DRS teórica.
+The observed sample mean across all 2,000 candidate droplets was $4.765$ (a $-3.64\%$ deviation from the theoretical population mean of $4.945$, attributable to finite sample variance). The weighted mean of accepted and rejected subsets exactly reconstitutes the overall trial mean: $(1,195 \times 4.756 + 805 \times 4.779)/2,000 \approx 4.765$. Under evaluated conditions, mean degrees of accepted ($4.756$) and rejected ($4.779$) candidates were very close (a difference of only $0.023$ degrees); the goodness-of-fit test detected no statistically significant deviation between the accepted degree distribution and the theoretical RSD.
 
-Para verificar formalmente se a filtragem biológica preserva a distribuição completa de graus e não apenas a média, aplicou-se o teste de aderência qui-quadrado ($\chi^2$ de Pearson) entre as frequências observadas de cada grau nos droplets aceitos e as frequências esperadas sob a DRS teórica $\mu(d)$. A frequência esperada de cada classe $C_j$ foi calculada como $E_j = n_{\text{aceitos}} \sum_{d \in C_j} \mu(d)$, onde $n_{\text{aceitos}} = 1.195$. Os graus 1 a 12, que apresentaram contagem esperada individual superior a 5, foram mantidos como categorias isoladas. Os graus 13 a 32 foram agregados em 6 classes compostas adjacentes ($d \in \{13,14\}$, $\{15,16\}$, $\{17,18\}$, $\{19,20,21\}$, $\{22,23,24,25\}$ e $\{26,\ldots,32\}$), garantindo frequência esperada mínima $\ge 5$ em todas as classes. O agrupamento gerou 18 categorias e $18 - 1 = 17$ graus de liberdade. As frequências observadas e esperadas para cada uma das 18 classes foram arquivadas em formato estruturado no arquivo \texttt{screening\_qui\_quadrado.json}. Obteve-se $\chi^2 = 25{,}66$ ($\text{df} = 17$, $p = 0{,}081$). Como $p > 0{,}05$, não se rejeita a hipótese nula de aderência ao nível de significância de 5\%. Neste ensaio amostral específico, portanto, não foi detectado desvio estatisticamente significativo entre a distribuição dos graus aceitos e a DRS teórica, nas condições desse ensaio (2.000 candidatos sob carga pseudoaleatória com \emph{scrambler}), ressalvando-se que o teste compara os aceitos com a referência teórica e possui poder estatístico limitado para detectar variações sutis em categorias de probabilidade residual.
+To formally verify whether biological filtering preserves the full degree distribution beyond the mean, a Pearson chi-square ($\chi^2$) goodness-of-fit test was conducted between observed degree frequencies among accepted droplets and theoretical expectations under $\mu(d)$. Expected frequencies for each class $C_j$ were computed as $E_j = n_{\text{accepted}} \sum_{d \in C_j} \mu(d)$, where $n_{\text{accepted}} = 1,195$. Degrees 1 to 12, each having an expected count exceeding 5, were evaluated as individual bins. Degrees 13 to 32 were aggregated into 6 adjacent composite classes ($d \in \{13,14\}$, $\{15,16\}$, $\{17,18\}$, $\{19,20,21\}$, $\{22,23,24,25\}$, and $\{26,\ldots,32\}$), ensuring minimum expected frequency $\ge 5$ across all bins. This grouping yielded 18 categories and $18 - 1 = 17$ degrees of freedom. Observed and expected frequencies for all 18 classes are archived in structured format in \texttt{screening\_qui\_quadrado.json}. The test yielded $\chi^2 = 25.66$ ($\text{df} = 17$, $p = 0.081$). Because $p > 0.05$, the null hypothesis of distribution fit cannot be rejected at the 5\% significance level. In this specific sampling trial, therefore, no statistically significant deviation was detected between accepted degrees and theoretical RSD under trial conditions (2,000 candidates under scrambled pseudorandom payloads), noting that the test compares accepted candidates against theoretical baselines and has bounded power to detect subtle shifts in low-probability bins.
 
-\section{Comportamento e Dinâmica do Ripple}
+\section{Ripple Dynamics and Behavior}
 \label{sec:results_ripple_behavior}
 
-Conforme a distinção estabelecida na Seção~\ref{sec:ripple_concept}, os resultados desta seção se referem ao comprimento da fila operacional de droplets processáveis (\texttt{collections.deque}) a cada iteração do \emph{peeling decoder}. Essa cardinalidade instrumental pode diferir do número de símbolos fonte distintos disponíveis para processamento na definição original de \emph{ripple}. A manutenção de uma fila não vazia ao longo do processo é condição necessária para a progressão contínua da decodificação.
+In accordance with the distinction in Section~\ref{sec:ripple_concept}, results in this section refer to the length of the operational queue of processable droplets (\texttt{collections.deque}) at each peeling iteration. This instrumented queue size may differ from the number of distinct uncovered source symbols in Luby's theoretical ripple definition. Maintaining a non-empty queue throughout decoding is the necessary condition for continuous progress.
 
-A dinâmica observada no simulador segue três fases características:
+Observed queue dynamics in the simulator exhibit three characteristic phases:
 \begin{enumerate}
-    \item \textbf{Inicialização}: O decodificador insere na fila todos os droplets recebidos com grau 1 original. Se nenhum pacote de grau 1 estiver presente, a fila inicia vazia e o algoritmo é interrompido de imediato;
-    \item \textbf{Propagação}: A cada passo, um pacote é retirado da fila. Se o bloco correspondente ainda não foi descoberto, ele é registrado e removido (via XOR) de todos os droplets vizinhos. Aqueles vizinhos que atingem grau 1 são adicionados à fila. O tamanho da fila atinge seu ápice ($Q_{\max}$) nessa fase;
-    \item \textbf{Conclusão}: Nos passos finais, a maioria dos blocos já foi resolvida e poucos novos blocos de grau 1 entram na fila. A fila decresce progressivamente até esvaziar, encerrando o laço.
+    \item \textbf{Initialization}: The decoder enqueues all received droplets having degree $d = 1$. If no degree-1 droplet is received, the queue begins empty and decoding stalls immediately;
+    \item \textbf{Propagation}: At each step, a packet is dequeued. If its corresponding source block has not yet been resolved, it is recorded and peeled (via XOR) from all incident droplet neighbors. Neighbors reduced to degree 1 are enqueued. Queue length peaks ($Q_{\max}$) during this phase;
+    \item \textbf{Completion}: In final iterations, most blocks are resolved, and few new degree-1 droplets enter. The queue drains gradually to zero, terminating the loop.
 \end{enumerate}
 
-Caso a fila esvazie antes que todos os $K$ blocos tenham sido descobertos, o algoritmo encerra sua execução sem recuperar a totalidade da mensagem por falta de equações de grau 1 resolvíveis.
+If the queue empties before all $K$ source blocks are recovered, the algorithm terminates prematurely due to the absence of solvable degree-1 equations.
 
-A Tabela~\ref{tab:ripple_metricas} apresenta o comportamento médio da fila do \emph{ripple} em função dos parâmetros da DRS para $K = 32$ sob overhead $\epsilon = 0{,}50$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$).
+Table~\ref{tab:ripple_metricas} presents mean ripple queue dynamics as a function of RSD parameters for $K = 32$ under overhead $\epsilon = 0.50$ and lossless channel ($p_{\text{loss}} = 0.0$).
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Dinâmica da fila do \emph{ripple} em função de $c$ e $\delta$ ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Ripple queue dynamics as a function of $c$ and $\delta$ ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$).}
     \label{tab:ripple_metricas}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{cccccc}
         \toprule
-        \textbf{$c$} & \textbf{$\delta$} & \textbf{$R$ Teórico} & \textbf{Pico da Fila ($Q_{\max}$)} & \textbf{Mínimo da Fila ($Q_{\min}$)$^*$} & \textbf{Sucesso (\%)} \\
+        \textbf{$c$} & \textbf{$\delta$} & \textbf{Theoretical $R$} & \textbf{Queue Peak ($Q_{\max}$)} & \textbf{Queue Min ($Q_{\min}$)$^*$} & \textbf{Success (\%)} \\
         \midrule
-        0{,}1 & 0{,}10 & 3{,}263 & 10{,}5 & 1{,}0 & 85{,}0 \\
-        0{,}1 & 0{,}01 & 4{,}566 & 7{,}2 & 1{,}0 & 33{,}0 \\
-        0{,}3 & 0{,}10 & 9{,}789 & 14{,}3 & 1{,}0 & 68{,}0 \\
-        0{,}3 & 0{,}01 & 13{,}697 & 17{,}2 & 1{,}0 & 41{,}0 \\
-        0{,}5 & 0{,}10 & 16{,}315 & 38{,}2 & 1{,}0 & 0{,}0 \\
-        0{,}8 & 0{,}10 & 26{,}104 & 39{,}9 & 1{,}0 & 0{,}0 \\
+        0.1 & 0.10 & 3.263 & 10.5 & 1.0 & 85.0 \\
+        0.1 & 0.01 & 4.566 & 7.2 & 1.0 & 33.0 \\
+        0.3 & 0.10 & 9.789 & 14.3 & 1.0 & 68.0 \\
+        0.3 & 0.01 & 13.697 & 17.2 & 1.0 & 41.0 \\
+        0.5 & 0.10 & 16.315 & 38.2 & 1.0 & 0.0 \\
+        0.8 & 0.10 & 26.104 & 39.9 & 1.0 & 0.0 \\
         \bottomrule
     \end{tabular}%
     }
     \par \vspace{3pt}
-    {\footnotesize $^*$A amostragem de $Q_{\min}$ ocorre durante as iterações ativas (\texttt{while ripple:}); o esvaziamento final (tamanho zero) encerra o laço e não integra o histórico ativo.}
-    \fonte{Elaborado pelo autor (2026).}
+    {\footnotesize $^*$Sampling of $Q_{\min}$ occurs during active iterations (\texttt{while ripple:}); final emptying (size zero) terminates the loop and is not included in active trajectory logs.}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Figura~\ref{fig:dinamica_ripple} ilustra a evolução temporal do tamanho da fila do \emph{ripple} ao longo dos passos iterativos de decodificação para $K = 32$ com overhead $\epsilon = 1{,}00$ e canal limpo, contrastando a configuração recomendada ($c = 0{,}1$, $\delta = 0{,}10$) com uma configuração degenerada ($c = 0{,}5$, $\delta = 0{,}10$).
+Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple queue size across peeling decoding iterations for $K = 32$ with overhead $\epsilon = 1.00$ and ideal channel, contrasting the recommended parameterization ($c = 0.1$, $\delta = 0.10$) against a degenerate configuration ($c = 0.5$, $\delta = 0.10$).
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{figuras/grafico_ripple.pdf}
-    \caption{Evolução do tamanho da fila do \emph{ripple} durante os passos da decodificação por peeling ($K = 32$, $\epsilon = 1{,}00$, $p_{\text{loss}} = 0{,}0$). Execução ilustrativa única; a taxa de sucesso agregada para a configuração $c = 0{,}5$ é de 0\% (0/100).}
+    \caption{Evolution of ripple queue length across peeling decoding steps ($K = 32$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$). Single illustrative run; aggregate success rate for $c = 0.5$ is 0\% (0/100).}
     \label{fig:dinamica_ripple}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-A análise da Figura~\ref{fig:dinamica_ripple} e da Tabela~\ref{tab:ripple_metricas} esclarece as diferenças operacionais e a distinção entre médias e execuções individuais:
+Analysis of Figure~\ref{fig:dinamica_ripple} and Table~\ref{tab:ripple_metricas} clarifies operational differences between aggregate means and individual runs:
 \begin{enumerate}
-    \item A métrica ``Pico da Fila ($Q_{\max}$)'' na Tabela~\ref{tab:ripple_metricas} reporta a média amostral dos picos máximos atingidos pela fila instrumentada (\texttt{collections.deque}) ao longo de 100 execuções independentes sob overhead intermediário $\epsilon = 0{,}50$. Por sua vez, a Figura~\ref{fig:dinamica_ripple} exibe a trajetória de uma única execução sob overhead pleno ($\epsilon = 1{,}00$), razão pela qual os picos pontuais observados no gráfico diferem das médias tabuladas sob $\epsilon = 0{,}50$;
-    \item Na configuração recomendada ($c = 0{,}1$, $\epsilon = 1{,}00$), a fila é alimentada de forma gradual ao longo das iterações, atingindo pico moderado de 22 elementos e sustentando entradas contínuas de droplets unitários até a recuperação completa dos 32 blocos fonte (32/32);
-    \item Na configuração com $c = 0{,}5$, a DRS sofre deslocamento de pico para $m = \lfloor 32/16{,}32 \rfloor = 1$, onde cerca de 73\% dos droplets concentram-se no grau 1. Isso faz com que a fila seja inundada inicialmente (pico de 50 elementos). O laço de decodificação é executado por 64 iterações ao retirar pacotes da fila, porém a maioria corresponde a droplets redundantes cobrindo blocos já descobertos. Pela escassez de droplets com graus intermediários para conectar os blocos restantes via XOR, a execução encerrou com um bloco pendente (recuperando 31 de 32 blocos) após o esgotamento das equações unitárias úteis na fila de processamento;
-    \item O valor do ripple mínimo médio ($Q_{\min}$) ser registrado como 1,0 em todas as linhas da Tabela~\ref{tab:ripple_metricas} decorre da definição de instrumentação: a medição amostral é computada dentro do laço de decodificação (\texttt{while ripple:}), momento em que a fila contém no mínimo um elemento ativo. O esvaziamento final (tamanho zero) representa a condição de saída do laço, não sendo capturado como estado intermediário da fila.
+    \item The ``Queue Peak ($Q_{\max}$)'' metric in Table~\ref{tab:ripple_metricas} reports the sample mean of maximum queue lengths reached across 100 independent runs under intermediate overhead $\epsilon = 0.50$. In contrast, Figure~\ref{fig:dinamica_ripple} displays the trajectory of a single execution under full overhead ($\epsilon = 1.00$), explaining why individual curve peaks differ from tabulated $\epsilon = 0.50$ means;
+    \item Under recommended settings ($c = 0.1$, $\epsilon = 1.00$), the queue is replenished steadily throughout decoding, reaching a moderate peak of 22 elements and sustaining continuous releases until all 32 blocks are recovered (32/32);
+    \item Under $c = 0.5$, the RSD mode collapses to $m = \lfloor 32/16.32 \rfloor = 1$, where approximately 73\% of droplets are generated with degree 1. This floods the initial queue (peak of 50 elements). Decoding executes for 64 iterations dequeuing packets, but most represent redundant droplets covering previously resolved blocks. Due to the scarcity of intermediate-degree droplets needed to interlink remaining blocks via XOR, decoding halted with one unresolved block (31 of 32 recovered) once unit equations were exhausted;
+    \item The minimum queue size ($Q_{\min}$) being recorded as 1.0 across all rows in Table~\ref{tab:ripple_metricas} is an artifact of instrumentation: sampling occurs inside the decoding loop (\texttt{while ripple:}), when the queue inherently holds at least one active element. Final emptying (size zero) represents the loop termination condition.
 \end{enumerate}
 
-\section{Overhead versus Taxa de Sucesso}
+\section{Overhead versus Success Rate}
 \label{sec:results_overhead_success_rate}
 
-A relação entre o overhead relativo enviado $\epsilon = (N - K)/K$ e a probabilidade de reconstrução bem-sucedida é uma das características centrais dos \emph{fountain codes}. Na grade experimental, $N$ denota o número de oligonucleotídeos aprovados no screening e transmitidos, isto é, $N = N_{\text{tx}}$. A teoria dos códigos LT permite recuperação com overhead relativo que decresce assintoticamente com $K$, sob as condições da construção clássica. Em regimes de blocos pequenos, a relação empírica entre overhead e taxa de sucesso deve ser caracterizada experimentalmente nos níveis de overhead avaliados ($\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$), assumindo a forma de uma progressão gradual.
+The relationship between transmitted relative overhead $\epsilon = (N - K)/K$ and decoding success probability is a defining characteristic of fountain codes. Across the experimental grid, $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). LT code theory proves that required relative overhead diminishes asymptotically with $K$. In finite block regimes, the empirical relationship must be characterized experimentally across evaluated overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$), manifesting as a gradual transition.
 
-A Tabela~\ref{tab:overhead_sucesso} sintetiza as taxas de sucesso obtidas para diferentes níveis de overhead em canal limpo ($p_{\text{loss}} = 0{,}0$) com $\delta = 0{,}10$.
+Table~\ref{tab:overhead_sucesso} summarizes success rates obtained for different overhead tiers over an ideal channel ($p_{\text{loss}} = 0.0$) with $\delta = 0.10$.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Taxa de sucesso na decodificação em função do overhead enviado ($\delta = 0{,}10$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Decoding success rate as a function of sent overhead ($\delta = 0.10$, $p_{\text{loss}} = 0.0$).}
     \label{tab:overhead_sucesso}
     \begin{tabular}{ccccc}
         \toprule
-        \multirow{2}{*}{\textbf{$K$}} & \multirow{2}{*}{\textbf{$c$}} & \multicolumn{3}{c}{\textbf{Taxa de Sucesso (\%) por Nível de Overhead}} \\
+        \multirow{2}{*}{\textbf{$K$}} & \multirow{2}{*}{\textbf{$c$}} & \multicolumn{3}{c}{\textbf{Success Rate (\%) by Overhead Level}} \\
         \cmidrule(lr){3-5}
-        & & \textbf{$\epsilon = 0{,}25$} & \textbf{$\epsilon = 0{,}50$} & \textbf{$\epsilon = 1{,}00$} \\
+        & & \textbf{$\epsilon = 0.25$} & \textbf{$\epsilon = 0.50$} & \textbf{$\epsilon = 1.00$} \\
         \midrule
-        16 & 0{,}1 & 8{,}0 & 49{,}0 & 90{,}0 \\
-        16 & 0{,}3 & 36{,}0 & 64{,}0 & 91{,}0 \\
-        16 & 0{,}5 & 0{,}0 & 4{,}0 & 24{,}0 \\
-        16 & 0{,}8 & 0{,}0 & 0{,}0 & 7{,}0 \\
+        16 & 0.1 & 8.0 & 49.0 & 90.0 \\
+        16 & 0.3 & 36.0 & 64.0 & 91.0 \\
+        16 & 0.5 & 0.0 & 4.0 & 24.0 \\
+        16 & 0.8 & 0.0 & 0.0 & 7.0 \\
         \midrule
-        32 & 0{,}1 & 30{,}0 & 85{,}0 & 100{,}0 \\
-        32 & 0{,}3 & 38{,}0 & 68{,}0 & 93{,}0 \\
-        32 & 0{,}5 & 0{,}0 & 0{,}0 & 0{,}0 \\
-        32 & 0{,}8 & 0{,}0 & 0{,}0 & 4{,}0 \\
+        32 & 0.1 & 30.0 & 85.0 & 100.0 \\
+        32 & 0.3 & 38.0 & 68.0 & 93.0 \\
+        32 & 0.5 & 0.0 & 0.0 & 0.0 \\
+        32 & 0.8 & 0.0 & 0.0 & 4.0 \\
         \midrule
-        64 & 0{,}1 & 19{,}0 & 88{,}0 & 100{,}0 \\
-        64 & 0{,}3 & 10{,}0 & 57{,}0 & 97{,}0 \\
-        64 & 0{,}5 & 0{,}0 & 27{,}0 & 82{,}0 \\
-        64 & 0{,}8 & 0{,}0 & 0{,}0 & 3{,}0 \\
+        64 & 0.1 & 19.0 & 88.0 & 100.0 \\
+        64 & 0.3 & 10.0 & 57.0 & 97.0 \\
+        64 & 0.5 & 0.0 & 27.0 & 82.0 \\
+        64 & 0.8 & 0.0 & 0.0 & 3.0 \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Figura~\ref{fig:overhead_sucesso} exibe graficamente os pontos amostrais e as linhas guia da taxa de sucesso em função do overhead enviado para cada quantidade de blocos fonte ($K = 16$, $K = 32$ e $K = 64$) e diferentes constantes $c \in \{0{,}1; 0{,}3; 0{,}5; 0{,}8\}$.
+Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$, and $K = 64$) and constants $c \in \{0.1; 0.3; 0.5; 0.8\}$.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figuras/grafico_overhead_sucesso.pdf}
-    \caption{Taxa de sucesso na decodificação em função do overhead enviado ($\delta = 0{,}10$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Decoding success rate as a function of sent overhead ($\delta = 0.10$, $p_{\text{loss}} = 0.0$).}
     \label{fig:overhead_sucesso}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-A visualização na Figura~\ref{fig:overhead_sucesso} demonstra que, nos níveis de overhead avaliados ($\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$), a resposta torna-se mais pronunciada à medida que $K$ cresce:
+The visualization in Figure~\ref{fig:overhead_sucesso} demonstrates that, across evaluated overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$), response curves steepen noticeably as $K$ increases:
 \begin{itemize}
-    \item Para $K = 16$, a transição é suave e atinge no máximo 91\% mesmo com $\epsilon = 1{,}00$, refletindo a vulnerabilidade a flutuações em blocos escassos;
-    \item Para $K = 32$ e $K = 64$, a curva com $c = 0{,}1$ exibe crescimento rápido a partir de $\epsilon = 0{,}25$, alcançando 85\%--88\% em $\epsilon = 0{,}50$ e consolidando 100\% em $\epsilon = 1{,}00$ (IC 95\%: $[96{,}4\%, 100{,}0\%]$);
-    \item As curvas correspondentes a $c = 0{,}8$ permanecem coladas no eixo horizontal (sucesso próximo a zero) para praticamente todos os níveis de overhead.
+    \item For $K = 16$, the transition is gradual, peaking at 91\% even under $\epsilon = 1.00$, illustrating heightened vulnerability to stochastic variance in small block counts;
+    \item For $K = 32$ and $K = 64$, the $c = 0.1$ curve climbs rapidly from $\epsilon = 0.25$, reaching 85\%--88\% at $\epsilon = 0.50$ and consolidating at 100\% under $\epsilon = 1.00$ (95\% CI: $[96.4\%, 100.0\%]$);
+    \item Curves for $c = 0.8$ remain pinned near the horizontal axis (near-zero success) across virtually all overhead levels.
 \end{itemize}
 
-\subsection{Diferença Estrutural de Desempenho com $c = 0{,}5$ entre $K = 32$ e $K = 64$}
+\subsection{Structural Performance Discrepancy with $c = 0.5$ between $K = 32$ and $K = 64$}
 
-Um dos comportamentos mais elucidativos revelados na Tabela~\ref{tab:overhead_sucesso} ocorre com $c = 0{,}5$ sob overhead $\epsilon = 1{,}00$: enquanto para $K = 32$ a taxa de recuperação é nula ($0{,}0\%$, IC 95\%: $[0{,}0\%, 3{,}6\%]$), para $K = 64$ o sistema atinge expressivos $82{,}0\%$ de sucesso (IC 95\%: $[73{,}1\%, 89{,}0\%]$).
+One of the most revealing behaviors documented in Table~\ref{tab:overhead_sucesso} occurs with $c = 0.5$ under overhead $\epsilon = 1.00$: while for $K = 32$ the recovery rate is zero ($0.0\%$, 95\% CI: $[0.0\%, 3.6\%]$), for $K = 64$ the system achieves $82.0\%$ success (95\% CI: $[73.1\%, 89.0\%]$).
 
-Esse contraste decorre diretamente da dependência do pico $m = \lfloor K/R \rfloor$ em relação à escala de $K$:
+This contrast stems directly from how mode index $m = \lfloor K/R \rfloor$ scales with $K$:
 \begin{itemize}
-    \item Para $K = 32$, tem-se $R = 0{,}5 \ln(32/0{,}10)\sqrt{32} \approx 16{,}32$, resultando em $m = \lfloor 32 / 16{,}32 \rfloor = 1$. Todo o termo corretivo $\tau(d)$ colapsa sobre o grau 1. A DRS passa a gerar cerca de 73\% de cópias de blocos unitários, reduzindo substancialmente a participação relativa de droplets combinatórios de grau 2 e superiores necessários para interligar os demais blocos fonte. Sem diversidade combinatória suficiente para a progressão contínua do peeling, foram observados 0 sucessos em 100 execuções na amostra avaliada ($0{,}0\%$, IC 95\%: $[0{,}0\%, 3{,}6\%]$);
-    \item Para $K = 64$, obtém-se $R \approx 25{,}85$, de modo que $m = \lfloor 64 / 25{,}85 \rfloor = 2$. Os termos corretivos resultam em $\tau(1) \approx 0{,}404$ e $\tau(2) \approx 2{,}243$, com $\tau(d) = 0$ para todo $d > 2$. Após a normalização de $\rho(d) + \tau(d)$, a distribuição resultante concentra $\mu(1) \approx 0{,}115$ e $\mu(2) \approx 0{,}752$, com grau médio $\bar{d} \approx 2{,}64$. Essa configuração não colapsa para o grau 1 como ocorre em $K = 32$: como cerca de três quartos da massa de probabilidade concentra-se em droplets de grau 2, eles atuam como catalisadores fundamentais do processo de peeling (tornando-se unitários assim que um de seus vizinhos é desvendado), permitindo tração contínua e $82{,}0\%$ de sucesso sob $\epsilon = 1{,}00$.
+    \item For $K = 32$, we have $R = 0.5 \ln(32/0.10)\sqrt{32} \approx 16.32$, yielding $m = \lfloor 32 / 16.32 \rfloor = 1$. The entire corrective term $\tau(d)$ collapses onto degree 1. The RSD generates approximately 73\% unit-degree droplets, severely depleting degree-2 and higher combinatoric droplets needed to interlink remaining blocks. Lacking sufficient graph connectivity, 0 successes were observed in 100 trials ($0.0\%$, 95\% CI: $[0.0\%, 3.6\%]$);
+    \item For $K = 64$, we obtain $R \approx 25.85$, yielding $m = \lfloor 64 / 25.85 \rfloor = 2$. Corrective values evaluate to $\tau(1) \approx 0.404$ and $\tau(2) \approx 2.243$, with $\tau(d) = 0$ for all $d > 2$. Normalizing $\rho(d) + \tau(d)$ produces $\mu(1) \approx 0.115$ and $\mu(2) \approx 0.752$, with mean degree $\bar{d} \approx 2.64$. This distribution avoids collapsing onto degree 1: because three-quarters of the probability mass concentrates on degree-2 droplets, they act as primary catalytic drivers for peeling (reducing to degree 1 once one neighbor is resolved), sustaining peeling progress and achieving $82.0\%$ success under $\epsilon = 1.00$.
 \end{itemize}
 
-Essa observação é consistente com a hipótese de que o efeito de escala de $K$ pode alterar qualitativamente a viabilidade de uma mesma parametrização da DRS, sugerindo que valores de $c$ desfavoráveis em mensagens pequenas podem tornar-se parcialmente funcionais à medida que o grafo se expande.
+This observation supports the hypothesis that block scale $K$ can qualitatively alter the viability of a given RSD parameterization, demonstrating that parameter choices unsuited for small messages may become partially viable as graph dimensions expand.
 
-\section{Impacto dos Parâmetros $c$ e $\delta$}
+\section{Impact of Parameters $c$ and $\delta$}
 \label{sec:results_impact_c_delta}
 
-Os parâmetros $c$ e $\delta$ governam a distribuição robusta de soliton por meio do componente corretivo $\tau(d)$ e do tamanho esperado do \emph{ripple} $R = c \ln(K/\delta)\sqrt{K}$. O parâmetro $c$ atua como uma constante de escala que amplia o valor de $R$, enquanto $\delta$ representa um limitador superior assintótico para a probabilidade de falha na decodificação.
+Parameters $c$ and $\delta$ govern the Robust Soliton Distribution through corrective component $\tau(d)$ and scale parameter $R = c \ln(K/\delta)\sqrt{K}$. Parameter $c$ scales $R$, while $\delta$ sets an asymptotic upper bound on decoding failure probability.
 
-A Tabela~\ref{tab:impacto_c_delta} detalha o impacto sistemático de $c$ e $\delta$ sobre as métricas do sistema para $K = 32$, sob overhead fixo de $\epsilon = 0{,}50$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$).
+Table~\ref{tab:impacto_c_delta} details the systematic impact of $c$ and $\delta$ on system metrics for $K = 32$, under fixed overhead $\epsilon = 0.50$ and lossless channel ($p_{\text{loss}} = 0.0$).
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Impacto de $c$ e $\delta$ nas métricas de decodificação ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Impact of $c$ and $\delta$ on decoding metrics ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$).}
     \label{tab:impacto_c_delta}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{ccccccc}
         \toprule
-        \textbf{$c$} & \textbf{$\delta$} & \textbf{$R$} & \shortstack{\textbf{Grau Médio Teórico}\\\textbf{($\mathbb{E}_\mu[D]$)}} & \textbf{XORs Médios} & \textbf{Ripple Máx.} & \textbf{Sucesso (\%)} \\
+        \textbf{$c$} & \textbf{$\delta$} & \textbf{$R$} & \shortstack{\textbf{Theoretical Mean Degree}\\\textbf{($\mathbb{E}_\mu[D]$)}} & \textbf{Mean XORs} & \textbf{Peak Ripple} & \textbf{Success (\%)} \\
         \midrule
-        0{,}1 & 0{,}10 & 3{,}263 & 4{,}945 & 196{,}0 & 10{,}5 & 85{,}0 \\
-        0{,}1 & 0{,}01 & 4{,}566 & 4{,}961 & 129{,}8 & 7{,}2 & 33{,}0 \\
-        0{,}3 & 0{,}10 & 9{,}789 & 3{,}103 & 140{,}2 & 14{,}3 & 68{,}0 \\
-        0{,}3 & 0{,}01 & 13{,}697 & 2{,}361 & 106{,}4 & 17{,}2 & 41{,}0 \\
-        0{,}5 & 0{,}10 & 16{,}315 & 1{,}850 & 75{,}7 & 38{,}2 & 0{,}0 \\
-        0{,}5 & 0{,}01 & 22{,}828 & 1{,}469 & 60{,}6 & 40{,}9 & 0{,}0 \\
-        0{,}8 & 0{,}10 & 26{,}104 & 1{,}552 & 65{,}4 & 39{,}9 & 0{,}0 \\
-        0{,}8 & 0{,}01 & 36{,}525 & 1{,}295 & 56{,}2 & 42{,}4 & 0{,}0 \\
+        0.1 & 0.10 & 3.263 & 4.945 & 196.0 & 10.5 & 85.0 \\
+        0.1 & 0.01 & 4.566 & 4.961 & 129.8 & 7.2 & 33.0 \\
+        0.3 & 0.10 & 9.789 & 3.103 & 140.2 & 14.3 & 68.0 \\
+        0.3 & 0.01 & 13.697 & 2.361 & 106.4 & 17.2 & 41.0 \\
+        0.5 & 0.10 & 16.315 & 1.850 & 75.7 & 38.2 & 0.0 \\
+        0.5 & 0.01 & 22.828 & 1.469 & 60.6 & 40.9 & 0.0 \\
+        0.8 & 0.10 & 26.104 & 1.552 & 65.4 & 39.9 & 0.0 \\
+        0.8 & 0.01 & 36.525 & 1.295 & 56.2 & 42.4 & 0.0 \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Figura~\ref{fig:impacto_c_delta} apresenta graficamente o comportamento simultâneo do grau médio teórico ($\mathbb{E}_\mu[D]$) e da taxa de sucesso em função de $c$, para os dois valores de $\delta$ avaliados ($0{,}10$ e $0{,}01$).
+Figure~\ref{fig:impacto_c_delta} illustrates the joint behavior of theoretical mean degree ($\mathbb{E}_\mu[D]$) and decoding success rate as functions of $c$, for both evaluated $\delta$ levels ($0.10$ and $0.01$).
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.88\textwidth]{figuras/grafico_impacto_c_delta.pdf}
-    \caption{Impacto dos parâmetros $c$ e $\delta$ na distribuição de graus e na taxa de sucesso ($K = 32$, $\epsilon = 0{,}50$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Impact of parameters $c$ and $\delta$ on degree distribution and success rate ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$).}
     \label{fig:impacto_c_delta}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-A correlação exposta na Figura~\ref{fig:impacto_c_delta} esclarece as nuances da DRS em regimes finitos:
+The relationship in Figure~\ref{fig:impacto_c_delta} highlights the mechanics of the RSD in finite block regimes:
 \begin{enumerate}
-    \item \textbf{Degeneração da distribuição para $c \ge 0{,}5$}: Quando $c$ assume valores elevados ($0{,}5$ ou $0{,}8$), a fórmula teórica resulta em $R = 16{,}32$ ou $26{,}10$ para $K = 32$. Como $R$ aproxima-se ou supera a metade de $K$, o índice do pico da distribuição corretiva, dado por $m = \lfloor K/R \rfloor$, colapsa para $1$. Para $c = 0{,}5$, cerca de 73{,}1\% da massa normalizada concentra-se em grau 1 ($\mu(1) \approx 0{,}731$, $\mu(2) \approx 0{,}139$); para $c = 0{,}8$, a concentração em grau 1 agrava-se para $\mu(1) \approx 0{,}825$ ($\mu(2) \approx 0{,}090$). Com isso, o grau médio teórico $\mathbb{E}_\mu[D]$ cai drasticamente de $4{,}95$ para $1{,}85$ e $1{,}55$ (acompanhado de perto pelo grau médio amostrado $\bar{d}_{\text{emp}}$). Com menor participação de droplets combinatórios e conectividade insuficiente para a conclusão do peeling nas instâncias avaliadas, foram observados 0 sucessos em 100 execuções no cenário $K=32, \epsilon=0{,}50, p_{\text{loss}}=0{,}0$ (IC 95\%: $[0{,}0\%, 3{,}6\%]$);
+    \item \textbf{Distribution Degeneration for $c \ge 0.5$}: When $c$ takes elevated values ($0.5$ or $0.8$), $R$ reaches $16.32$ or $26.10$ for $K = 32$. Because $R$ approaches or exceeds half of $K$, corrective mode $m = \lfloor K/R \rfloor$ collapses to $1$. For $c = 0.5$, approximately 73.1\% of normalized mass concentrates on degree 1 ($\mu(1) \approx 0.731$, $\mu(2) \approx 0.139$); for $c = 0.8$, degree-1 concentration worsens to $\mu(1) \approx 0.825$ ($\mu(2) \approx 0.090$). Consequently, theoretical mean degree $\mathbb{E}_\mu[D]$ plummets from $4.95$ to $1.85$ and $1.55$ (closely mirrored by sampled mean degree $\bar{d}_{\text{emp}}$). With insufficient combinatoric connectivity to sustain peeling, 0 successes were observed in 100 runs under $K=32, \epsilon=0.50, p_{\text{loss}}=0.0$ (95\% CI: $[0.0\%, 3.6\%]$);
     
-    \item \textbf{Efeito de $\delta$ e dinâmica de graus baixos}: Ao contrário de uma suposição intuitiva de que $\delta$ menor concentraria a massa em graus baixos, a redução de $\delta$ de $0{,}10$ para $0{,}01$ sob $c = 0{,}1$ praticamente mantém inalterado o grau médio teórico ($\mathbb{E}_\mu[D]$ passa de $4{,}945$ para $4{,}961$). A queda expressiva de desempenho (sucesso reduzido de $85{,}0\%$ para $33{,}0\%$) é consistente com a redistribuição da massa de probabilidade, incluindo a redução da participação de grau 2 ($\mu(2)$ decresce de $\approx 0{,}338$ para $\approx 0{,}257$) e a mudança do índice do pico corretivo ($m$ recua de $9$ para $7$ à medida que $R$ amplia-se de $3{,}26$ para $4{,}57$). Com menor proporção de droplets binários para alimentar a fila logo após o desvendamento das equações unitárias, a fila operacional atinge um pico menor ($7{,}2$ vs. $10{,}5$) e esgota-se precocemente antes da conclusão do grafo;
+    \item \textbf{Effect of $\delta$ and Low-Degree Dynamics}: Contrary to the intuition that smaller $\delta$ would concentrate mass on low degrees, reducing $\delta$ from $0.10$ to $0.01$ under $c = 0.1$ leaves theoretical mean degree virtually unchanged ($\mathbb{E}_\mu[D]$ shifts from $4.945$ to $4.961$). The sharp performance drop (success falling from $85.0\%$ to $33.0\%$) is consistent with probability mass redistribution, including reduced degree-2 probability ($\mu(2)$ decreases from $\approx 0.338$ to $\approx 0.257$) and mode shift ($m$ retreats from $9$ to $7$ as $R$ expands from $3.26$ to $4.57$). With fewer degree-2 droplets to replenish the queue following initial releases, peak ripple drops ($7.2$ vs. $10.5$), exhausting prematurely;
     
-    \item \textbf{Relação com operações XOR}: À medida que o grau médio diminui, o número médio de operações XOR realizadas durante a decodificação também se reduz (de 196{,}0 para 65{,}4). No entanto, essa economia computacional reflete na verdade a incapacidade de avanço do decodificador, que aborta o processamento por esgotamento de conexões válidas.
+    \item \textbf{Relationship with XOR Operations}: As mean degree falls, average XOR operations executed during decoding also decrease (from 196.0 to 65.4). However, this computational savings reflects premature decoder stall due to connection exhaustion rather than algorithmic efficiency.
 \end{enumerate}
 
-A caracterização de $c = 0{,}1$ e $\delta = 0{,}10$ como a configuração mais eficiente deve ser qualificada ao regime avaliado. Embora essa combinação tenha se mostrado claramente superior para $K = 32$ e $K = 64$ sob overheads intermediários ($\epsilon = 0{,}50$ e $\epsilon = 1{,}00$), ela não representa um ``ótimo irrestrito''. Primeiramente, $c = 0{,}1$ constitui o menor valor testado na grade, permanecendo inexplorada a faixa $c < 0{,}1$. Em segundo lugar, na comparação específica para $K = 16$ sob overhead restrito ($\epsilon = 0{,}25$) em canal ideal, a parametrização $c = 0{,}3$ superou estatisticamente $c = 0{,}1$, registrando $36{,}0\%$ de sucesso contra apenas $8{,}0\%$ (teste exato de Fisher bicaudal, $p = 2{,}2 \times 10^{-6}$); já para $K = 32$, a diferença observada entre $c = 0{,}3$ e $c = 0{,}1$ ($38{,}0\%$ vs. $30{,}0\%$) não atingiu significância estatística ($p \approx 0{,}30$, teste de Fisher bicaudal). Para $K = 16$, a vantagem de $c = 0{,}3$ sob redundância restrita decorre fundamentalmente da dinâmica da DRS: com $c = 0{,}1$, tem-se $R \approx 2{,}03$ e o índice de pico corretivo situa-se em $m = 7$, resultando em $\mu(1) \approx 0{,}112$ e $\mu(2) \approx 0{,}333$; ao passar para $c = 0{,}3$, obtém-se $R \approx 6{,}09$ e o pico recua para $m = 2$, elevando ligeiramente $\mu(1)$ para $0{,}150$ e concentrando expressivos $\mu(2) \approx 0{,}701$ da massa de probabilidade em droplets de grau 2 (mais que o dobro de $0{,}333$). Essa concentração em grau 2 fornece uma densa reserva de equações binárias prontas para se tornarem unitárias assim que o primeiro bloco é desvendado, sustentando a tração contínua do peeling e reduzindo o risco de estagnação precoce em orçamentos curtos de pacotes.
+Characterizing $c = 0.1$ and $\delta = 0.10$ as the most effective configuration must be contextualized within the evaluated parameter domain. While this combination proved clearly superior for $K = 32$ and $K = 64$ under intermediate overheads ($\epsilon = 0.50$ and $\epsilon = 1.00$), it does not represent an unconstrained global optimum. First, $c = 0.1$ was the lowest value tested, leaving $c < 0.1$ unexamined. Second, in the specific case of $K = 16$ under constrained overhead ($\epsilon = 0.25$) over an ideal channel, $c = 0.3$ statistically outperformed $c = 0.1$, recording $36.0\%$ success versus $8.0\%$ (two-tailed Fisher's exact test, $p = 2.2 \times 10^{-6}$); for $K = 32$, the observed difference between $c = 0.3$ and $c = 0.1$ ($38.0\%$ vs. $30.0\%$) was not statistically significant ($p \approx 0.30$, two-tailed Fisher's test). For $K = 16$, the advantage of $c = 0.3$ under constrained redundancy stems from RSD dynamics: under $c = 0.1$, $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating an impressive $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration provides a rich reserve of binary equations ready to become degree-1 as soon as the first source block is resolved, sustaining continuous peeling momentum and preventing early stall under tight packet budgets.
 
-\section{Resiliência do Sistema a Perdas no Canal}
+\section{System Resilience to Channel Losses}
 \label{sec:results_system_resilience}
 
-A capacidade de operar sobre canais não confiáveis sem necessidade de retransmissão é o principal atrativo das arquiteturas baseadas em \emph{fountain codes}. Para quantificar essa tolerância, o simulador foi submetido a probabilidades de apagamento estocástico $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$, correspondendo a uma probabilidade de apagamento de até 0{,}20 por oligonucleotídeo transmitido.
+The ability to operate over lossy channels without retransmission feedback is a primary motivation for fountain code architectures. To quantify this tolerance, the simulator was evaluated under stochastic erasure probabilities $p_{\text{loss}} \in \{0.0; 0.10; 0.20\}$, representing erasure rates up to 20\% per transmitted oligonucleotide.
 
-A Tabela~\ref{tab:resiliencia_canal} compara as taxas de sucesso e as operações XOR sob perdas no canal para a parametrização recomendada ($c = 0{,}1$, $\delta = 0{,}10$) em diferentes níveis de overhead.
+Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations under channel losses for the reference parameterization ($c = 0.1$, $\delta = 0.10$) across overhead levels.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Resiliência do sistema sob perdas estocásticas no canal ($c = 0{,}1$, $\delta = 0{,}10$).}
+    \caption{System resilience under stochastic channel losses ($c = 0.1$, $\delta = 0.10$).}
     \label{tab:resiliencia_canal}
     \begin{tabular}{cccccc}
         \toprule
-        \textbf{$K$} & \textbf{Overhead ($\epsilon$)} & \textbf{$p_{\text{loss}} = 0{,}0$} & \textbf{$p_{\text{loss}} = 0{,}10$} & \textbf{$p_{\text{loss}} = 0{,}20$} & \textbf{XORs ($p_{\text{loss}} = 0{,}20$)} \\
+        \textbf{$K$} & \textbf{Overhead ($\epsilon$)} & \textbf{$p_{\text{loss}} = 0.0$} & \textbf{$p_{\text{loss}} = 0.10$} & \textbf{$p_{\text{loss}} = 0.20$} & \textbf{XORs ($p_{\text{loss}} = 0.20$)} \\
         \midrule
-        16 & 0{,}25 & 8{,}0\% & 5{,}0\% & 0{,}0\% & 8{,}6 \\
-        16 & 0{,}50 & 49{,}0\% & 32{,}0\% & 15{,}0\% & 22{,}4 \\
-        16 & 1{,}00 & 90{,}0\% & 83{,}0\% & 70{,}0\% & 72{,}2 \\
+        16 & 0.25 & 8.0\% & 5.0\% & 0.0\% & 8.6 \\
+        16 & 0.50 & 49.0\% & 32.0\% & 15.0\% & 22.4 \\
+        16 & 1.00 & 90.0\% & 83.0\% & 70.0\% & 72.2 \\
         \midrule
-        32 & 0{,}25 & 30{,}0\% & 10{,}0\% & 2{,}0\% & 51{,}2 \\
-        32 & 0{,}50 & 85{,}0\% & 55{,}0\% & 27{,}0\% & 107{,}9 \\
-        32 & 1{,}00 & 100{,}0\% & 99{,}0\% & 89{,}0\% & 207{,}0 \\
+        32 & 0.25 & 30.0\% & 10.0\% & 2.0\% & 51.2 \\
+        32 & 0.50 & 85.0\% & 55.0\% & 27.0\% & 107.9 \\
+        32 & 1.00 & 100.0\% & 99.0\% & 89.0\% & 207.0 \\
         \midrule
-        64 & 0{,}25 & 19{,}0\% & 1{,}0\% & 0{,}0\% & 60{,}5 \\
-        64 & 0{,}50 & 88{,}0\% & 52{,}0\% & 16{,}0\% & 172{,}7 \\
-        64 & 1{,}00 & 100{,}0\% & 98{,}0\% & 92{,}0\% & 520{,}1 \\
+        64 & 0.25 & 19.0\% & 1.0\% & 0.0\% & 60.5 \\
+        64 & 0.50 & 88.0\% & 52.0\% & 16.0\% & 172.7 \\
+        64 & 1.00 & 100.0\% & 98.0\% & 92.0\% & 520.1 \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Figura~\ref{fig:resiliencia_canal} ilustra graficamente o comportamento da taxa de recuperação em função de $p_{\text{loss}}$ para os três patamares de overhead ($\epsilon = 0{,}25$, $\epsilon = 0{,}50$ e $\epsilon = 1{,}00$) para $K = 32$ e $K = 64$.
+Figure~\ref{fig:resiliencia_canal} illustrates recovery rate as a function of $p_{\text{loss}}$ across the three overhead tiers ($\epsilon = 0.25$, $\epsilon = 0.50$, and $\epsilon = 1.00$) for $K = 32$ and $K = 64$.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.88\textwidth]{figuras/grafico_resiliencia.pdf}
-    \caption{Resiliência do sistema sob perdas estocásticas no canal ($c = 0{,}1$, $\delta = 0{,}10$).}
+    \caption{System resilience under stochastic channel losses ($c = 0.1$, $\delta = 0.10$).}
     \label{fig:resiliencia_canal}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-Os resultados demonstram que o efeito de um canal de apagamento com probabilidade $p_{\text{loss}}$ equivale a uma redução direta do overhead efetivo esperado recebido pelo decodificador. Matematicamente, a quantidade média esperada de droplets que atinge o destino é dada por $\mathbb{E}[N_{\text{rec}}] = N(1 - p_{\text{loss}})$, resultando em um overhead efetivo esperado $\mathbb{E}[\epsilon_{\text{ef}}] = (1 + \epsilon)(1 - p_{\text{loss}}) - 1$.
+The results show that a packet erasure channel with loss probability $p_{\text{loss}}$ directly reduces effective received overhead. Mathematically, the expected number of arriving droplets is $\mathbb{E}[N_{\text{rec}}] = N(1 - p_{\text{loss}})$, yielding an expected effective overhead $\mathbb{E}[\epsilon_{\text{eff}}] = (1 + \epsilon)(1 - p_{\text{loss}}) - 1$.
 
-Quando o transmissor opera com overhead nominal $\epsilon = 1{,}00$ ($N = 2K$), mesmo sob probabilidade de apagamento $p_{\text{loss}} = 0{,}10$, o decodificador ainda recebe em média $1{,}8K$ droplets ($\epsilon_{\text{ef}} = 0{,}80$). Como esse volume permanece acima da faixa limítrofe observada para sustentar a decodificação nos níveis de overhead avaliados, a taxa de sucesso se mantém praticamente inalterada: 99\% para $K = 32$ e 98\% para $K = 64$. Mesmo sob probabilidade de apagamento $p_{\text{loss}} = 0{,}20$, o sistema sustenta 89\% de recuperação para $K = 32$ e 92\% para $K = 64$.
+When transmitting with nominal overhead $\epsilon = 1.00$ ($N = 2K$), even under erasure probability $p_{\text{loss}} = 0.10$, the decoder still receives on average $1.8K$ droplets ($\epsilon_{\text{eff}} = 0.80$). Because this volume remains well above the threshold required to sustain peeling across evaluated configurations, success rates remain virtually unaffected: 99\% for $K = 32$ and 98\% for $K = 64$. Even under $p_{\text{loss}} = 0.20$, the system sustains 89\% recovery for $K = 32$ and 92\% for $K = 64$.
 
-Em contrapartida, configurações que operam com overhead nominal intermediário ($\epsilon = 0{,}50$, limítrofe para recuperação plena) sofrem degradação expressiva sob perdas: para $K = 64$, sob probabilidade de apagamento $p_{\text{loss}} = 0{,}10$ o sucesso reduz-se de 88\% para 52\%, e sob $p_{\text{loss}} = 0{,}20$ cai para 16\%. Esse comportamento reforça a diretriz de dimensionamento: em canais físicos de DNA sujeitos a dropout e degradação molecular, a margem de overhead deve ser dimensionada considerando a perda esperada no sequenciamento.
+Conversely, configurations operating with intermediate nominal overhead ($\epsilon = 0.50$, marginal for full recovery) degrade sharply under losses: for $K = 64$, under $p_{\text{loss}} = 0.10$ success drops from 88\% to 52\%, and under $p_{\text{loss}} = 0.20$ plummets to 16\%. This behavior reinforces a core design principle: in physical DNA storage channels subject to molecular decay and sequencing dropout, overhead margins must be provisioned according to anticipated sequencing losses.
 
-\section{Custo Computacional}
+\section{Computational Cost}
 \label{sec:results_computational_cost}
 
-O custo computacional do pipeline foi quantificado por duas métricas complementares: o tempo total de execução do decodificador (em milissegundos) e o esforço de operações XOR realizadas entre blocos de dados.
+Computational cost was quantified through two complementary metrics: total decoder execution runtime (in milliseconds) and XOR operation counts executed across data blocks.
 
-O tempo mensurado contempla a execução completa do método de decodificação (\texttt{decoder.decodificar()}), englobando: (1) a conversão de nucleotídeos em bytes; (2) a extração da \emph{seed} ofuscada; (3) a checagem CRC-8; (4) a regeneração dos índices de vizinhança; (5) a montagem da tabela reversa de adjacências; e (6) as iterações do \emph{peeling} com propagação de XORs.
+Measured execution time covers complete execution of \texttt{decoder.decodificar()}, comprising: (1) nucleotide-to-byte conversion; (2) obfuscated seed parsing; (3) CRC-8 verification; (4) neighbor index regeneration; (5) inverted adjacency index construction; and (6) peeling iterations with XOR propagation.
 
-A Tabela~\ref{tab:custo_computacional} consolida os tempos totais de decodificação e o esforço de XORs observados na bateria de 100 repetições com $c = 0{,}1$, $\delta = 0{,}10$, overhead $\epsilon = 1{,}00$ e canal sem perdas ($p_{\text{loss}} = 0{,}0$). As médias de tempo e de operações XOR apresentadas contemplam a totalidade das 100 execuções avaliadas por configuração na versão sob commit \texttt{bb2f0ab}, independentemente do desfecho (sucesso ou falha) da decodificação. Cada operação XOR computada reporta a métrica de \emph{operações XOR de propagação do peeling}, correspondendo à contagem exata das chamadas da rotina \texttt{xor\_blocos} executadas entre blocos de $L = 4$ bytes durante a remoção de arestas de vizinhos no grafo (\texttt{outro["indices"].remove(idx\_bloco)}). Operações lógicas de checagem de integridade por CRC-8 e desfazimento de \emph{scrambling} ocorrem na validação prévia de framing e permanecem deliberadamente fora desse contador. Ressalta-se que, como as médias computam todas as execuções da bateria, um menor esforço computacional médio pode eventualmente decorrer de encerramento prematuro em instâncias não recuperadas, e não de maior eficiência intrínseca para recuperar a mesma informação. As medições temporais e de operações individuais foram persistidas no arquivo \texttt{tempos\_brutos\_decodificacao.json} no repositório do projeto, a partir do qual foram calculados a média amostral, o desvio-padrão amostral, a mediana e os valores extremos via script determinístico \texttt{salvar\_estatisticas\_custo.py}.
+Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR effort observed across 100 repetitions with $c = 0.1$, $\delta = 0.10$, overhead $\epsilon = 1.00$, and ideal channel ($p_{\text{loss}} = 0.0$). Reported runtime and XOR means include all 100 runs per configuration in the version under commit \texttt{bb2f0ab}, regardless of outcome (success or failure). Each counted XOR operation represents peeling propagation effort, corresponding to exact calls to \texttt{xor\_blocos} across $L = 4$-byte blocks during edge removal (\texttt{outro["indices"].remove(idx\_bloco)}). Logic operations for CRC-8 verification and descrambling occur during framing parsing and are excluded from this counter. Because averages include all runs, lower mean cost can occasionally reflect premature stall in unrecovered instances rather than intrinsic efficiency. Individual timing and operation records are archived in \texttt{tempos\_brutos\_decodificacao.json}, from which sample mean, sample standard deviation, median, and extreme values were computed via \texttt{salvar\_estatisticas\_custo.py}.
 
 \begin{table}[htbp]
     \centering
     \footnotesize
-    \caption{Custo computacional total do decodificador por quantidade de blocos ($c = 0{,}1$, $\delta = 0{,}10$, $\epsilon = 1{,}00$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Total decoder computational cost by block count ($c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$).}
     \label{tab:custo_computacional}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{ccccccc}
         \toprule
-        \textbf{$K$} & \textbf{Tempo Médio (ms)} & \textbf{Desvio-padrão (ms)} & \textbf{Mediana (ms)} & \textbf{Mín.--Máx. (ms)} & \textbf{XORs Médios} & \textbf{XORs/Bloco} \\
+        \textbf{$K$} & \textbf{Mean Runtime (ms)} & \textbf{Std. Dev. (ms)} & \textbf{Median (ms)} & \textbf{Min--Max (ms)} & \textbf{Mean XORs} & \textbf{XORs/Block} \\
         \midrule
-        16 & 0{,}84 & 0{,}04 & 0{,}84 & 0{,}71 -- 0{,}99 & 107{,}6 & 6{,}73 \\
-        32 & 1{,}79 & 0{,}12 & 1{,}77 & 1{,}65 -- 2{,}48 & 270{,}8 & 8{,}46 \\
-        64 & 3{,}60 & 0{,}19 & 3{,}55 & 3{,}35 -- 4{,}51 & 688{,}4 & 10{,}76 \\
+        16 & 0.84 & 0.04 & 0.84 & 0.71 -- 0.99 & 107.6 & 6.73 \\
+        32 & 1.79 & 0.12 & 1.77 & 1.65 -- 2.48 & 270.8 & 8.46 \\
+        64 & 3.60 & 0.19 & 3.55 & 3.35 -- 4.51 & 688.4 & 10.76 \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Figura~\ref{fig:custo_computacional} apresenta a evolução do tempo médio de decodificação (com barras de dispersão de $\pm 1$ desvio-padrão) e das operações XOR em função da quantidade de blocos $K$.
+Figure~\ref{fig:custo_computacional} illustrates average decoding runtime (with $\pm 1$ standard deviation error bars) and XOR operations as functions of block count $K$.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.88\textwidth]{figuras/grafico_custo_computacional.pdf}
-    \caption{Custo computacional total do decodificador em função de $K$ ($c = 0{,}1$, $\delta = 0{,}10$, $\epsilon = 1{,}00$, $p_{\text{loss}} = 0{,}0$).}
+    \caption{Total decoder computational cost as a function of $K$ ($c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$).}
     \label{fig:custo_computacional}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-A teoria de códigos LT prevê complexidade assintótica de decodificação de ordem $O(K \ln(K/\delta))$ operações de símbolos~\cite{luby2002}. Os dados empíricos observados na faixa restrita $K \le 64$ são compatíveis com essa tendência teórica, embora uma série de apenas três pontos amostrais não permita inferir conclusivamente o regime assintótico:
+LT code theory establishes asymptotic decoding complexity of order $O(K \ln(K/\delta))$ symbol operations~\cite{luby2002}. Empirical data gathered across the narrow range $K \le 64$ align with this theoretical trend, though a three-point sample does not conclusively substantiate asymptotic scaling:
 \begin{itemize}
-    \item O tempo médio total de decodificação manteve-se na escala de milissegundos (de 0{,}84~ms para $K = 16$ até 3{,}60~ms para $K = 64$), permanecendo abaixo de 5~ms nas medições realizadas sobre o ambiente experimental de ensaio (Windows~11, Python 3.12 interpretado);
-    \item O número médio de operações XOR por bloco fonte cresceu de forma moderada ($6{,}73 \to 8{,}46 \to 10{,}76$), caracterizando o esforço computacional observado com a estrutura de indexação reversa em grafo bipartido adotada;
-    \item A baixa dispersão temporal observada (desvios-padrão de 0{,}04 a 0{,}19~ms) e a proximidade entre média e mediana indicam execuções estáveis, com variações associadas ao escalonamento de processos, à carga do sistema operacional e ao comportamento interpretativo do ambiente de execução.
+    \item Mean decoding runtime remained within milliseconds (from 0.84~ms for $K = 16$ to 3.60~ms for $K = 64$), staying well below 5~ms across benchmark runs on the host system (Windows~11, interpreted Python 3.12);
+    \item Average XOR operations per source block grew moderately ($6.73 \to 8.46 \to 10.76$), characterizing computational work under the inverted bipartite graph indexing;
+    \item Low runtime dispersion (standard deviations between 0.04 and 0.19~ms) and close agreement between mean and median indicate stable executions, with variations reflecting OS thread scheduling and interpreter execution behavior.
 \end{itemize}
 
-Ressalta-se que esses resultados caracterizam pequenas instâncias de estudo ($K \le 64$), adequadas à experimentação controlada e didática. Eles não permitem inferir diretamente o desempenho assintótico para arquivos de grande escala (ampliando o produto $K \times L$ para ordens de megabytes ou gigabytes), nos quais a alocação de memória e o overhead de interpretação em Python tornam recomendável o emprego de linguagens compiladas de baixo nível (como C/C++ ou Rust) ou aceleração em hardware dedicado.
+These results characterize short study instances ($K \le 64$), tailored for controlled, pedagogical experimentation. They cannot be directly extrapolated to large-scale files (scaling $K \times L$ to megabytes or gigabytes), where memory allocation and Python interpreter overhead warrant compiled implementations in C/C++, Rust, or dedicated FPGA hardware acceleration.
 
-\section{Limitações dos Resultados}
+\section{Limitations of the Results}
 \label{sec:results_limitations}
 
-Para assegurar o rigor acadêmico deste trabalho, é essencial delimitar com precisão o escopo e as limitações dos resultados apresentados:
+To uphold academic rigor, the scope and limitations of the presented findings must be explicitly delimited:
 
 \begin{enumerate}
-    \item \textbf{Canal de transmissão simplificado}: O simulador modela o canal de armazenamento em DNA como um canal abstrato de apagamento binário sem memória (BEC), no qual os droplets chegam íntegros ou são inteiramente descartados. Na prática bioquímica, os canais de síntese, conservação química e sequenciamento de DNA sofrem também erros pontuais de substituição, inserções e deleções (indels), além de viés de cobertura não uniforme dependente do contexto da sequência~\cite{heckel2019, shomorony2022}. Dessa forma, os resultados de resiliência aqui relatados refletem o desempenho sob a hipótese de canal simplificado de apagamento puro, sem ruídos de fase ou mutações pontuais. Adicionalmente, as probabilidades de apagamento avaliadas constituem cenários controlados de simulação, não estimativas calibradas para um protocolo laboratorial particular;
+    \item \textbf{Simplified Communication Channel}: The simulator models DNA storage as an abstract memoryless Binary Erasure Channel (BEC), where droplets arrive intact or are entirely erased. In physical wet-lab practice, synthesis, storage, and sequencing suffer from substitution errors, insertions, deletions (indels), and non-uniform sequence-dependent coverage bias~\cite{heckel2019, shomorony2022}. Resilience results reported herein reflect performance under idealized packet erasures without phase noise or point mutations. Moreover, evaluated erasure probabilities represent controlled simulation scenarios rather than calibrated estimates for a specific laboratory protocol;
     
-    \item \textbf{Escala do número de blocos ($K$)}: Os ensaios experimentais concentraram-se na faixa $K \in \{16, 32, 64\}$. Essa escolha foi intencional para viabilizar a exploração exaustiva de uma matriz de 216 combinações paramétricas com 100 repetições cada (21.600 ensaios). Embora essa faixa seja representativa para entender a dinâmica de transição e o comportamento da DRS em pequenos regimes, sistemas de arquivamento real em DNA~\cite{erlich2017} operam com $K$ na ordem de dezenas ou centenas de milhares de blocos, onde os efeitos de borda da DRS são diluídos e o overhead requerido decresce para a faixa de 5\% a 10\%;
+    \item \textbf{Source Block Scale ($K$)}: Experimental batteries focused on $K \in \{16, 32, 64\}$. This choice enabled exhaustive exploration of a 216-combination factorial matrix with 100 repetitions per point (21,600 trials). While suitable for analyzing transition dynamics and RSD behavior in small regimes, real-world DNA archiving platforms~\cite{erlich2017} operate with $K$ on the order of tens or hundreds of thousands of blocks, where boundary effects diminish and required overhead drops to 5\%--10\%;
     
-    \item \textbf{Implementação em linguagem de alto nível}: O simulador foi construído em Python 3 puro com propósitos de modularidade, clareza didática, manutenibilidade e reprodutibilidade acadêmica. Consequentemente, as medições de tempo de execução refletem o overhead interpretativo da CPython, não correspondendo aos tempos que seriam obtidos por implementações compiladas em C/C++, Rust ou com aceleração em hardware dedicado (FPGA);
+    \item \textbf{High-Level Language Implementation}: The simulator was developed in pure Python 3 for modularity, didactic clarity, maintainability, and reproducibility. Consequently, runtime measurements reflect CPython interpretation overhead rather than the performance obtainable via optimized C/C++, Rust, or FPGA implementations;
     
-    \item \textbf{Restrição do espaço amostral de seeds e densidade líquida}: A utilização de um cabeçalho de seed de 16 bits limita a capacidade de endereçamento a $2^{16} = 65.536$ valores de \emph{seed} possíveis. Sob o filtro de screening biológico, com taxa de rejeição de aproximadamente $40{,}2\%$, o universo útil esperado de oligonucleotídeos é de cerca de 39.000 sequências. Além disso, a estrutura de framing adotada no protótipo (2 bytes de seed, $L=4$ bytes de payload e 1 byte de CRC-8, totalizando 7 bytes ou 28 nucleotídeos) confere uma densidade de carga útil de $\approx 1{,}14$ bits por nucleotídeo ($32\text{ bits} / 28\text{ nt}$) por fita transmitida, antes de computar a redundância do código LT ($1+\epsilon$), os descartes no screening e primers de amplificação, ilustrando o peso relativo do cabeçalho em oligonucleotídeos curtos;
+    \item \textbf{Seed Search Space and Net Storage Density}: A 16-bit seed header limits addressing capacity to $2^{16} = 65,536$ unique seed values. Under biological screening (rejecting $\approx 40.2\%$ of candidates), the usable oligonucleotide universe is approximately 39,000 sequences. Furthermore, the prototype's framing structure (2 bytes seed, $L=4$ bytes payload, 1 byte CRC-8, totaling 7 bytes or 28 nucleotides) yields a payload density of $\approx 1.14$ bits per nucleotide ($32\text{ bits} / 28\text{ nt}$) per transmitted strand prior to accounting for LT redundancy ($1+\epsilon$), screening rejections, or PCR primers, illustrating the relative weight of headers in short oligonucleotides;
     
-    \item \textbf{Portabilidade estocástica entre interpretadores}: A dependência do módulo padrão \texttt{random} do Python assegura reprodutibilidade estrita quando fixada a versão do interpretador (Python~3.12). Entretanto, a especificação do CPython garante compatibilidade de longo prazo apenas para o sorteio de ponto flutuante \texttt{random()}, podendo ocorrer sutis alterações algorítmicas em métodos de amostragem entre versões do interpretador. Para preservação digital em escala de décadas ou migração para FPGA, recomenda-se a substituição por um PRNG formalmente especificado e independente do interpretador (como LFSR aritmético ou geradores da família PCG/xoshiro);
+    \item \textbf{Stochastic Portability across Runtimes}: Reliance on Python's standard \texttt{random} module ensures strict reproducibility when runtime version is held fixed (Python~3.12). However, CPython specifications guarantee long-term repeatability only for the core floating-point generator \texttt{random()}, while sampling routines may undergo subtle implementation refinements across minor versions. For decadal digital preservation or FPGA migration, an autonomous PRNG specification (such as an arithmetic LFSR or PCG/xoshiro generator) is recommended;
     
-    \item \textbf{Avaliação do pipeline com screening}: O módulo de screening físico-químico manteve-se ativo uniformemente em todas as configurações da grade fatorial principal, refletindo a exigência de viabilidade de síntese. O estudo avaliou o pipeline filtrado e caracterizou a distribuição dos candidatos aceitos no ensaio dedicado, não isolando a diferença causal direta de desempenho entre uma transmissão com screening e uma hipotética transmissão sem screening.
+    \item \textbf{Evaluation of Screened Pipeline}: The biological screening module remained uniformly active across all configurations in the main factorial grid, reflecting physical synthesis constraints. The study evaluated the screened pipeline and characterized accepted candidate distributions in a dedicated trial, without isolating the direct causal performance delta between transmission with screening versus an unconstrained transmission without screening.
 \end{enumerate}

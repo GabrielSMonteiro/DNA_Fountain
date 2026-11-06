@@ -2,13 +2,13 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-# Configuração da figura (12.5 x 8.5 polegadas, 300 DPI) para máxima nitidez e legibilidade
+# Figure configuration (12.5 x 8.5 inches, 300 DPI) for clarity and readability
 fig, ax = plt.subplots(figsize=(12.5, 8.5), dpi=300)
 ax.set_xlim(0, 100)
 ax.set_ylim(0, 100)
 ax.axis('off')
 
-# Cores profissionais de alto contraste e harmonia visual
+# Professional colors
 colors = {
     'bg_prep': '#F0F9FF', 'border_prep': '#0284C7', 'title_prep': '#0369A1',
     'bg_drs':  '#F0FDF4', 'border_drs':  '#16A34A', 'title_drs':  '#15803D',
@@ -21,7 +21,6 @@ colors = {
 }
 
 def draw_box(ax, x, y, w, h, title, subtitle, items, bg_col, border_col, title_col):
-    # Retângulo principal com cantos arredondados
     rect = patches.FancyBboxPatch(
         (x, y), w, h,
         boxstyle="round,pad=0.0,rounding_size=1.5",
@@ -29,7 +28,6 @@ def draw_box(ax, x, y, w, h, title, subtitle, items, bg_col, border_col, title_c
     )
     ax.add_patch(rect)
     
-    # Barra de cabeçalho destacada
     header_h = 3.7
     header_rect = patches.FancyBboxPatch(
         (x + 0.12, y + h - header_h - 0.12), w - 0.24, header_h,
@@ -38,18 +36,14 @@ def draw_box(ax, x, y, w, h, title, subtitle, items, bg_col, border_col, title_c
     )
     ax.add_patch(header_rect)
     
-    # Título do Componente
     ax.text(x + w / 2, y + h - 2.0, title,
             ha='center', va='center', fontsize=8.8, fontweight='bold', color=title_col, zorder=4)
     
-    # Nome do módulo / subtítulo
     ax.text(x + w / 2, y + h - 4.7, subtitle,
             ha='center', va='center', fontsize=7.2, fontstyle='italic', color='#64748B', zorder=4)
     
-    # Linha divisória sutil
     ax.plot([x + 1.2, x + w - 1.2], [y + h - 5.8, y + h - 5.8], color=border_col, alpha=0.22, lw=0.7, zorder=3)
     
-    # Lista de tópicos (bullets) com entrelinha regular e margens amplas
     n_items = len(items)
     avail_h = h - 7.0
     line_h = avail_h / max(n_items, 1)
@@ -82,148 +76,124 @@ def draw_arrow(ax, x1, y1, x2, y2, label='', label_pos=(0.5, 0.5), color=colors[
             zorder=6
         )
 
-# Título Geral do Diagrama
-ax.text(50, 97.5, 'Arquitetura Modular e Fluxo de Execução do Simulador DNA Fountain',
+# Main Title
+ax.text(50, 97.5, 'Modular Architecture and Execution Flow of the DNA Fountain Simulator',
         ha='center', va='center', fontsize=12.0, fontweight='bold', color='#0F172A')
 
-# ==============================================================================
-# DIMENSÕES: GRID COM GAPS AMPLOS (X_GAP = 13 UNIDADES, Y_GAP = 12 UNIDADES)
-# Coluna 1: x = 2 a 25  (w=23) | Gap: 25 a 38 (13u)
-# Coluna 2: x = 38 a 63 (w=25) | Gap: 63 a 76 (13u)
-# Coluna 3: x = 76 a 98 (w=22)
-# ==============================================================================
-
-# 1. Pré-Processamento (Coluna 1, Linha Superior)
+# 1. Preprocessing (Col 1, Top)
 draw_box(
     ax, x=2, y=71, w=23, h=22,
-    title='1. Pré-Processamento', subtitle='preprocessing.py',
+    title='1. Preprocessing', subtitle='preprocessing.py',
     items=[
-        '• Carga digital (UTF-8/bytes)',
-        '• Segmentação em K blocos',
-        '• Tamanho fixo de L bytes',
-        '• Zero-padding no bloco final',
-        '• Guarda do comprimento original'
+        '• Digital payload (UTF-8/bytes)',
+        '• Segmentation into K blocks',
+        '• Fixed length of L bytes',
+        '• Zero-padding on final block',
+        '• Store original length metadata'
     ],
     bg_col=colors['bg_prep'], border_col=colors['border_prep'], title_col=colors['title_prep']
 )
 
-# 2. DRS e Amostragem (Coluna 1, Linha Média)
+# 2. RSD & Sampling (Col 1, Middle)
 draw_box(
     ax, x=2, y=37, w=23, h=22,
-    title='2. DRS & Amostragem', subtitle='soliton.py & config.py',
+    title='2. RSD & Sampling', subtitle='soliton.py & config.py',
     items=[
-        '• Parâmetros de sintonia: c e δ',
-        '• Distribuições: ρ(d) e τ(d)',
-        '• Normalização μ(d) e CDF',
-        '• Salvaguardas: m < 1 e R < δ',
-        '• Seed PRNG isolada (16 bits)',
-        '• Sorteio determinístico de d'
+        '• Tuning parameters: c and δ',
+        '• Distributions: ρ(d) and τ(d)',
+        '• Normalization μ(d) and CDF',
+        '• Safeguards: m < 1 and R < δ',
+        '• Isolated PRNG seed (16 bits)',
+        '• Deterministic sampling of d'
     ],
     bg_col=colors['bg_drs'], border_col=colors['border_drs'], title_col=colors['title_drs']
 )
 
-# 3. Codificação LT e Framing (Coluna 2, Linha Superior)
+# 3. LT Encoding & Framing (Col 2, Top)
 draw_box(
     ax, x=38, y=71, w=25, h=22,
-    title='3. Codificação LT & Framing', subtitle='lt_codec.py & utils.py',
+    title='3. LT Encoding & Framing', subtitle='lt_codec.py & utils.py',
     items=[
-        '• Combinação linear XOR: ⨁ b_i',
-        '• Scrambling aditivo da carga',
-        '• Máscara XOR na seed (0x1B1B)',
-        '• Checksum CRC-8 (polinômio 0x07)',
+        '• Linear XOR combination: ⨁ b_i',
+        '• Additive payload scrambling',
+        '• Seed XOR mask (0x1B1B)',
+        '• CRC-8 checksum (0x07 poly)',
         '• Framing: [Seed|Payload|CRC]'
     ],
     bg_col=colors['bg_enc'], border_col=colors['border_enc'], title_col=colors['title_enc']
 )
 
-# 4. Screening Biológico e DNA (Coluna 3, Linha Superior)
+# 4. Biological Screening & DNA (Col 3, Top)
 draw_box(
     ax, x=76, y=71, w=22, h=22,
     title='4. Screening & DNA', subtitle='screening.py & dna_conversion.py',
     items=[
-        '• Mapeamento 2 bits/nt (A,C,G,T)',
-        '• Janela GC: 40% ≤ GC ≤ 60%',
-        '• Limite homopolímeros: ≤ 3 nt',
-        '• Rejeição prévia de inválidos',
-        '• Reposição: avanço de seed'
+        '• 2 bits/nt mapping (A,C,G,T)',
+        '• GC window: 40% ≤ GC ≤ 60%',
+        '• Homopolymer limit: ≤ 3 nt',
+        '• Pre-synthesis rejection',
+        '• Replacement: seed increment'
     ],
     bg_col=colors['bg_scr'], border_col=colors['border_scr'], title_col=colors['title_scr']
 )
 
-# 5. Canal de Apagamento (Coluna 3, Linha Média)
+# 5. Erasure Channel (Col 3, Middle)
 draw_box(
     ax, x=76, y=37, w=22, h=22,
-    title='5. Canal de Apagamento (BEC)', subtitle='channel.py',
+    title='5. Packet Erasure Channel (BEC)', subtitle='channel.py',
     items=[
-        '• Abstração BEC por pacote',
-        '• Descarte Bernoulli i.i.d. (p_loss)',
-        '• PRNG dedicado (independente)',
+        '• Packet BEC abstraction',
+        '• Bernoulli i.i.d. loss (p_loss)',
+        '• Dedicated independent PRNG',
         '• N_rx ~ Binomial(N_tx, 1 - p_loss)',
-        '• Sobreviventes chegam íntegros'
+        '• Surviving oligos arrive intact'
     ],
     bg_col=colors['bg_chan'], border_col=colors['border_chan'], title_col=colors['title_chan']
 )
 
-# 6. Peeling Decoder (Coluna 3, Linha Inferior)
+# 6. Peeling Decoder (Col 3, Bottom)
 draw_box(
     ax, x=76, y=3, w=22, h=22,
     title='6. Peeling Decoder', subtitle='lt_codec.py',
     items=[
-        '• DNA → bytes e checagem CRC-8',
-        '• Extração de seed e vizinhos',
-        '• Inversão do scrambling',
-        '• Fila operacional FIFO (deque)',
-        '• Propagação XOR iterativa',
-        '• Monitoramento (Q_max, Q_min)'
+        '• DNA → bytes and CRC-8 check',
+        '• Extract seed and neighbors',
+        '• Self-inversion descrambling',
+        '• FIFO operational queue (deque)',
+        '• Iterative XOR propagation',
+        '• Monitoring (Q_max, Q_min)'
     ],
     bg_col=colors['bg_dec'], border_col=colors['border_dec'], title_col=colors['title_dec']
 )
 
-# 7. Reconstrução, Instrumentação & Métricas (Base Esquerda e Central)
+# 7. Reconstruction & Metrics (Bottom Left & Center)
 draw_box(
     ax, x=2, y=3, w=60, h=22,
-    title='7. Reconstrução, Instrumentação Experimental & Reprodutibilidade',
+    title='7. Reconstruction, Experimental Instrumentation & Reproducibility',
     subtitle='preprocessing.py, experiments.py & run_experiments.py',
     items=[
-        '• Reversão do preenchimento e truncamento exato para o comprimento original',
-        '• Confronto estrito byte a byte contra os blocos fonte originais (taxa de sucesso)',
-        '• Coleta de métricas: taxa de sucesso, pico da fila (Q_max), tempo total e XORs de propagação',
-        '• Grade fatorial: 216 combinações (K, c, δ, ε, p_loss) × 100 repetições (21.600 ensaios)',
-        '• Exportação estruturada em matrizes agregadas (CSV) e registros de auditoria (JSON)'
+        '• Padding reversal and exact truncation to original file length',
+        '• Strict byte-by-byte comparison against source blocks (success rate)',
+        '• Metrics logging: success rate, queue peak (Q_max), runtime, XORs',
+        '• Factorial grid: 216 combinations (K, c, δ, ε, p_loss) × 100 runs (21,600 trials)',
+        '• Structured export in aggregated matrices (CSV) and audit logs (JSON)'
     ],
     bg_col=colors['bg_rec'], border_col=colors['border_rec'], title_col=colors['title_rec']
 )
 
-# ==============================================================================
-# SETAS COM ROTULAGEM EM DUAS LINHAS (PERFEITAMENTE CONTIDAS NOS GAPS LIVRES)
-# ==============================================================================
-
-# Seta 1 -> 3: Blocos fonte K (Gap 25 a 38 = 13u)
-draw_arrow(ax, 25, 82.0, 38, 82.0, label='K Blocos\nFonte')
-
-# Seta 2 -> 3: Grau d e vizinhança (Diagonal no espaço aberto)
-draw_arrow(ax, 25, 48.0, 38, 73.0, label='Grau d e\nVizinhos', label_pos=(0.48, 0.48))
-
-# Seta 3 -> 4 (Ida superior, y=84): Candidato gerado enviado ao screening (Gap 63 a 76 = 13u)
-draw_arrow(ax, 63, 84.0, 76, 84.0, label='Candidato\n(L + 3)')
-
-# Seta 4 -> 3 (Retorno inferior, y=74): Feedback de rejeição com incremento de seed (Gap 63 a 76 = 13u)
+# Arrows
+draw_arrow(ax, 25, 82.0, 38, 82.0, label='K Source\nBlocks')
+draw_arrow(ax, 25, 48.0, 38, 73.0, label='Degree d and\nNeighbors', label_pos=(0.48, 0.48))
+draw_arrow(ax, 63, 84.0, 76, 84.0, label='Candidate\n(L + 3)')
 draw_arrow(
     ax, 76, 75.0, 63, 75.0,
-    label='Rejeição\n(seed++)',
+    label='Rejection\n(seed++)',
     color=colors['arrow_rej'], style='->', lw=1.5, ls='--'
 )
+draw_arrow(ax, 87, 71.0, 87, 59.0, label='$N_{\\text{tx}}$ Approved\nOligos')
+draw_arrow(ax, 87, 37.0, 87, 25.0, label='$N_{\\text{rx}}$ Intact\nOligos')
+draw_arrow(ax, 76, 14.0, 62, 14.0, label='Recovered\nBlocks')
 
-# Seta 4 -> 5: Oligos aprovados enviados ao canal (Gap vertical de 12u: 71 a 59)
-draw_arrow(ax, 87, 71.0, 87, 59.0, label='$N_{\\text{tx}}$ Oligos\nAprovados')
-
-# Seta 5 -> 6: Oligos que chegam íntegros ao decodificador (Gap vertical de 12u: 37 a 25)
-draw_arrow(ax, 87, 37.0, 87, 25.0, label='$N_{\\text{rx}}$ Oligos\nÍntegros')
-
-# Seta 6 -> 7: Blocos reconstruídos enviados à validação (Gap horizontal de 14u: 76 a 62)
-draw_arrow(ax, 76, 14.0, 62, 14.0, label='Blocos\nRecuperados')
-
-# Salva nos formatos vetorial (PDF) e rasterizado (PNG)
 output_dir = os.path.join('Relatório', 'figuras')
 os.makedirs(output_dir, exist_ok=True)
 pdf_path = os.path.join(output_dir, 'diagrama_arquitetura.pdf')
@@ -232,4 +202,4 @@ png_path = os.path.join(output_dir, 'diagrama_arquitetura.png')
 plt.savefig(pdf_path, bbox_inches='tight')
 plt.savefig(png_path, bbox_inches='tight', dpi=300)
 plt.close()
-print(f"Diagrama gerado com sucesso em {pdf_path} e {png_path}")
+print(f"Diagram successfully generated in English at {pdf_path} and {png_path}")

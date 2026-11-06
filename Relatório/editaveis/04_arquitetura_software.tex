@@ -1,383 +1,383 @@
 % !TEX root = ../main.tex
-\chapter{Arquitetura e Engenharia de Software}
+\chapter{Software Architecture and Engineering}
 \label{chap:software_architecture}
 
-Este capítulo detalha a contribuição central de Engenharia de Software deste trabalho: o projeto, a arquitetura e a implementação do simulador modular do pipeline DNA Fountain. São formalizados os requisitos funcionais e não-funcionais do sistema, as decisões arquiteturais que motivaram a transição de scripts procedurais para uma estrutura orientada a objetos, a organização dos módulos do pacote \texttt{dna\_fountain}, os modelos de dados que representam as entidades do pipeline, o fluxo completo de execução em dez etapas, as decisões de implementação coerentes com o código desenvolvido e, por fim, a suíte de testes e validação interna que assegura a corretude do simulador.
+This chapter details the central Software Engineering contribution of this work: the design, architecture, and implementation of the modular DNA Fountain pipeline simulator. It formalizes functional and non-functional requirements, the architectural decisions motivating the transition from procedural scripts to an object-oriented structure, the modular organization of the \texttt{dna\_fountain} package, data models representing pipeline entities, the complete ten-stage execution flow, implementation decisions aligned with the codebase, and the test suite ensuring internal correctness.
 
-\section{Requisitos do Sistema}
+\section{System Requirements}
 \label{sec:system_requirements}
 
-Para orientar o desenvolvimento do simulador e assegurar o cumprimento dos objetivos formulados no Capítulo~\ref{chap:introduction}, os requisitos do sistema foram divididos em requisitos funcionais (RF) e requisitos não-funcionais (RNF).
+To guide simulator development and ensure fulfillment of the objectives established in Chapter~\ref{chap:introduction}, system requirements were categorized into functional requirements (FR) and non-functional requirements (NFR).
 
-\subsection{Requisitos Funcionais}
+\subsection{Functional Requirements}
 
-Os requisitos funcionais definem as operações que o simulador deve executar ao longo do pipeline:
+The functional requirements define the operational capabilities that the simulator must execute throughout the pipeline:
 
 \begin{itemize}
-    \item \textbf{RF01 --- Segmentação de Arquivos}: O sistema deve receber uma mensagem (texto ou binário) e particioná-la em $K$ blocos de tamanho fixo $L$ bytes, aplicando \emph{zero-padding} com bytes nulos (\texttt{0x00}) no último bloco caso o comprimento não seja múltiplo exato de $L$.
+    \item \textbf{FR01 --- File Segmentation}: The system must ingest an input message (text or binary) and partition it into $K$ source blocks of fixed length $L$ bytes, applying deterministic zero-padding with null bytes (\texttt{0x00}) to the final block if the total message length is not an exact multiple of $L$.
 
-    \item \textbf{RF02 --- Cálculo e Amostragem da Distribuição Robusta de Soliton}: O sistema deve calcular os parâmetros $R$ e $m = \lfloor K/R \rfloor$, construir as funções $\rho(d)$ e $\tau(d)$, normalizar a distribuição $\mu(d)$ e permitir a amostragem determinística do grau $d$ e dos índices dos blocos fonte a partir de uma \emph{seed} inteira.
+    \item \textbf{FR02 --- Robust Soliton Distribution Calculation and Sampling}: The system must compute parameters $R$ and $m = \lfloor K/R \rfloor$, construct distributions $\rho(d)$ and $\tau(d)$, normalize $\mu(d)$, and enable deterministic sampling of degree $d$ and source block indices from an integer seed.
 
-    \item \textbf{RF03 --- Geração de Droplets Determinísticos via Seed}: Para cada droplet, o codificador deve utilizar a \emph{seed} como entrada de um PRNG para obter o grau e os índices, combinar os blocos selecionados por XOR, aplicar opcionalmente \emph{scrambling} pseudoaleatório e compor o cabeçalho contendo a \emph{seed} ofuscada por máscara XOR.
+    \item \textbf{FR03 --- Deterministic Droplet Synthesis via Seed}: For each droplet, the encoder must use an integer seed as PRNG input to derive degree and neighbor indices, combine selected blocks via XOR, optionally apply additive pseudo-random scrambling, and compose a header containing the XOR-masked seed.
 
-    \item \textbf{RF04 --- Conversão Biunívoca Bytes para DNA}: O sistema deve converter a cadeia binária (cabeçalho + payload + CRC) em uma sequência de nucleotídeos sobre o alfabeto $\{A, C, G, T\}$ à taxa de 2 bits por base, e realizar a operação inversa durante a decodificação.
+    \item \textbf{FR04 --- Bijective Byte-to-DNA Conversion}: The system must map the binary payload (header + payload + CRC) into a nucleotide sequence over $\{A, C, G, T\}$ at a gross rate of 2 bits per base, and execute the inverse operation during decoding.
 
-    \item \textbf{RF05 --- Screening Biológico}: O simulador deve verificar cada sequência de DNA gerada quanto ao conteúdo GC ($gc_{\min} \leq \text{GC} \leq gc_{\max}$) e ao comprimento máximo de homopolímeros ($\leq H_{\max}$). Sequências que violem as restrições devem ser descartadas e um novo droplet deve ser gerado com a próxima \emph{seed}.
+    \item \textbf{FR05 --- Biological Screening}: The simulator must evaluate every generated DNA sequence against GC content bounds ($gc_{\min} \le \text{GC} \le gc_{\max}$) and homopolymer run length limits ($\le H_{\max}$). Candidate sequences violating these rules must be rejected, and a new droplet must be drawn using the next sequential seed.
 
-    \item \textbf{RF06 --- Simulação de Canal com Perda Estocástica}: O software deve submeter os oligonucleotídeos validados a um canal de apagamento i.i.d., descartando pacotes com probabilidade configurável $p_{\text{loss}}$.
+    \item \textbf{FR06 --- Stochastic Erasure Channel Simulation}: The software must subject screened oligonucleotides to an i.i.d. packet erasure channel, discarding packets with configurable loss probability $p_{\text{loss}}$.
 
-    \item \textbf{RF07 --- Decodificação por Peeling Iterativo}: O decodificador deve extrair a \emph{seed} do cabeçalho de cada oligonucleotídeo recebido, regenerar os índices dos blocos associados, construir o índice reverso e executar o \emph{peeling decoder}, registrando a evolução do \emph{ripple}, o total de operações XOR e a integridade da mensagem reconstruída.
+    \item \textbf{FR07 --- Iterative Peeling Decoding}: The decoder must extract seeds from received oligonucleotide headers, regenerate neighbor indices, build an inverted adjacency index, and execute the peeling decoder while logging ripple trajectory, XOR operations count, and reconstructed data integrity.
 
-    \item \textbf{RF08 --- Coleta de Métricas Estatísticas}: O sistema deve coletar e exportar métricas de taxa de sucesso, overhead efetivo, taxa de rejeição no screening, operações XOR, dinâmica do ripple, blocos recuperados e tempo de processamento, consolidando os dados em arquivos CSV para análise posterior.
+    \item \textbf{FR08 --- Statistical Metric Logging}: The system must collect and export metrics covering decoding success rate, effective overhead, screening rejection rate, XOR operations count, ripple queue dynamics, recovered block count, and runtime, consolidating results into CSV format for analysis.
 \end{itemize}
 
-A Tabela~\ref{tab:requisitos_funcionais} sintetiza os requisitos funcionais e suas respectivas descrições.
+Table~\ref{tab:requisitos_funcionais} summarizes the functional requirements and their descriptions.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Requisitos Funcionais do Simulador DNA Fountain.}
+    \caption{Functional Requirements of the DNA Fountain Simulator.}
     \label{tab:requisitos_funcionais}
     \begin{tabular}{cp{11cm}}
         \toprule
-        \textbf{ID} & \textbf{Descrição} \\
+        \textbf{ID} & \textbf{Description} \\
         \midrule
-        RF01 & Segmentar arquivos em $K$ blocos de $L$ bytes com \emph{zero-padding}. \\
-        RF02 & Calcular e amostrar a distribuição robusta de soliton. \\
-        RF03 & Sintetizar droplets determinísticos via \emph{seed} e XOR. \\
-        RF04 & Converter bytes em sequências de DNA (2 bits/base). \\
-        RF05 & Aplicar screening biológico (GC e homopolímero). \\
-        RF06 & Simular canal de apagamento com perda estocástica. \\
-        RF07 & Executar decodificação por \emph{peeling} iterativo. \\
-        RF08 & Coletar métricas estatísticas e exportar em CSV. \\
+        FR01 & Segment files into $K$ source blocks of $L$ bytes with zero-padding. \\
+        FR02 & Compute and sample the Robust Soliton Distribution. \\
+        FR03 & Synthesize deterministic droplets via seed and XOR combination. \\
+        FR04 & Convert bytes to DNA sequences (2 bits/base) and vice versa. \\
+        FR05 & Apply biological screening filters (GC content and homopolymers). \\
+        FR06 & Simulate stochastic packet erasure channel. \\
+        FR07 & Execute iterative peeling decoding. \\
+        FR08 & Collect statistical metrics and export to structured CSV files. \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-A Tabela~\ref{tab:rastreabilidade_requisitos} estabelece a matriz de rastreabilidade de engenharia de software, mapeando formalmente cada requisito funcional aos respectivos componentes de implementação e aos testes automatizados desenvolvidos.
+Table~\ref{tab:rastreabilidade_requisitos} establishes the Software Engineering traceability matrix, mapping each functional requirement to its implementation components and automated verification tests.
 
 \begin{table}[htbp]
     \centering
     \footnotesize
-    \caption{Matriz de rastreabilidade dos requisitos funcionais do simulador.}
+    \caption{Traceability matrix of the simulator's functional requirements.}
     \label{tab:rastreabilidade_requisitos}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{cllp{6.8cm}}
         \toprule
-        \textbf{ID} & \textbf{Módulo de Software} & \textbf{Entidade / Método Central} & \textbf{Procedimento de Validação / Teste} \\
+        \textbf{ID} & \textbf{Software Module} & \textbf{Core Entity / Method} & \textbf{Validation Procedure / Test Case} \\
         \midrule
-        RF01 & \texttt{preprocessing.py} & \texttt{MessageProcessor.segmentar()} & \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} \\
-        RF02 & \texttt{soliton.py} & \texttt{RobustSoliton.sortear\_grau...()} & \texttt{test\_amostragem\_}\allowbreak\texttt{deterministica\_seed} \\
-        RF03 & \texttt{lt\_codec.py} & \texttt{DNAFountainEncoder.codificar()} & \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} \\
-        RF04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna...()} & \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} \\
-        RF05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc\_limits}, \texttt{homopolimeros} \\
-        RF06 & \texttt{channel.py} & \texttt{ErasureChannel.transmitir()} & \texttt{test\_canal\_apagamento\_extremos} \\
-        RF07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & Casos canônicos e \texttt{test\_peeling\_canal\_ideal} \\
-        RF08 & \texttt{experiments.py} & \texttt{experimento()} / exportação CSV & \texttt{test\_exportacao\_metricas\_csv} \\
+        FR01 & \texttt{preprocessing.py} & \texttt{MessageProcessor.segmentar()} & \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} \\
+        FR02 & \texttt{soliton.py} & \texttt{RobustSoliton.sortear\_grau...()} & \texttt{test\_amostragem\_}\allowbreak\texttt{deterministica\_seed} \\
+        FR03 & \texttt{lt\_codec.py} & \texttt{DNAFountainEncoder.codificar()} & \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} \\
+        FR04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna...()} & \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} \\
+        FR05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc\_limits}, \texttt{homopolimeros} \\
+        FR06 & \texttt{channel.py} & \texttt{ErasureChannel.transmitir()} & \texttt{test\_canal\_apagamento\_extremos} \\
+        FR07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & Canonical cases and \texttt{test\_peeling\_canal\_ideal} \\
+        FR08 & \texttt{experiments.py} & \texttt{experimento()} / CSV export & \texttt{test\_exportacao\_metricas\_csv} \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-\subsection{Requisitos Não-Funcionais}
+\subsection{Non-Functional Requirements}
 
-Os requisitos não-funcionais estabelecem as restrições de qualidade e arquitetura do simulador:
+The non-functional requirements define software quality and architectural constraints:
 
 \begin{itemize}
-    \item \textbf{RNF01 --- Modularidade}: Cada fase do pipeline deve residir em módulos independentes com baixo acoplamento e alta coesão, permitindo a substituição ou extensão de componentes isolados (como o canal ou o algoritmo de decodificação).
+    \item \textbf{NFR01 --- Modularity}: Each pipeline phase must reside in decoupled modules exhibiting high cohesion and low coupling, enabling straightforward substitution or extension of individual components (such as alternative channels or decoders).
 
-    \item \textbf{RNF02 --- Reprodutibilidade Rigorosa}: Todo comportamento estocástico (sorteio de graus, amostragem de índices, perdas do canal) deve ser governado por geradores pseudoaleatórios parametrizados por \emph{seeds} inteiras, garantindo que qualquer experimento possa ser reproduzido com resultados idênticos.
+    \item \textbf{NFR02 --- Strict Reproducibility}: All stochastic behavior (degree sampling, neighbor selection, channel erasures) must be governed by pseudorandom number generators seeded by explicit integer values, guaranteeing exact repeatability across runs.
 
-    \item \textbf{RNF03 --- Extensibilidade}: Todos os hiperparâmetros do pipeline devem ser centralizados em uma estrutura unificada e tipada, facilitando a adição de novos canais ou distribuições sem modificar o núcleo do sistema.
+    \item \textbf{NFR03 --- Extensibility}: All system hyperparameters must be unified within a typed configuration structure, simplifying parameter variation without modifying core logic.
 
-    \item \textbf{RNF04 --- Desempenho Computacional}: A decodificação deve utilizar busca indexada de custo esperado $O(1)$ na tabela reversa de adjacências baseada em dicionário (\emph{hash table}), evitando varreduras lineares redundantes, enquanto o custo de propagação por XOR permanece proporcional ao número de arestas incidentes afetadas.
+    \item \textbf{NFR04 --- Computational Performance}: Peeling decoding must employ hash-table inverted indexing with $O(1)$ expected lookup per neighbor lookup, eliminating redundant linear scans, while XOR propagation scales with incident graph edges.
 
-    \item \textbf{RNF05 --- Legibilidade de Código}: O código-fonte deve seguir as convenções do PEP~8, utilizar \emph{type hints} para tipagem estática opcional e incluir documentação contextual, atendendo ao propósito didático do trabalho.
+    \item \textbf{NFR05 --- Code Readability}: Source code must adhere to PEP~8 guidelines, utilize static type hints, and include comprehensive docstrings, fulfilling the educational objective of the project.
 
-    \item \textbf{RNF06 --- Testabilidade Unitária}: Cada módulo deve ser testável de forma isolada, com testes unitários determinísticos que verifiquem a corretude das operações fundamentais (conversão bytes/DNA, amostragem da distribuição, screening, decodificação).
+    \item \textbf{NFR06 --- Unit Testability}: Each module must be independently testable via deterministic unit tests verifying foundational primitives (conversions, sampling, screening, and decoding).
 \end{itemize}
 
-\section{Decisões Arquiteturais}
+\section{Architectural Decisions}
 \label{sec:architectural_decisions}
 
-O desenvolvimento do simulador priorizou modularidade, didática e independência de ecossistema. Enquanto códigos de pesquisa originais voltados à validação laboratorial (como o repositório de \citeonline{erlich2017}) empregam extensões em Cython e rotinas especializadas para suportar arquivos de megabytes, o foco deste projeto é fornecer uma arquitetura orientada a objetos em Python contemporâneo puro, estruturada sob duas diretrizes principais:
+Simulator development prioritized modularity, pedagogy, and platform independence. Whereas research codebases designed for high-throughput wet-lab experiments (such as the repository by \citeonline{erlich2017}) utilize Cython extensions and specialized C routines to handle multi-megabyte archives, this project provides a clean object-oriented architecture in pure Python 3, guided by two primary design principles:
 
 \begin{enumerate}
-    \item \textbf{Isolamento de Responsabilidades}: Cada fase lógica do pipeline foi encapsulada em uma classe ou módulo independente, com interfaces bem definidas. O codificador (\texttt{DNAFountainEncoder}) desconhece o algoritmo de reconstrução do decodificador (\texttt{DNAFountainDecoder}), e o canal (\texttt{ErasureChannel}) opera de forma autocontida, sem acesso a metadados internos dos droplets.
+    \item \textbf{Separation of Concerns}: Each logical phase of the pipeline is encapsulated within an independent class or module with clear interfaces. The encoder (\texttt{DNAFountainEncoder}) has no knowledge of the decoder's reconstruction algorithm (\texttt{DNAFountainDecoder}), and the channel (\texttt{ErasureChannel}) operates self-contained without accessing droplet metadata.
 
-    \item \textbf{Encapsulamento de Parâmetros}: Todos os hiperparâmetros do sistema foram centralizados na classe \texttt{DNAFountainConfig}, implementada como \texttt{@dataclass}. Essa decisão elimina valores literais dispersos no código (\emph{magic numbers}) e permite que diferentes configurações experimentais sejam instanciadas sem modificar o código-fonte.
+    \item \textbf{Parameter Encapsulation}: All system hyperparameters are centralized within the \texttt{DNAFountainConfig} class, implemented as a \texttt{@dataclass}. This eliminates magic numbers and allows arbitrary experimental scenarios to be instantiated cleanly.
 \end{enumerate}
 
-\section{Organização Modular}
+\section{Modular Organization}
 \label{sec:modular_organization}
 
-Em consonância com as orientações de documentação acadêmica em Engenharia de Software e a fim de preservar o foco desta monografia nas decisões conceituais, diagramas de arquitetura e modelos analíticos, o código-fonte integral da aplicação não é transcrito neste documento, estando publicamente acessível e versionado no repositório do projeto no GitHub: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+In line with Software Engineering academic documentation guidelines and to maintain focus on architectural concepts and analytical models, the complete source code is not printed verbatim in this document, but is publicly available in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
 
-O código-fonte do simulador foi organizado no pacote Python \texttt{dna\_fountain}, estruturado nos seguintes módulos:
+The simulator source code is structured within the \texttt{dna\_fountain} Python package, organized as follows:
 
 \begin{itemize}
-    \item \textbf{\texttt{config.py}}: Centraliza os hiperparâmetros globais na classe \texttt{DNAFountainConfig}, incluindo tamanho de bloco ($L$), parâmetros da DRS ($c$, $\delta$), total de droplets ($N$), restrições de GC e homopolímeros, perda e sementes.
+    \item \textbf{\texttt{config.py}}: Centralizes global hyperparameters within \texttt{DNAFountainConfig}, including block size ($L$), RSD parameters ($c$, $\delta$), droplet count ($N$), GC/homopolymer thresholds, channel erasure rate, and seeds.
 
-    \item \textbf{\texttt{preprocessing.py}}: Implementa a classe \texttt{MessageProcessor}, responsável pela conversão da mensagem em bytes, segmentação em blocos de tamanho $L$ com aplicação de \emph{zero-padding} determinístico e reconstrução com truncamento exato ao tamanho original.
+    \item \textbf{\texttt{preprocessing.py}}: Implements \texttt{MessageProcessor}, responsible for byte conversion, fixed-size segmentation of length $L$ with zero-padding, and reconstruction with exact length truncation.
 
-    \item \textbf{\texttt{soliton.py}}: Implementa a classe \texttt{RobustSoliton}, responsável pelo cálculo das funções $\rho(d)$, $\tau(d)$ e $\mu(d)$, pela construção da CDF e pela amostragem determinística do grau e dos índices a partir de uma \emph{seed} inteira via \texttt{sortear\_grau\_e\_indices(seed)}.
+    \item \textbf{\texttt{soliton.py}}: Implements \texttt{RobustSoliton}, computing distributions $\rho(d)$, $\tau(d)$, and $\mu(d)$, building the CDF, and executing deterministic sampling via \texttt{sortear\_grau\_e\_indices(seed)}.
 
-    \item \textbf{\texttt{lt\_codec.py}}: Contém duas classes centrais:
+    \item \textbf{\texttt{lt\_codec.py}}: Contains two core classes:
     \begin{itemize}
-        \item \texttt{DNAFountain}\allowbreak\texttt{Encoder}: Coordena o pré-processamento via \texttt{MessageProcessor}, sintetiza droplets por combinação XOR, compõe o cabeçalho com a \emph{seed} ofuscada, aplica opcionalmente \emph{scrambling} e CRC-8, converte em DNA e executa o screening biológico com descarte determinístico.
-        \item \texttt{DNAFountain}\allowbreak\texttt{Decoder}: Implementa o \emph{peeling decoder}, incluindo a extração da \emph{seed} do cabeçalho, a verificação de CRC, a regeneração dos índices, a construção do índice reverso (\texttt{por\_bloco}) e a decodificação iterativa com rastreamento do \emph{ripple}.
+        \item \texttt{DNAFountainEncoder}: Orchestrates preprocessing, synthesizes droplets via XOR, formats headers with XOR-masked seeds, applies optional scrambling and CRC-8, converts bytes to DNA, and applies biological screening.
+        \item \texttt{DNAFountainDecoder}: Implements the peeling decoder, extracting seeds, verifying CRC checksums, regenerating neighbor indices, constructing inverted adjacency tables (\texttt{por\_bloco}), and executing iterative decoding with ripple logging.
     \end{itemize}
 
-    \item \textbf{\texttt{screening.py}}: Implementa a classe \texttt{BiologicalScreening} com validadores configuráveis para conteúdo GC (\texttt{calcular\_gc}) e comprimento máximo de homopolímeros (\texttt{maior\_homopolimero}), retornando \texttt{True} ou \texttt{False} para cada sequência de DNA avaliada.
+    \item \textbf{\texttt{screening.py}}: Implements \texttt{BiologicalScreening} with configurable validators for GC content (\texttt{calcular\_gc}) and homopolymer runs (\texttt{maior\_homopolimero}), returning boolean acceptance decisions.
 
-    \item \textbf{\texttt{channel.py}}: Implementa a classe \texttt{ErasureChannel}, que simula perdas de oligonucleotídeos com probabilidade $p_{\text{loss}}$ utilizando um PRNG próprio, separado dos geradores da codificação.
+    \item \textbf{\texttt{channel.py}}: Implements \texttt{ErasureChannel}, simulating independent oligonucleotide erasures with probability $p_{\text{loss}}$ using an isolated PRNG instance.
 
-    \item \textbf{\texttt{dna\_conversion.py}}: Contém as funções \texttt{bytes\_para\_dna} e \texttt{dna\_para\_bytes}, que realizam a codificação e decodificação determinística entre bytes e sequências de nucleotídeos, utilizando o mapeamento de 2 bits por base descrito na Seção~\ref{sec:digital_to_dna_encoding}.
+    \item \textbf{\texttt{dna\_conversion.py}}: Implements \texttt{bytes\_para\_dna} and \texttt{dna\_para\_bytes}, executing deterministic 2-bit-per-base mapping and inverse decoding.
 
-    \item \textbf{\texttt{utils.py}}: Funções utilitárias de baixo nível: \texttt{xor\_blocos} (combinação XOR de uma lista de blocos), \texttt{crc8} (cálculo do CRC-8 com polinômio \texttt{0x07}) e \texttt{scramble} (embaralhamento pseudoaleatório do payload).
+    \item \textbf{\texttt{utils.py}}: Low-level utility functions: \texttt{xor\_blocos} (XOR reduction across block lists), \texttt{crc8} (CRC-8 calculation with polynomial \texttt{0x07}), and \texttt{scramble} (additive XOR scrambling).
 
-    \item \textbf{\texttt{experiments.py}} e \textbf{\texttt{run\_experiments.py}}: Automação de baterias experimentais em lote, com execução parametrizada de múltiplas combinações de $K$, $c$, $\delta$, overhead e $p_{\text{loss}}$, agregação de métricas sobre $n$ repetições e exportação dos resultados em formato CSV.
+    \item \textbf{\texttt{experiments.py}} and \textbf{\texttt{run\_experiments.py}}: Batch experimentation drivers, executing parameter sweeps across $K$, $c$, $\delta$, overhead, and $p_{\text{loss}}$, aggregating metrics over $n$ repetitions, and exporting CSV data.
 \end{itemize}
 
-A Tabela~\ref{tab:modulos_sistema} sintetiza a organização modular do simulador.
+Table~\ref{tab:modulos_sistema} summarizes the modular organization of the simulator.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Organização modular do simulador DNA Fountain.}
+    \caption{Modular organization of the DNA Fountain simulator.}
     \label{tab:modulos_sistema}
     \begin{tabular}{lp{10cm}}
         \toprule
-        \textbf{Módulo} & \textbf{Responsabilidade Central} \\
+        \textbf{Module} & \textbf{Core Responsibility} \\
         \midrule
-        \texttt{config.py} & Hiperparâmetros globais e configurações de simulação. \\
-        \texttt{preprocessing.py} & Pré-processamento, segmentação e \emph{zero-padding}. \\
-        \texttt{soliton.py} & Fórmulas de $\rho$, $\tau$, $\mu$, CDF e amostragem de graus. \\
-        \texttt{lt\_codec.py} & Geração de droplets com XOR e motor do \emph{peeling decoder}. \\
-        \texttt{screening.py} & Validadores biológicos (GC\% e homopolímeros). \\
-        \texttt{channel.py} & Simulação de perdas no canal de apagamento. \\
-        \texttt{dna\_conversion.py} & Codificação/decodificação binário $\leftrightarrow$ DNA. \\
-        \texttt{utils.py} & Operações XOR, CRC-8 e \emph{scrambling}. \\
-        \texttt{experiments.py} & Automação de baterias experimentais e exportação CSV. \\
-        \texttt{run\_experiments.py} & Ponto de entrada para execução em lote. \\
-        \texttt{main.py} & Pipeline didático com rastreamento visual no terminal. \\
+        \texttt{config.py} & Global hyperparameters and simulation configuration. \\
+        \texttt{preprocessing.py} & Message preprocessing, segmentation, and zero-padding. \\
+        \texttt{soliton.py} & Formulas for $\rho$, $\tau$, $\mu$, CDF table, and degree sampling. \\
+        \texttt{lt\_codec.py} & XOR droplet synthesis and iterative peeling decoder engine. \\
+        \texttt{screening.py} & Biochemical validators (GC\% window and homopolymer limits). \\
+        \texttt{channel.py} & Packet erasure channel simulation with stochastic loss. \\
+        \texttt{dna\_conversion.py} & Deterministic mapping: binary $\leftrightarrow$ DNA. \\
+        \texttt{utils.py} & Bitwise XOR blocks, CRC-8 checksum, and additive scrambling. \\
+        \texttt{experiments.py} & Batch experimental suite orchestration and CSV metric export. \\
+        \texttt{run\_experiments.py} & CLI entry point for batch parameter grid sweeps. \\
+        \texttt{main.py} & Interactive single-run demonstration with terminal logging. \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-\section{Modelos de Dados}
+\section{Data Models}
 \label{sec:data_models}
 
-Os nomes a seguir designam entidades conceituais do pipeline; sua representação concreta na implementação orientada a objetos em Python é especificada em cada item:
+The following terms define conceptual entities within the pipeline, with their concrete Python representations specified accordingly:
 
 \begin{itemize}
-    \item \textbf{Segment (Bloco Original)}: Cada bloco fonte é representado como uma sequência de $L$ bytes (\texttt{bytes}), indexado de $0$ a $K-1$. O último bloco recebe \emph{zero-padding} com bytes nulos caso o comprimento original não seja múltiplo exato de $L$.
+    \item \textbf{Segment (Source Block)}: Each source block is represented as a sequence of $L$ bytes (\texttt{bytes}), indexed from $0$ to $K-1$. The final block receives zero-padding if original message length is not a multiple of $L$.
 
-    \item \textbf{Droplet}: Cada droplet gerado pelo codificador é representado internamente como um dicionário estruturado contendo:
+    \item \textbf{Droplet}: Each encoded droplet is stored internally as a structured dictionary containing:
     \begin{itemize}
-        \item \texttt{seed}: valor inteiro da \emph{seed} utilizada na amostragem;
-        \item \texttt{grau}: número de blocos combinados ($d \in \{1, \ldots, K\}$);
-        \item \texttt{indices}: lista ordenada dos identificadores dos blocos fonte incidentes;
-        \item \texttt{payload}: cadeia de $L$ bytes resultante da combinação XOR;
-        \item \texttt{dna}: sequência de nucleotídeos $\{A, C, G, T\}$ representando cabeçalho + payload + CRC.
+        \item \texttt{seed}: integer seed utilized for PRNG sampling;
+        \item \texttt{grau}: combined block count ($d \in \{1, \ldots, K\}$);
+        \item \texttt{indices}: sorted list of incident source block identifiers;
+        \item \texttt{payload}: $L$-byte string produced by XOR combination;
+        \item \texttt{dna}: nucleotide string over $\{A, C, G, T\}$ representing header + payload + CRC.
     \end{itemize}
 
-    \item \textbf{ExperimentConfig}: A classe \texttt{DNAFountainConfig} centraliza 14 atributos organizados em seis categorias: pré-processamento ($L$, \emph{padding}), distribuição de soliton ($c$, $\delta$), codificação LT ($N$, bits da \emph{seed}, máscara XOR), tratamento de payload (\emph{scrambler}, CRC), restrições biológicas (GC mín/máx, homopolímero máximo) e simulação (probabilidade de perda, \emph{seed} do experimento).
+    \item \textbf{ExperimentConfig}: The \texttt{DNAFountainConfig} dataclass centralizes 14 parameters across six categories: preprocessing ($L$, padding), soliton distribution ($c$, $\delta$), LT encoding ($N$, seed bit width, XOR mask), payload processing (scrambling, CRC), biological screening (GC boundaries, max homopolymer), and simulation ($p_{\text{loss}}$, experiment seed).
 
-    \item \textbf{ExperimentResult}: A função \texttt{experimento()} retorna um dicionário com as métricas agregadas sobre $n$ repetições: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, overhead enviado, $R$, grau médio, taxa de sucesso, XOR médio, ripple máximo/mínimo médio e tempo de decodificação em milissegundos.
+    \item \textbf{ExperimentResult}: The \texttt{experimento()} routine returns an aggregated dictionary over $n$ trials: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, sent overhead, $R$, mean degree, success rate, average XOR count, average peak/minimum ripple, and decoding runtime in milliseconds.
 \end{itemize}
 
-\section{Fluxo do Pipeline}
+\section{Pipeline Flow}
 \label{sec:pipeline_flow}
 
-A Figura~\ref{fig:diagrama_arquitetura} ilustra a arquitetura conceitual e o fluxo de dados do simulador DNA Fountain, conectando os módulos desenvolvidos às etapas de processamento.
+Figure~\ref{fig:diagrama_arquitetura} illustrates the conceptual architecture and data flow of the DNA Fountain simulator, connecting software modules to processing stages.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figuras/diagrama_arquitetura.pdf}
-    \caption{Arquitetura modular e fluxo de processamento de dados do simulador DNA Fountain.}
+    \caption{Modular architecture and data processing flow of the DNA Fountain simulator.}
     \label{fig:diagrama_arquitetura}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
-O funcionamento do simulador é executado em dez etapas sequenciais, descritas a seguir:
+The simulator operates across ten sequential stages, described below:
 
 \begin{enumerate}
-    \item \textbf{Leitura da Entrada}: A mensagem de texto é convertida em uma sequência contínua de bytes via codificação UTF-8, e o comprimento original em bytes é registrado para truncamento posterior.
+    \item \textbf{Input Ingestion}: The text message is converted into a byte sequence via UTF-8 encoding, and original length is recorded for subsequent unpadding.
 
-    \item \textbf{Segmentação em Blocos}: A sequência de bytes é particionada em $K$ blocos de $L$ bytes cada. O último bloco recebe preenchimento com bytes nulos (\texttt{0x00}) até completar $L$ bytes.
+    \item \textbf{Block Segmentation}: The byte stream is partitioned into $K$ blocks of length $L$. The final block receives null-byte zero-padding (\texttt{0x00}) up to $L$ bytes.
 
-    \item \textbf{Cálculo da Distribuição Robusta de Soliton}: A partir de $K$, $c$ e $\delta$, o módulo \texttt{soliton.py} calcula $R$, $m$, as funções $\rho(d)$, $\tau(d)$ e $\mu(d)$, e constrói a CDF para amostragem.
+    \item \textbf{Robust Soliton Calculation}: Using $K$, $c$, and $\delta$, \texttt{soliton.py} computes $R$, $m$, distributions $\rho(d)$, $\tau(d)$, $\mu(d)$, and builds the sampling CDF.
 
-    \item \textbf{Geração de Droplet}: Para cada droplet, uma \emph{seed} inteira é utilizada como entrada de um PRNG (\texttt{random.Random(seed)}), que determina o grau $d$ (amostrado da distribuição $\mu$) e os $d$ índices dos blocos fonte. Os blocos selecionados são combinados por XOR, e opcionalmente o payload recebe \emph{scrambling}.
+    \item \textbf{Droplet Generation}: For each droplet, an integer seed initializes a PRNG instance (\texttt{random.Random(seed)}), drawing degree $d$ from $\mu$ and selecting $d$ distinct block indices. Blocks are combined via XOR, and the payload optionally undergoes scrambling.
 
-    \item \textbf{Composição do Cabeçalho}: A \emph{seed} é ofuscada por uma máscara XOR (\texttt{0x1B1B}) e armazenada em um número fixo de bytes no início do oligonucleotídeo. Se o CRC-8 estiver ativo, um byte de verificação é adicionado ao final.
+    \item \textbf{Header Assembly}: The seed is obfuscated with a static XOR mask (\texttt{0x1B1B}) and packed into a 2-byte header. If CRC-8 is enabled, an 8-bit checksum byte is appended.
 
-    \item \textbf{Conversão para DNA}: O conjunto cabeçalho + payload (+ CRC) é convertido em uma sequência de nucleotídeos utilizando o mapeamento de 2 bits por base.
+    \item \textbf{DNA Conversion}: The concatenated header + payload (+ CRC) bytes are mapped into a nucleotide sequence at 2 bits per base.
 
-    \item \textbf{Screening Biológico}: A sequência de DNA é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições, o droplet é descartado e a \emph{seed} é incrementada para gerar um novo droplet. Esse processo é transparente ao decodificador.
+    \item \textbf{Biological Screening}: The DNA sequence is inspected for GC content and homopolymer run length. If constraints are violated, the droplet is rejected, and the seed counter advances to generate a new candidate. This process is transparent to the decoder.
 
-    \item \textbf{Canal de Apagamento}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal, que descarta cada pacote com probabilidade $p_{\text{loss}}$ de forma independente, utilizando um PRNG separado.
+    \item \textbf{Erasure Channel}: Screened oligonucleotides pass through the channel, which independently discards packets with probability $p_{\text{loss}}$ using a separate PRNG.
 
-    \item \textbf{Decodificação por Peeling}: O receptor extrai as \emph{seeds} dos cabeçalhos, regenera os índices via PRNG, constrói o índice reverso \texttt{por\_bloco} e executa o \emph{peeling decoder}: droplets de grau 1 resolvem blocos fonte, que são removidos por XOR dos demais droplets, alimentando o \emph{ripple}.
+    \item \textbf{Peeling Decoding}: The receiver parses seeds from arriving headers, regenerates neighbor indices via PRNG, constructs inverted index \texttt{por\_bloco}, and executes iterative peeling decoding: degree-1 droplets resolve source blocks, which are peeled from remaining droplets via XOR, maintaining the ripple queue.
 
-    \item \textbf{Consolidação de Métricas}: O simulador registra o número de blocos recuperados, a trajetória do \emph{ripple}, o total de operações XOR, falhas de CRC, o tempo de decodificação e o status de sucesso ou falha. Em modo de lote, os resultados são agregados e exportados em CSV.
+    \item \textbf{Metric Consolidation}: The simulator records recovered block count, ripple trajectory, XOR operations, CRC verification errors, decoding runtime, and outcome status. In batch mode, metrics are aggregated and exported to CSV.
 \end{enumerate}
 
-\section{Decisões de Implementação}
+\section{Implementation Decisions}
 \label{sec:implementation_decisions}
 
-Cinco decisões de projeto foram fundamentais na implementação do simulador:
+Five architectural decisions were critical in the simulator's implementation:
 
-\subsection{Preenchimento com Bytes Nulos (\emph{Zero-Byte Padding})}
+\subsection{Null-Byte Padding (Zero-Padding)}
 
-Quando o comprimento do arquivo de entrada não é múltiplo exato do tamanho do bloco $L$, o último bloco é preenchido com bytes nulos (\texttt{0x00}) até completar $L$ bytes. Essa abordagem determinística, conhecida como \emph{zero-padding}, foi adotada por sua simplicidade e compatibilidade com o pipeline: o decodificador recebe o tamanho original da mensagem como metadado externo e trunca a saída reconstruída exatamente no byte correto, descartando o \emph{padding} automaticamente.
+When total file length is not an exact multiple of source block length $L$, the final block is padded with null bytes (\texttt{0x00}) up to $L$ bytes. This deterministic approach was chosen for simplicity: the decoder receives original message length as external metadata and truncates the reconstructed stream at the exact byte boundary, automatically discarding padding bytes.
 
-\subsection{Mecanismo de Scrambling e Auto-Inversão}
+\subsection{Scrambling Mechanism and Self-Inversion}
 
-Para randomizar a sequência binária e reduzir a propensão a repetições de nucleotídeos idênticos no screening, o codificador aplica uma camada de \emph{scrambling} aditivo sobre o payload resultante da combinação XOR. O algoritmo gera uma máscara pseudoaleatória determinística $\mathbf{s}$ via PRNG inicializado por $(\text{seed} \oplus \texttt{0x5A5A})$ e combina os bytes via operação XOR bit a bit:
+To randomize binary payloads and mitigate localized homopolymer formation during screening, the encoder applies additive scrambling to XOR-combined payloads. The routine derives a deterministic pseudorandom mask $\mathbf{s}$ from a PRNG initialized by $(\text{seed} \oplus \texttt{0x5A5A})$ and combines bytes via bitwise XOR:
 \begin{equation}
     \label{eq:scramble}
     y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})
 \end{equation}
-A grande vantagem computacional dessa abordagem é a propriedade de auto-inversão da álgebra booleana sobre o corpo finito binário $GF(2)$: como $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, o decodificador recupera o payload original $y$ aplicando exatamente a mesma rotina de geração de máscara a partir da \emph{seed} extraída do cabeçalho, dispensando tabelas de busca ou metadados complementares.
+A key computational property of this approach is self-inversion in boolean algebra over $GF(2)$: since $(x \oplus \mathbf{s}) \oplus \mathbf{s} = x$, the decoder recovers original payload $y$ by executing the exact same mask-generation routine with the seed extracted from the header, requiring no lookup tables or auxiliary metadata.
 
-\subsection{Papel e Cobertura do CRC-8 no Pipeline de Enquadramento}
+\subsection{Role and Coverage of CRC-8 in the Framing Pipeline}
 
-O simulador inclui uma camada opcional de verificação de integridade por meio de um código de redundância cíclica de 8 bits (CRC-8), gerado pelo polinômio $P(x) = x^8 + x^2 + x + 1$ (representação binária \texttt{0x07}) com registrador inicializado em \texttt{0x00}, sem reflexão de entrada/saída e sem XOR final (compatível com a parametrização padrão CRC-8/SMBus, cujo vetor de teste canônico para a sequência ASCII \texttt{"123456789"} resulta exatamente em \texttt{0xF4}). O checksum CRC-8 cobre a concatenação da \emph{seed} ofuscada de 16 bits com o payload de $L$ bytes após o \emph{scrambling}.
+The simulator includes an optional integrity layer via an 8-bit Cyclic Redundancy Check (CRC-8), generated by polynomial $P(x) = x^8 + x^2 + x + 1$ (binary \texttt{0x07}) initialized with \texttt{0x00}, without input/output reflection and without final XOR (matching standard CRC-8/SMBus parameterization, whose canonical test vector for ASCII \texttt{"123456789"} evaluates to \texttt{0xF4}). The CRC-8 checksum covers the concatenation of the 16-bit obfuscated seed and the $L$-byte scrambled payload.
 
-A ordem estrita de operações no codificador segue a seguinte cadeia:
+The strict order of operations in the encoder proceeds as follows:
 \begin{enumerate}
-    \item Obtenção do payload bruto $y$ via combinação XOR dos blocos fonte incidentes sorteados pela \emph{seed};
-    \item Aplicação do \emph{scrambling} aditivo no payload: $y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})$;
-    \item Ofuscação da \emph{seed} de 16 bits (em formato \emph{big-endian}) por meio de XOR com a máscara estática: $\text{seed}_{\text{ofuscada}} = \text{seed} \oplus \texttt{0x1B1B}$;
-    \item Cálculo do byte de CRC-8 sobre os $L + 2$ bytes resultantes da concatenação $(\text{seed}_{\text{ofuscada}} \Vert y_{\text{scrambled}})$;
-    \item Composição do pacote em bytes contíguos:
+    \item Compute raw payload $y$ via bitwise XOR across incident source blocks selected by the seed;
+    \item Apply additive scrambling to payload: $y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})$;
+    \item Obfuscate 16-bit big-endian seed via XOR with static mask: $\text{seed}_{\text{obfuscated}} = \text{seed} \oplus \texttt{0x1B1B}$;
+    \item Calculate CRC-8 checksum over the $L + 2$ bytes of $(\text{seed}_{\text{obfuscated}} \Vert y_{\text{scrambled}})$;
+    \item Pack contiguous packet bytes:
     \begin{equation}
-        \text{Droplet} = \text{seed}_{\text{ofuscada}} \,(2\text{ bytes}) \;\Vert\; y_{\text{scrambled}} \,(L\text{ bytes}) \;\Vert\; \text{CRC-8} \,(1\text{ byte})
+        \text{Droplet} = \text{seed}_{\text{obfuscated}} \,(2\text{ bytes}) \;\Vert\; y_{\text{scrambled}} \,(L\text{ bytes}) \;\Vert\; \text{CRC-8} \,(1\text{ byte})
     \end{equation}
-    totalizando $L + 3$ bytes, subsequentemente convertidos para DNA à taxa de 2 bits por base.
+    totaling $L + 3$ bytes, subsequently converted to DNA at 2 bits per base.
 \end{enumerate}
 
-No decodificador, o processo realiza a inversão simétrica: a sequência de DNA é reconvertida em bytes; o CRC-8 é recalculado sobre os $L + 2$ primeiros bytes e comparado ao byte final (descartando-se o pacote caso haja divergência); a \emph{seed} original é recuperada desfazendo-se a ofuscação ($\text{cabeçalho} \oplus \texttt{0x1B1B}$); o payload bruto $y$ é reconstituído pela auto-inversão do \emph{scrambling} ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$); e a \emph{seed} recuperada é utilizada para regenerar deterministicamente o grau e os índices dos blocos combinados.
+In the decoder, the symmetric inverse is performed: the DNA string is converted back to bytes; CRC-8 is verified over the first $L + 2$ bytes and compared to the final checksum byte (discarding on mismatch); the original seed is recovered by unmasking ($\text{header} \oplus \texttt{0x1B1B}$); raw payload $y$ is reconstituted via scrambling self-inversion ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$); and the recovered seed regenerates degree and neighbor indices deterministically.
 
-Ressalta-se que o CRC-8 não atua como o mecanismo de recuperação de pacotes perdidos no canal de apagamento puro adotado neste trabalho, dado que as perdas são tratadas pelo próprio código LT. Ele funciona como uma validação de integridade complementar, útil em dois cenários:
+Crucially, CRC-8 does not serve as a packet recovery mechanism for the pure erasure channel modeled herein, since packet dropouts are resolved by the outer LT code. Rather, it serves as complementary integrity validation, useful in two scenarios:
 \begin{itemize}
-    \item Permite descartar antecipadamente pacotes corrompidos caso o canal seja estendido para incluir erros de substituição em trabalhos futuros;
-    \item Detecta parte das corrupções de bits de acordo com as propriedades de distância de Hamming do polinômio CRC-8 adotado. Como o canal utilizado nos experimentos simula apagamentos puros de oligonucleotídeos íntegros, o CRC-8 não atua ativamente como detector de falhas nos resultados reportados.
+    \item Enabling early rejection of corrupted packets should the channel be extended to incorporate substitution errors in future work;
+    \item Detecting bit flips in accordance with the Hamming distance properties of the CRC-8 polynomial. Because experimental simulations model pure erasures of intact oligonucleotides, CRC-8 does not act as an active error detector in the reported experimental results.
 \end{itemize}
 
-\subsection{Separação e Controle dos Geradores Pseudoaleatórios (PRNG)}
+\subsection{Separation and Control of Pseudorandom Number Generators (PRNGs)}
 
-Para garantir reprodutibilidade rigorosa e evitar contaminação estatística entre os componentes do sistema, o simulador segrega a geração de números pseudoaleatórios em três domínios independentes:
+To ensure strict reproducibility and avoid statistical cross-contamination between components, the simulator segregates pseudorandom number generation into three independent domains:
 
 \begin{enumerate}
-    \item \textbf{PRNG da Seed (Reconstrução de Índices)}: Cada droplet é associado a uma \emph{seed} inteira de 16 bits que, ao ser fornecida como entrada para \texttt{random.Random(seed)}, permite regenerar deterministicamente o grau $d$ e os $d$ índices dos blocos fonte. Esse é o mecanismo central que torna possível a decodificação sem transmissão explícita dos índices: tanto o codificador quanto o decodificador executam \texttt{soliton.sortear\_grau\_e\_indices(seed)} e obtêm os mesmos resultados.
+    \item \textbf{Seed PRNG (Neighbor Index Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical graphs.
 
-    Ressalta-se que a interoperabilidade entre codificador e decodificador depende criticamente do emprego do mesmo algoritmo gerador: uma semente compartilhada entre interpretadores com implementações distintas de PRNG pode gerar vizinhanças e graus divergentes, inviabilizando a decodificação. Embora o interpretador CPython~3.12 garanta reprodutibilidade determinística nas versões declaradas, a preservação de dados em escala de longo prazo ou a migração para hardware dedicado (FPGA) recomenda a adoção de um PRNG autocontido padronizado (como LFSR aritmético ou geradores da família PCG/xoshiro), eliminando dependências de rotinas internas de bibliotecas de software.
+    Interoperability between encoder and decoder strictly requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatching graphs and fail decoding. While CPython~3.12 guarantees deterministic repeatability across declared environments, long-term archival storage or migration to FPGA hardware recommends a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
 
-    \item \textbf{PRNG do Canal (Eventos de Apagamento)}: O canal de apagamento utiliza uma instância separada de \texttt{random.Random}, inicializada com a \emph{seed} global do experimento (\texttt{seed\_experimento}). Essa separação garante que os sorteios de perda do canal não interfiram na sequência de números pseudoaleatórios utilizada pela codificação.
+    \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random} instance initialized by the global experiment seed (\texttt{seed\_experimento}). This guarantees that channel loss draws never interfere with droplet encoding PRNG streams.
 
-    \item \textbf{PRNG Mestre dos Experimentos em Lote}: A função \texttt{experimento()} recebe um parâmetro \texttt{seed\_base} que governa a geração das instâncias e o sorteio de perdas no canal. Fixada a \texttt{seed\_base}, a execução reproduz deterministicamente a mesma sequência de instâncias sintéticas e eventos pseudoaleatórios no ambiente declarado (CPython~3.12.7), garantindo repetibilidade algorítmica (embora os tempos de execução de CPU variem de acordo com o escalonamento do sistema operacional).
+    \item \textbf{Batch Experiment Master PRNG}: The \texttt{experimento()} routine accepts a \texttt{seed\_base} parameter governing synthetic instance generation and channel losses. With fixed \texttt{seed\_base}, execution deterministically reproduces the exact same sequence of synthetic instances and stochastic events in the declared environment (CPython~3.12.7), ensuring algorithmic repeatability (though CPU runtimes naturally vary with operating system scheduling).
 \end{enumerate}
 
-\subsection{Dimensionamento de Cabeçalho, Framing e Densidade da Biblioteca}
+\subsection{Header Sizing, Framing, and Library Storage Density}
 
-No simulador implementado, o cabeçalho de cada droplet utiliza uma \emph{seed} inteira de 16 bits (2 bytes). Essa escolha delimita o espaço amostral máximo a $2^{16} = 65.536$ valores de \emph{seed} possíveis. A busca avalia sequencialmente as sementes no intervalo fechado de $0$ a $2^{16}-1 = 65.535$ (\texttt{seed = 0} com incremento unitário). Sob as restrições do screening biológico adotado (que rejeita cerca de $40{,}2\%$ dos candidatos pseudoaleatórios), o universo útil estimado por extrapolação é de aproximadamente $65.536 \times (1 - 0{,}402) \approx 39.000$ oligonucleotídeos distintos. Embora suficiente para os regimes finitos investigados ($K \le 64$), sistemas de larga escala demandam cabeçalhos de 32 bits ($4$ bytes), como no trabalho original de \citeonline{erlich2017}. Caso o contador incremental de sementes alcance o teto de $2^{16} = 65.536$ antes de completar a cota de $N_{\text{tx}}$ oligonucleotídeos válidos (por exemplo, sob filtros excessivamente restritivos que rejeitem todos os candidatos), o codificador interrompe o processo e lança explicitamente a exceção \texttt{RuntimeError("Espaço de seeds esgotado.")}, prevenindo laços de execução indefinidos.
+In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65,536$ distinct seed values. Search proceeds sequentially from $0$ to $2^{16}-1 = 65,535$ (\texttt{seed = 0} with unit increment). Under biological screening constraints (which reject approximately $40.2\%$ of pseudo-random candidates), the extrapolated usable seed universe contains approximately $65,536 \times (1 - 0.402) \approx 39,000$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65,536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
 
-Cada oligonucleotídeo sintético do protótipo é estruturado pelo seguinte \emph{framing} binário:
+Each synthetic oligonucleotide in the prototype follows this binary framing:
 \begin{equation}
     \text{Droplet} = \underbrace{\text{Seed}}_{\text{2 bytes (16 bits)}} \;\Vert\; \underbrace{\text{Payload}}_{\text{$L = 4$ bytes (32 bits)}} \;\Vert\; \underbrace{\text{CRC-8}}_{\text{1 byte (8 bits)}}
 \end{equation}
-totalizando 7 bytes (56 bits). Na conversão direta para DNA à razão de 2 bits por base, cada droplet gera um oligonucleotídeo de exatamente 28 nucleotídeos. 
+totaling 7 bytes (56 bits). Under direct 2-bit-per-base conversion, each droplet generates an oligonucleotide of exactly 28 nucleotides.
 
-Distingue-se, portanto, a densidade de carga útil individual por oligonucleotídeo da densidade líquida global da biblioteca de sequências:
+We formally distinguish individual oligonucleotide payload density from global library net density:
 \begin{enumerate}
-    \item \textbf{Densidade de carga útil por oligonucleotídeo transmitido}:
+    \item \textbf{Payload density per transmitted oligonucleotide}:
     \begin{equation}
         \label{eq:densidade_oligo}
-        D_{\text{oligo}} = \frac{32 \text{ bits de carga útil}}{28 \text{ nucleotídeos}} \approx 1{,}14 \text{ bits/nt}
+        D_{\text{oligo}} = \frac{32 \text{ payload bits}}{28 \text{ nucleotides}} \approx 1.14 \text{ bits/nt}
     \end{equation}
-    calculada antes da introdução da redundância LT global e de eventuais primers de PCR;
+    computed prior to introducing global LT redundancy and PCR primer overhangs;
     
-    \item \textbf{Densidade líquida da biblioteca de armazenamento}:
+    \item \textbf{Net storage library density}:
     \begin{equation}
         \label{eq:densidade_biblioteca}
-        D_{\text{biblioteca}} = \frac{8 \cdot K \cdot L}{28 \cdot N_{\text{tx}}} = \frac{32 \cdot K}{28 \cdot K(1 + \epsilon)} = \frac{1{,}14}{1 + \epsilon} \text{ bits/nt}
+        D_{\text{library}} = \frac{8 \cdot K \cdot L}{28 \cdot N_{\text{tx}}} = \frac{32 \cdot K}{28 \cdot K(1 + \epsilon)} = \frac{1.14}{1 + \epsilon} \text{ bits/nt}
     \end{equation}
-    O numerador $8KL$ na Equação~(\ref{eq:densidade_biblioteca}) pressupõe $KL$ bytes úteis; quando a mensagem original não for múltiplo exato de $L$, a densidade real deve utilizar o tamanho original em bytes multiplicado por 8 e dividido pelo total de nucleotídeos da biblioteca.
+    The numerator $8KL$ in Equation~(\ref{eq:densidade_biblioteca}) assumes $KL$ payload bytes; when the original message is not an exact multiple of $L$, real density is computed using original message bytes multiplied by 8 and divided by total library nucleotides.
     
-    Sob overhead nominal $\epsilon = 1{,}00$ ($N_{\text{tx}} = 2K$), a densidade líquida da biblioteca resulta em $D_{\text{biblioteca}} \approx 0{,}571$ bits/nt; sob overhead $\epsilon = 0{,}50$, atinge $D_{\text{biblioteca}} \approx 0{,}762$ bits/nt.
+    Under nominal overhead $\epsilon = 1.00$ ($N_{\text{tx}} = 2K$), library net density evaluates to $D_{\text{library}} \approx 0.571$ bits/nt; at $\epsilon = 0.50$, it reaches $D_{\text{library}} \approx 0.762$ bits/nt.
 \end{enumerate}
-Esses valores ilustram quantitativamente o peso relativo da sobrecarga de enquadramento (\emph{framing}) e da redundância em blocos curtos. O overhead relativo de \emph{framing} diminui sensivelmente à medida que a carga útil $L$ é ampliada, dentro dos limites viáveis de comprimento de oligonucleotídeos sintéticos em sistemas laboratoriais.
+These values quantitatively demonstrate the relative impact of framing overhead and code redundancy in short block regimes. Relative framing overhead diminishes substantially as payload length $L$ scales up within practical synthesis boundaries.
 
-\section{Testes e Validação Interna}
+\section{Testing and Internal Validation}
 \label{sec:testing_and_validation}
 
-A validação da infraestrutura de software adotou uma distinção metodológica explícita entre duas categorias de ensaios:
+Software infrastructure validation maintained a clear methodological distinction between two test categories:
 \begin{enumerate}
-    \item \textbf{Validação Determinística de Corretude}: Testes unitários construídos sobre instâncias com gabarito formalmente conhecido, projetados para validar a conformidade da implementação em componentes individuais frente aos requisitos especificados (como a inversão exata de bases, a preservação da soma unitária da distribuição, a reversibilidade do preenchimento e o corte de filtros biológicos);
-    \item \textbf{Avaliação Probabilística de Desempenho}: Experimentos estocásticos sobre grafos aleatórios amostrados da DRS, nos quais falhas ocasionais de recuperação refletem a natureza probabilística dos códigos LT em blocos finitos, e não erros de programação.
+    \item \textbf{Deterministic Correctness Validation}: Unit tests operating over known canonical fixtures, designed to verify component compliance against specifications (such as exact base-mapping inversion, distribution unit summation, padding reversibility, and biological screening thresholds);
+    \item \textbf{Probabilistic Performance Evaluation}: Stochastic experiments over random graphs sampled from the RSD, where occasional recovery failures reflect the inherent probabilistic nature of LT codes in finite regimes rather than implementation defects.
 \end{enumerate}
 
-A Tabela~\ref{tab:suite_testes} sintetiza a suíte de testes de validação determinística implementada.
+Table~\ref{tab:suite_testes} summarizes the deterministic validation test suite.
 
-\subsection{Reversibilidade da Conversão Binário $\to$ DNA $\to$ Binário}
+\subsection{Reversibility of Binary $\to$ DNA $\to$ Binary Mapping}
 
-A integridade do mapeamento entre bytes e bases foi avaliada submetendo todos os 256 valores possíveis de um byte ($0 \le b \le 255$) ao ciclo fechado:
+Byte-to-nucleotide mapping integrity was evaluated across all 256 possible single-byte values ($0 \le b \le 255$) in a closed loop:
 \begin{equation}
     b = \texttt{dna\_para\_bytes}\big(\texttt{bytes\_para\_dna}(b)\big)
 \end{equation}
-A validação confirmou taxa de erro nula ($0{,}00\%$) em todas as combinações de bytes individuais e vetores aleatórios de até 1 megabyte, garantindo que o mapeamento é perfeitamente biunívoco.
+Testing confirmed a zero error rate ($0.00\%$) across all individual byte values and random byte streams up to 1 megabyte, verifying that the mapping is strictly bijective.
 
-\subsection{Validação da Somatória da DRS}
+\subsection{RSD Summation Validation}
 
-A implementação da distribuição robusta de soliton foi verificada analiticamente, confirmando que:
+Robust Soliton Distribution logic was verified analytically, confirming:
 \begin{equation}
-    \sum_{d=1}^{K} \mu(d) = 1{,}0
+    \sum_{d=1}^{K} \mu(d) = 1.0
 \end{equation}
-para diferentes combinações de $K$, $c$ e $\delta$, aplicando-se as salvaguardas de fronteira para $m$ e $\tau(m)$. Adicionalmente, a amostragem empírica via CDF foi testada gerando $10^5$ amostras para $K = 50$, $c = 0{,}1$ e $\delta = 0{,}05$, verificando-se erro absoluto máximo $\max_d |\hat{\mu}(d) - \mu(d)| < 0{,}003$ e erro relativo inferior a $0{,}4\%$ para os graus com $\mu(d) \ge 0{,}01$.
+across multiple configurations of $K$, $c$, and $\delta$, incorporating boundary safeguards for $m$ and $\tau(m)$. Furthermore, empirical CDF sampling was verified across $10^5$ samples for $K = 50$, $c = 0.1$, and $\delta = 0.05$, confirming maximum absolute error $\max_d |\hat{\mu}(d) - \mu(d)| < 0.003$ and relative error below $0.4\%$ for all degrees with $\mu(d) \ge 0.01$.
 
-\subsection{Testes de Limites do Screening Biológico}
+\subsection{Biological Screening Boundary Tests}
 
-O componente \texttt{BiologicalScreening} foi submetido a sequências de DNA projetadas para testar os limites de aceitabilidade:
+The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequences designed to test acceptability boundaries:
 \begin{itemize}
-    \item Sequências com proporções artificiais de GC variando de $20\%$ a $80\%$ foram corretamente classificadas, admitindo apenas a faixa $[40\%, 60\%]$;
-    \item Sequências contendo homopolímeros de tamanho 2 e 3 foram aceitas, enquanto homopolímeros de tamanho $\geq 4$ foram rejeitadas, confirmando o limiar de $H_{\max} = 3$.
+    \item Sequences with synthetic GC ratios ranging from $20\%$ to $80\%$ were correctly classified, accepting only the $[40\%, 60\%]$ interval;
+    \item Sequences containing homopolymers of length 2 and 3 were accepted, while runs of length $\ge 4$ were rejected, confirming the $H_{\max} = 3$ threshold.
 \end{itemize}
 
-\subsection{Teste Funcional Determinístico do Peeling Decoder}
+\subsection{Deterministic Functional Testing of the Peeling Decoder}
 
-Para verificar a corretude lógica do motor do \emph{peeling decoder}, foram executados testes com casos canônicos de grafo com solução garantida: um conjunto determinístico de $K$ droplets de grau 1 cobrindo exatamente cada bloco fonte de $0$ a $K-1$, além de instâncias com cadeias triangulares diretas. Nos casos canônicos executados, todos os blocos foram recuperados corretamente, sem divergências em relação ao resultado esperado. Essa validação estrutural do algoritmo complementa o teste de integração fim a fim (\texttt{test\_peeling\_canal\_ideal}), que avalia o pipeline sob semente fixa, distinguindo-se ambos das baterias fatoriais estocásticas de 100 repetições descritas no Capítulo~\ref{chap:experimental_methodology}.
+To verify the algorithmic correctness of the peeling decoder engine, canonical graph instances with guaranteed solutions were evaluated: a deterministic set of $K$ degree-1 droplets covering every source block from $0$ to $K-1$, as well as direct triangular graph cascades. Across canonical fixtures, all blocks were reconstructed without error. This structural verification complements end-to-end integration tests (\texttt{test\_peeling\_canal\_ideal}), which evaluate the pipeline under a fixed seed, distinct from the 100-repetition stochastic factorial suites described in Chapter~\ref{chap:experimental_methodology}.
 
 \begin{table}[htbp]
     \centering
     \footnotesize
     \setlength{\tabcolsep}{4pt}
-    \caption{Suíte de testes e validação interna do simulador.}
+    \caption{Simulator test and internal validation suite.}
     \label{tab:suite_testes}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{lclp{5.6cm}p{4.2cm}}
         \toprule
-        \textbf{Teste Implementado} & \textbf{Nível} & \textbf{Descrição do Caso} & \textbf{Resultado Observado} \\
+        \textbf{Implemented Test} & \textbf{Level} & \textbf{Case Description} & \textbf{Observed Outcome} \\
         \midrule
-        \texttt{test\_conversao\_bytes\_dna} & Unitário & Ciclo fechado bytes $\leftrightarrow$ DNA para todos os 256 bytes e vetor aleatório. & Taxa de erro $= 0{,}00\%$ \\
-        \texttt{test\_somatoria\_drs} & Unitário & Verificação de $\sum_{d=1}^K \mu(d) = 1{,}0$ para múltiplos $K$, $c$, $\delta$. & Confirmado numericamente \\
-        \texttt{test\_screening\_gc\_limits} & Unitário & Sequências artificiais com GC $< 40\%$ e GC $> 60\%$. & Rejeitadas com sucesso \\
-        \texttt{test\_screening\_homopolimeros} & Unitário & Sequências contendo homopolímeros com comprimento $\ge 4$. & Rejeitadas com sucesso \\
-        \texttt{test\_peeling\_canal\_ideal} & Integração & Pipeline completo ($K=32$, $\epsilon = 1{,}00$, canal sem perdas e seed fixa). & Recuperação integral ($100\%$ dos blocos) \\
-        \texttt{test\_segmentacao\_padding} & Unitário & Carga útil não múltipla de $L$ com reversão exata do preenchimento. & Recuperação exata sem ruído \\
-        \texttt{test\_amostragem\_seed} & Unitário & Mesma semente gera idêntico grau e vizinhança sem índices duplicados. & Determinismo estrito verificado \\
-        \texttt{test\_consistencia\_codec} & Integração & Confronto das vizinhanças amostradas no codificador e decodificador. & Coincidência total dos índices \\
-        \texttt{test\_canal\_apagamento} & Unitário & Casos-limite determinísticos ($p_{\text{loss}} = 0{,}0$ e $p_{\text{loss}} = 1{,}0$). & Preservação total em $p=0$ e perda total em $p=1$ \\
-        \texttt{test\_exportacao\_csv} & Integração & Execução experimental e gravação/leitura de métricas em formato CSV. & Estrutura e tipos validados \\
+        \texttt{test\_conversao\_bytes\_dna} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
+        \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across diverse $K$, $c$, $\delta$. & Numerically confirmed \\
+        \texttt{test\_screening\_gc\_limits} & Unit & Synthetic sequences with GC $< 40\%$ and GC $> 60\%$. & Successfully rejected \\
+        \texttt{test\_screening\_homopolimeros} & Unit & Sequences containing homopolymers of length $\ge 4$. & Successfully rejected \\
+        \texttt{test\_peeling\_canal\_ideal} & Integration & Full pipeline ($K=32$, $\epsilon = 1.00$, lossless channel, fixed seed). & Complete recovery ($100\%$ of blocks) \\
+        \texttt{test\_segmentacao\_padding} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
+        \texttt{test\_amostragem\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
+        \texttt{test\_consistencia\_codec} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
+        \texttt{test\_canal\_apagamento} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
+        \texttt{test\_exportacao\_csv} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-Com esses testes unitários e funcionais validados, não foram identificadas falhas nos casos de teste executados na suíte. A execução integral da suíte de 10 testes é realizada via comando \texttt{python -m pytest tests/}, alcançando 100\% de aprovação em aproximadamente 0{,}05 segundos na versão sob commit \texttt{bb2f0ab}, confirmando a conformidade dos módulos do simulador para a execução das baterias de ensaios descritas no capítulo seguinte.
+With these unit and functional tests validated, no failures occurred across the test suite. Executing the complete suite of 10 tests via \texttt{python -m pytest tests/} yields a 100\% pass rate in approximately 0.05 seconds under commit \texttt{bb2f0ab}, confirming simulator readiness for the experimental batteries detailed in the following chapter.

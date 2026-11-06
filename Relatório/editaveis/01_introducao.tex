@@ -1,84 +1,84 @@
 % !TEX root = ../main.tex
-\chapter{Introdução}
+\chapter{Introduction}
 \label{chap:introduction}
 
-\section{Contextualização}
-Com o contínuo crescimento do uso de tecnologia no mundo, a dependência de armazenamento de grandes volumes de dados se expande expressivamente em escala global. Neste contexto, a busca por alternativas de armazenamento de longo prazo tem se tornado cada vez mais relevante, dado que as mídias magnéticas convencionais apresentam limitações de densidade volumétrica, consumo energético e vida útil típica de 5 a 10 anos~\cite{ceze2019}.
+\section{Context}
+With the continuous growth of technology worldwide, the dependence on storing massive volumes of data is expanding significantly on a global scale. In this context, the search for long-term storage alternatives has become increasingly relevant, as conventional magnetic media exhibit limitations in volumetric density, energy consumption, and a typical lifespan of only 5 to 10 years~\cite{ceze2019}.
 
-Uma alternativa amplamente investigada é o DNA sintético, que se destaca pelo elevado potencial para o armazenamento de dados de longo prazo, devido à sua alta densidade informacional teórica, conservação passiva sem consumo contínuo de energia e potencial de durabilidade milenar em condições adequadas de encapsulamento. O conceito possui antecedentes históricos que remontam à demonstração pioneira de Joe Davis e Dana Boyd em 1988~\cite{davis1996}, enquanto experimentos subsequentes em escala, como o de \citeonline{church2012}, demonstraram a viabilidade prática da síntese e sequenciamento de arquivos digitais, fundamentando seu estudo sistemático como alternativa de arquivamento~\cite{ceze2019}. Contudo, o armazenamento em DNA enfrentou tradicionalmente desafios complexos, como a conversão eficiente de dados digitais em sequências de nucleotídeos, os elevados custos de síntese química e a ocorrência de erros no sequenciamento. Embora avanços metodológicos recentes tenham consolidado a viabilidade técnica da abordagem em provas de conceito laboratoriais, o custo econômico por gigabyte e a latência de acesso permanecem como desafios práticos em aberto~\cite{ceze2019}.
+A widely investigated alternative is synthetic DNA, which stands out for its high potential for long-term data storage due to its extraordinary theoretical information density, passive preservation without continuous energy consumption, and millennial durability under appropriate encapsulation conditions. The concept has historical precedents dating back to the pioneering demonstration by Joe Davis and Dana Boyd in 1988~\cite{davis1996}, while subsequent scaled experiments, such as that by \citeonline{church2012}, demonstrated the practical feasibility of synthesizing and sequencing digital files, establishing its systematic study as an archival alternative~\cite{ceze2019}. However, DNA storage has traditionally faced complex challenges, such as the efficient mapping of digital data into nucleotide sequences, the high costs of chemical synthesis, and the occurrence of sequencing errors. Although recent methodological advances have consolidated the technical feasibility of the approach in laboratory proofs of concept, the economic cost per gigabyte and access latency remain open practical challenges~\cite{ceze2019}.
 
-Nesse cenário, em 2017 \citeonline{erlich2017} publicaram na revista \emph{Science} a arquitetura DNA Fountain, propondo a aplicação de códigos sem taxa (\emph{fountain codes}) combinados a filtros biológicos e códigos corretores para contornar perdas e restrições físico-químicas no armazenamento em DNA. Essa abordagem serve de fundamentação conceitual para este trabalho de conclusão de curso. O objetivo central desta pesquisa é projetar, implementar e avaliar um simulador modular do pipeline do DNA Fountain em software puro, analisando experimentalmente a influência de seus parâmetros de codificação, screening e decodificação em regime de blocos finitos.
+In this scenario, in 2017 \citeonline{erlich2017} published the DNA Fountain architecture in \emph{Science}, proposing the application of rateless codes (\emph{fountain codes}) combined with biological screening filters and error-correcting codes to circumvent physical-chemical losses and constraints in DNA storage. This approach serves as the conceptual foundation for this undergraduate thesis. The central objective of this research is to design, implement, and evaluate a modular simulator of the DNA Fountain pipeline in pure software, experimentally analyzing the influence of its encoding, screening, and decoding parameters in a finite block regime.
 
-\section{Motivação}
+\section{Motivation}
 
-Apaixonado pela área de biologia desde cedo, posso dizer que minha maior motivação para esta pesquisa é a curiosidade. Em 2021, durante minha aula de biologia com o professor Frambolz, foi mencionada a possibilidade de armazenar dados em DNA, e fiquei fascinado com essa ideia. Na época, achei que era algo muito distante da nossa realidade, mas com o passar do tempo, durante a minha graduação em Engenharia de Software, percebi o quanto o armazenamento de dados é um problema recorrente em diversas áreas, e que aquela ideia que havia ouvido há anos poderia ser uma solução para esse problema.
+Passionate about biology from an early age, I can say that my greatest motivation for this research is curiosity. In 2021, during my biology class with Professor Frambolz, the possibility of storing data in DNA was mentioned, and I was fascinated by the idea. At the time, I thought it was something very distant from our reality, but over time, during my undergraduate studies in Software Engineering, I realized how data storage is a recurring problem across diverse fields, and that the idea I had heard years earlier could be a solution to this challenge.
 
-Assim, motivado pelo problema identificado, pela oportunidade de investigar essa abordagem e pelo desafio de aplicar conceitos de engenharia de software em uma área ainda pouco difundida no Brasil, nasceu a minha vontade de desenvolver este trabalho.
+Thus, motivated by the identified problem, by the opportunity to investigate this approach, and by the challenge of applying software engineering principles to a field still emerging in Brazil, the drive to develop this work was born.
 
-\section{Problema de Pesquisa}
+\section{Research Problem}
 
-No contexto apresentado, embora o armazenamento de dados em DNA tenha avançado significativamente nos últimos anos, ainda há uma carência de ferramentas didáticas, modulares e facilmente extensíveis voltadas à análise integrada dos parâmetros do pipeline DNA Fountain em contexto acadêmico de experimentação. Neste cenário, surge a necessidade de uma infraestrutura de software reprodutível que permita testar hipóteses sobre o comportamento do sistema sob diferentes configurações.
+In the presented context, although DNA data storage has advanced significantly in recent years, there is still a lack of didactic, modular, and easily extensible tools focused on the integrated analysis of DNA Fountain pipeline parameters within an academic experimental context. In this scenario, there is a clear need for a reproducible software infrastructure that allows testing hypotheses regarding system behavior under different configurations.
 
-Com isso, o problema de pesquisa deste trabalho pode ser definido da seguinte forma: como projetar e validar um simulador modular do pipeline DNA Fountain que represente codificação LT, restrições biológicas, perdas por apagamento e decodificação por peeling, permitindo analisar experimentalmente o impacto de parâmetros como $c$, $\delta$, quantidade de blocos fonte $K$, taxa de perda e overhead sobre a taxa de recuperação e o custo computacional?
+Accordingly, the research problem of this work can be formulated as follows: how to design and validate a modular simulator of the DNA Fountain pipeline that represents LT encoding, biological constraints, erasure losses, and peeling decoding, enabling the experimental analysis of the impact of parameters such as $c$, $\delta$, number of source blocks $K$, erasure loss rate, and overhead on the recovery rate and computational cost?
 
-\section{Objetivos}
+\section{Objectives}
 
-O objetivo geral deste trabalho é desenvolver e avaliar um simulador modular do pipeline DNA Fountain, capaz de representar as etapas de segmentação, geração de droplets, aplicação de restrições biológicas, simulação de perdas e decodificação por peeling, com o propósito de analisar experimentalmente a influência de seus principais parâmetros.
+The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, capable of representing the segmentation, droplet generation, biological screening, erasure channel simulation, and peeling decoding stages, in order to experimentally analyze the influence of its key parameters.
 
-Os objetivos específicos são:
+The specific objectives are:
 
 \begin{enumerate}
-    \item Formalizar os fundamentos de códigos LT, distribuição robusta de soliton e \emph{peeling decoder} no contexto de armazenamento em DNA.
+    \item Formalize the fundamentals of LT codes, the robust soliton distribution, and the \emph{peeling decoder} in the context of DNA data storage.
     
-    \item Modelar computacionalmente as etapas essenciais do pipeline DNA Fountain, incluindo segmentação, geração de droplets, cabeçalho baseado em seed e reconstrução dos índices durante a decodificação.
+    \item Computationally model the essential stages of the DNA Fountain pipeline, including segmentation, droplet generation, seed-based headers, and index reconstruction during decoding.
     
-    \item Implementar um simulador modular em Python com separação clara de responsabilidades entre distribuição, codificação, canal, screening biológico, decodificação e métricas.
+    \item Implement a modular simulator in Python with a clear separation of concerns across distribution, encoding, channel, biological screening, decoding, and metrics.
     
-    \item Representar restrições biológicas, como conteúdo GC e limitação de homopolímeros, por meio de um módulo de screening configurável.
+    \item Represent biological constraints, such as GC content and homopolymer run length limits, through a configurable screening module.
     
-    \item Simular um canal de apagamento e tratar como perdas os oligonucleotídeos descartados pelo modelo, conforme as hipóteses de canal descritas no Capítulo~\ref{chap:experimental_methodology}.
+    \item Simulate an erasure channel, treating discarded oligonucleotides as pure erasures in accordance with the channel hypotheses described in Chapter~\ref{chap:experimental_methodology}.
     
-    \item Medir taxa de sucesso, overhead efetivo, taxa de rejeição no screening, número de operações XOR, comportamento do ripple e tempo de processamento.
+    \item Measure decoding success rate, effective overhead, screening rejection rate, number of XOR operations, ripple dynamics, and execution time.
     
-    \item Avaliar experimentalmente o impacto de $c$, $\delta$, $K$, overhead e probabilidade de perda.
+    \item Experimentally evaluate the impact of $c$, $\delta$, $K$, overhead, and erasure probability.
     
-    \item Garantir reprodutibilidade por meio de controle de seeds, organização em experimentos em lote e documentação das configurações usadas em cada cenário.
+    \item Ensure reproducibility through pseudorandom seed control, batch experiment orchestration, and comprehensive configuration documentation for each scenario.
 \end{enumerate}
 
-\section{Delimitação do Escopo}
+\section{Scope Delimitation}
 \label{sec:scope_delimitation}
 
-Este trabalho se delimita como uma investigação de Engenharia de Software aplicada ao estudo computacional de \emph{fountain codes} para armazenamento de dados em DNA. Neste sentido, o trabalho não pretende derivar toda a teoria assintótica dos códigos LT nem reproduzir, em nível físico, os processos reais de síntese e sequenciamento, de forma a manter o escopo compatível com um TCC de Engenharia de Software.
+This work is delimited as a Software Engineering investigation applied to the computational study of fountain codes for DNA data storage. In this regard, it does not intend to re-derive the complete asymptotic theory of LT codes nor reproduce physical synthesis and sequencing processes in the wet lab, thereby maintaining a scope appropriate for a Software Engineering undergraduate thesis.
 
-Dessa forma, os seguintes limites são declarados explicitamente:
+Specifically, the following boundaries are explicitly declared:
 
 \begin{itemize}
-    \item O canal de armazenamento em DNA será modelado de forma simplificada como um canal de apagamento, no qual perdas moleculares e leituras descartadas são tratadas como apagamentos puros.
+    \item The DNA storage channel is modeled in a simplified manner as an erasure channel, where molecular losses and discarded reads are treated as pure erasures.
     
-    \item Não serão modeladas as etapas bioquímicas de cobertura molecular por leituras redundantes brutas, consenso de sequenciamento (\emph{consensus calling}) ou agrupamento (\emph{clustering}) de sequências: cada oligonucleotídeo entregue ao decodificador representa uma sequência individual já resolvida.
+    \item Biochemical stages such as physical read coverage, sequencing consensus calling, or sequence clustering are not modeled: each oligonucleotide delivered to the decoder represents an already resolved individual sequence.
     
-    \item Não será feita validação laboratorial com DNA real, síntese química ou sequenciamento físico.
+    \item No wet-lab biological validation with real DNA, chemical synthesis, or physical sequencing is conducted.
 \end{itemize}
 
-Como possível continuação do projeto, a implementação de um núcleo restrito do \emph{peeling decoder} em uma FPGA Digilent Basys 3 poderá ser investigada. Essa etapa teria como objetivo avaliar a aceleração das operações de decodificação utilizando hardware reconfigurável, com base em instâncias geradas pelo simulador desenvolvido neste trabalho. Contudo, essa possível continuação não altera o escopo deste trabalho, que permanece focado na modelagem, implementação do simulador e análise experimental em software.
+As a potential continuation of the project, the implementation of a constrained \emph{peeling decoder} core on a Digilent Basys 3 FPGA may be investigated. That future stage would aim to evaluate hardware acceleration of decoding operations using reconfigurable logic, based on instances generated by the software simulator developed herein. However, this potential continuation does not alter the scope of the present work, which remains focused on modeling, simulator implementation, and software experimental analysis.
 
-Em conformidade com as boas práticas de Engenharia de Software e com a política de transparência e reprodutibilidade científica, a íntegra do código-fonte do simulador, os scripts de execução dos experimentos e as matrizes de dados brutos encontram-se disponibilizados publicamente sob licença de código aberto no repositório GitHub do projeto: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+In accordance with Software Engineering best practices and the policy of scientific transparency and reproducibility, the complete simulator source code, experimental execution scripts, and raw data matrices are publicly available under an open-source license in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
 
-\section{Organização do Trabalho}
+\section{Work Organization}
 \label{sec:organization}
 
-Este trabalho está organizado em oito capítulos, incluindo esta introdução. A seguir, é apresentada uma breve descrição de cada um dos capítulos restantes.
+This thesis is structured into eight chapters, including this introduction. A brief overview of the remaining chapters is presented below.
 
-O \textbf{Capítulo~\ref{chap:theoretical_foundation} --- Fundamentação Teórica} apresenta a base teórica necessária para a compreensão do trabalho, abordando o armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os erros e restrições biológicas do canal, os conceitos de códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain e as métricas de avaliação utilizadas nos experimentos.
+\textbf{Chapter~\ref{chap:theoretical_foundation} --- Theoretical Foundation} presents the theoretical background required to understand this work, addressing DNA data storage, digital encoding into nucleotide sequences, biological channel errors and constraints, the concepts of erasure codes and fountain codes, the formalization of LT codes and the robust soliton distribution, the mechanics of the peeling decoder and ripple dynamics, the DNA Fountain architecture, and the evaluation metrics used across experiments.
 
-O \textbf{Capítulo~\ref{chap:related_work} --- Trabalhos Relacionados} apresenta o estado da arte em armazenamento de dados em DNA com ênfase no DNA Fountain, levanta os simuladores e frameworks existentes na literatura e identifica a lacuna que este trabalho se propõe a preencher, posicionando o simulador desenvolvido em relação às iniciativas anteriores.
+\textbf{Chapter~\ref{chap:related_work} --- Related Work} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
 
-O \textbf{Capítulo~\ref{chap:software_architecture} --- Arquitetura e Engenharia de Software} detalha a contribuição central de Engenharia de Software deste trabalho, formalizando os requisitos funcionais e não-funcionais do sistema, as decisões arquiteturais tomadas, a organização modular do código-fonte, os modelos de dados, o fluxo completo do pipeline em dez etapas, as decisões de implementação relevantes e a suíte de testes e validação interna.
+\textbf{Chapter~\ref{chap:software_architecture} --- Software Architecture and Engineering} details the core Software Engineering contribution of this work, formalizing functional and non-functional requirements, architectural decisions, modular codebase organization, data models, the complete ten-step pipeline flow, relevant implementation choices, and the internal test suite and validation.
 
-O \textbf{Capítulo~\ref{chap:experimental_methodology} --- Metodologia Experimental} define o protocolo experimental adotado, descrevendo o ambiente de execução, as variáveis independentes, dependentes e controladas, os cinco cenários experimentais propostos, o número de repetições com análise estatística e as medidas de reprodutibilidade adotadas.
+\textbf{Chapter~\ref{chap:experimental_methodology} --- Experimental Methodology} defines the experimental protocol, describing the execution environment, independent, dependent, and controlled variables, the five proposed experimental scenarios, the number of repetitions with statistical procedures, and reproducibility measures.
 
-O \textbf{Capítulo~\ref{chap:results} --- Resultados e Discussão} apresenta e discute os resultados obtidos, incluindo a validação funcional do simulador, o efeito do screening biológico sobre a distribuição de graus, o comportamento do ripple durante a decodificação, a relação entre overhead e taxa de sucesso, o impacto dos parâmetros $c$ e $\delta$, a resiliência do sistema sob diferentes taxas de perda, o custo computacional e as limitações dos resultados.
+\textbf{Chapter~\ref{chap:results} --- Results and Discussion} presents and discusses experimental results, including functional validation, the impact of biological screening on degree distribution, ripple dynamics during decoding, the relationship between overhead and success rate, the impact of parameters $c$ and $\delta$, channel resilience under different erasure rates, computational cost, and result limitations.
 
-O \textbf{Capítulo~\ref{chap:conclusion} --- Conclusão} retoma os objetivos propostos, confronta-os com os resultados experimentais obtidos e apresenta as considerações finais do trabalho.
+\textbf{Chapter~\ref{chap:conclusion} --- Conclusion} revisits the proposed objectives, evaluates them against experimental results, and presents final considerations.
 
-Por fim, o \textbf{Capítulo~\ref{chap:future_work} --- Trabalhos Futuros} indica as direções naturais de evolução do projeto, como a modelagem de canais com inserções e deleções, a integração de mecanismos adicionais de correção de erros e a possibilidade de aceleração do \emph{peeling decoder} em hardware reconfigurável.
+Finally, \textbf{Chapter~\ref{chap:future_work} --- Future Work} outlines natural directions for project evolution, such as modeling channels with insertions and deletions, integrating additional error-correction mechanisms, and exploring hardware acceleration of the peeling decoder on reconfigurable logic.

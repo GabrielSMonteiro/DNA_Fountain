@@ -1,36 +1,36 @@
 % !TEX root = ../main.tex
-\chapter{Fundamentação Teórica}
+\chapter{Theoretical Foundation}
 \label{chap:theoretical_foundation}
 
-Este capítulo apresenta os fundamentos teóricos necessários para a compreensão do trabalho. São abordados os conceitos de armazenamento de dados em DNA, a codificação digital para sequências de nucleotídeos, os tipos de erros e restrições biológicas envolvidos, os códigos de apagamento e \emph{fountain codes}, a formalização dos códigos LT e da distribuição robusta de soliton, o funcionamento do \emph{peeling decoder} e do ripple, a arquitetura do DNA Fountain proposta por Erlich e Zielinski, e as métricas de avaliação utilizadas ao longo dos experimentos.
+This chapter presents the theoretical foundations necessary to understand this work. It covers the principles of DNA data storage, digital encoding into nucleotide sequences, the types of channel errors and biological constraints involved, erasure codes and fountain codes, the mathematical formalization of LT codes and the Robust Soliton Distribution (RSD), the operational mechanics of the peeling decoder and ripple dynamics, the DNA Fountain architecture, and the evaluation metrics used across the experiments.
 
-\section{Armazenamento de Dados em DNA}
+\section{DNA Data Storage}
 \label{sec:dna_data_storage}
 
-A molécula de ácido desoxirribonucleico (DNA) é o biopolímero que atua no armazenamento da informação genética em organismos vivos. Cada fita de DNA é composta por uma sequência linear de nucleotídeos, que são unidades formadas por um grupo fosfato, uma desoxirribose e uma base nitrogenada. As quatro bases nitrogenadas presentes no DNA são adenina (A), citosina (C), guanina (G) e timina (T). Do ponto de vista computacional, a sequência linear de bases pode carregar informação digital arbitrária~\cite{compeau2018}.
+The deoxyribonucleic acid (DNA) molecule is the biopolymer responsible for storing genetic information in living organisms. Each DNA strand consists of a linear sequence of nucleotides, which are units composed of a phosphate group, a 2-deoxyribose sugar, and a nitrogenous base. The four nitrogenous bases present in DNA are adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
 
-Do ponto de vista da teoria da informação, cada nucleotídeo pode representar dois bits de dados digitais, já que existem quatro bases possíveis ($\log_2 4 = 2$). Essa característica confere ao DNA uma densidade informacional teórica de até aproximadamente 455 exabytes por grama~\cite{church2012}, valor expressivamente superior ao de mídias magnéticas ou ópticas.
+From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This fundamental characteristic endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, an order of magnitude vastly superior to conventional magnetic or optical storage media.
 
-Além da densidade potencial, o DNA exibe elevada estabilidade físico-química: quando encapsulado sob condições adequadas de baixa temperatura e desidratação (ou protegido em matrizes sintéticas de sílica), o material genético pode preservar cadeias moleculares por milênios com recuperação viável. Diferentemente das mídias magnéticas tradicionais, cuja vida útil típica requer ciclos periódicos de migração a cada 5 a 10 anos, o arquivamento em DNA pode manter os dados estáveis de forma passiva, sem demanda energética contínua para sustentação de campos ou circuitos~\cite{ceze2019}.
+In addition to its extraordinary physical density, DNA exhibits exceptional physicochemical stability: when encapsulated under appropriate conditions of low temperature and dehydration (or shielded within synthetic silica microcapsules), genetic material can preserve molecular strands for millennia with viable retrieval. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
 
-Contudo, o armazenamento de dados em DNA também enfrenta desafios significativos. O processo de síntese química de oligonucleotídeos, que consiste na fabricação artificial de sequências curtas de DNA (tipicamente entre 100 e 300 nucleotídeos), apresenta custos elevados e é sujeito a erros. Da mesma forma, o processo de sequenciamento, que realiza a leitura das bases a partir de um pool de moléculas, introduz ruídos e imperfeições na recuperação dos dados. Tecnologias modernas de sequenciamento de nova geração (\emph{Next-Generation Sequencing} --- NGS) e sequenciamento por nanoporos (\emph{Nanopore}) têm reduzido progressivamente esses custos. No entanto, é fundamental distinguir a prova de conceito técnica — já amplamente demonstrada na literatura acadêmica — da viabilidade econômica e operacional em larga escala, que ainda depende da superação de barreiras de custo por gigabyte e da elevada latência de leitura e escrita~\cite{ceze2019}.
+However, DNA data storage also faces substantial technological challenges. The chemical synthesis of oligonucleotides—the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)—remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, it is essential to distinguish laboratory proofs of concept—widely demonstrated in academic literature—from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
-O ciclo de vida completo do armazenamento de dados em DNA pode ser descrito em cinco etapas: (1)~codificação digital, na qual o arquivo binário é convertido em sequências de nucleotídeos; (2)~síntese química, na qual as sequências são fabricadas em laboratório; (3)~armazenamento físico do pool de oligonucleotídeos em condições controladas; (4)~sequenciamento, no qual as moléculas são lidas por um dispositivo de sequenciamento; e (5)~decodificação computacional, na qual as leituras obtidas são processadas para reconstruir o arquivo original.
+The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized in vitro; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
 
-\section{Codificação Digital para DNA}
+\section{Digital-to-DNA Encoding}
 \label{sec:digital_to_dna_encoding}
 
-A primeira etapa do armazenamento de dados em DNA consiste em converter um arquivo binário em uma representação compatível com as quatro bases nitrogenadas. Para isso, o arquivo de entrada é inicialmente tratado como uma sequência contínua de bytes, que é então dividida em blocos de tamanho fixo $L$ (em bytes). Caso o último bloco não possua exatamente $L$ bytes, é realizado um preenchimento determinístico com bytes nulos (\texttt{0x00}), técnica conhecida como \emph{zero-padding}.
+The initial stage of DNA data storage consists of converting a binary file into a sequence representation compatible with the four nitrogenous bases. To achieve this, the input file is treated as a continuous byte stream, which is partitioned into source blocks of fixed length $L$ (in bytes). If the final block contains fewer than $L$ bytes, deterministic zero-padding with null bytes (\texttt{0x00}) is applied.
 
-Com os blocos definidos, cada byte é convertido em uma sequência de quatro nucleotídeos por meio de um mapeamento direto de pares de bits para bases. O esquema de mapeamento utilizado neste trabalho é apresentado na Tabela~\ref{tab:mapeamento_bits_dna}.
+Once source blocks are partitioned, each byte is converted into a sequence of four nucleotides via a direct mapping of 2-bit dibits to bases. The mapping scheme employed in this work is presented in Table~\ref{tab:mapeamento_bits_dna}.
 
 \begin{table}[htbp]
     \centering
-    \caption{Mapeamento de pares de bits para bases nitrogenadas.}
+    \caption{Mapping of bit pairs to nitrogenous bases.}
     \label{tab:mapeamento_bits_dna}
     \begin{tabular}{cc}
         \hline
-        \textbf{Par de bits} & \textbf{Base} \\
+        \textbf{Bit pair} & \textbf{Base} \\
         \hline
         00 & A \\
         01 & C \\
@@ -38,279 +38,279 @@ Com os blocos definidos, cada byte é convertido em uma sequência de quatro nuc
         11 & T \\
         \hline
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-Dessa forma, cada byte (8 bits) é representado por exatamente quatro nucleotídeos, conferindo uma taxa bruta de 2 bits por base para um alfabeto irrestrito de quatro símbolos ($\log_2 4 = 2{,}0$ bits/nt)~\cite{shannon1948}. Na literatura de armazenamento em DNA, distinguem-se com rigor três patamares de capacidade teórica e prática~\cite{erlich2017}:
+Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three rigorous tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
 \begin{enumerate}
-    \item \textbf{Capacidade não restrita} ($2{,}0$ bits/nt): limite informacional de Shannon para um canal ideal de quatro símbolos equiprováveis sem qualquer restrição de sequência;
-    \item \textbf{Capacidade máxima sob restrições físico-químicas} ($1{,}98$ bits/nt): capacidade combinatória teórica de sequências que respeitam estritamente a janela de conteúdo GC (45\% a 55\%) e o limite de homopolímeros ($\le 3$ bases idênticas consecutivas);
-    \item \textbf{Capacidade estimada no modelo de armazenamento de Erlich e Zielinski} ($\approx 1{,}83$ bits/nt): limite operacional de Shannon após descontar a sobrecarga necessária de endereçamento/indexação de sequências desordenadas no pool molecular e a tolerância ao dropout molecular sob as hipóteses do modelo analisado pelos autores.
+    \item \textbf{Unconstrained capacity} ($2.0$ bits/nt): Shannon's theoretical informational upper bound for an ideal memoryless channel with four equiprobable symbols without sequence constraints;
+    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences strictly complying with GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases);
+    \item \textbf{Estimated capacity under the Erlich and Zielinski storage model} ($\approx 1.83$ bits/nt): operational Shannon limit after deducting the required overhead for addressing/indexing unordered sequences in the molecular pool and tolerance to molecular dropout under their model assumptions.
 \end{enumerate}
-Nesse contexto, a densidade de informação líquida pioneira de $1{,}57$ bits/nt alcançada experimentalmente por \citeonline{erlich2017} corresponde a $78{,}5\%$ do limite irrestrito de 2 bits/nt, $79{,}3\%$ da capacidade sob restrições físico-químicas ($1{,}98$ bits/nt) e expressivos $85{,}8\%$ (cerca de $86\%$) da capacidade prática estimada no modelo de referência ($\approx 1{,}83$ bits/nt). Este mapeamento de 2 bits por base é biunívoco: a conversão de bytes para DNA e a conversão inversa de DNA para bytes são operações determinísticas e perfeitamente reversíveis na ausência de ruído físico.
+In this context, the pioneering net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and an impressive $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
 
-A simplicidade deste esquema de mapeamento direto é uma escolha intencional no contexto do DNA Fountain. Como será apresentado nas seções seguintes, a robustez contra erros e perdas não é delegada ao esquema de codificação em si, mas sim à camada de codificação por \emph{fountain codes}, que opera sobre os blocos antes da conversão para DNA.
+The simplicity of this direct mapping scheme represents a deliberate architectural choice in DNA Fountain. As discussed in subsequent sections, robustness against errors and physical losses is not delegated to the base-mapping layer itself, but rather to the rateless fountain coding layer, which operates over blocks prior to nucleotide conversion.
 
-\section{Erros e Restrições Biológicas}
+\section{Errors and Biological Constraints}
 \label{sec:errors_and_biological_constraints}
 
-Ao longo do ciclo de vida do armazenamento em DNA, duas classes distintas de fenômenos impactam a integridade dos dados: as falhas físicas geradas pelas etapas de síntese e sequenciamento (erros de canal) e as restrições biológicas de aceitabilidade, que definem se uma sequência pode ou não ser sintetizada e amplificada com estabilidade.
+Throughout the lifecycle of DNA data storage, two distinct classes of phenomena affect data integrity: physical channel errors introduced during chemical synthesis and sequencing, and biological acceptability constraints, which dictate whether an oligonucleotide can be stably synthesized and amplified.
 
-\subsection{Erros do Canal}
+\subsection{Channel Errors}
 
-Os erros do canal ocorrem durante os processos físicos de síntese e sequenciamento, e podem ser classificados em quatro categorias principais:
-
-\begin{itemize}
-    \item \textbf{Substituições}: uma base é incorretamente lida ou sintetizada como outra base. Por exemplo, um nucleotídeo G é registrado como A pelo sequenciador.
-    
-    \item \textbf{Inserções}: uma base adicional é introduzida na sequência durante a síntese ou o sequenciamento, deslocando todas as bases subsequentes.
-    
-    \item \textbf{Deleções}: uma base é omitida durante a leitura ou a síntese, causando um deslocamento no sentido oposto ao das inserções.
-    
-    \item \textbf{Apagamentos (\emph{erasures})}: um oligonucleotídeo inteiro é perdido durante o processo, seja por degradação física, cobertura insuficiente no sequenciamento ou falha completa na síntese de uma sequência. Nesse caso, o receptor simplesmente não recebe a sequência, mas sabe que ela está ausente.
-\end{itemize}
-
-No contexto deste trabalho, o canal de armazenamento em DNA é modelado de forma simplificada como um \textbf{canal de apagamento} (\emph{erasure channel}), no qual oligonucleotídeos inteiros são perdidos com uma probabilidade $p_{\text{loss}}$, mas as sequências que chegam ao receptor são consideradas íntegras. Essa simplificação é coerente com o escopo delimitado no Capítulo~1 e permite isolar o efeito das perdas sobre a decodificação, sem a complexidade adicional dos erros de substituição, inserção e deleção.
-
-\subsection{Restrições Biológicas de Aceitabilidade}
-
-Independentemente dos erros do canal, nem todas as sequências de DNA podem ser sintetizadas e sequenciadas com a mesma confiabilidade. Certas propriedades da sequência afetam diretamente a eficiência dos processos biológicos, e sequências que violam essas restrições devem ser descartadas antes da síntese. As duas restrições mais relevantes para o DNA Fountain são:
+Channel errors arise during physical synthesis and sequencing operations, categorized into four primary classes:
 
 \begin{itemize}
-    \item \textbf{Conteúdo GC}: a proporção de bases G e C em relação ao comprimento total da sequência deve estar dentro de uma faixa aceitável, tipicamente entre 40\% e 60\%. Sequências com conteúdo GC muito baixo ou muito alto apresentam temperaturas de desnaturação (\emph{melting temperature}) atípicas, o que dificulta a amplificação por PCR (\emph{Polymerase Chain Reaction}) e introduz viés no sequenciamento~\cite{erlich2017}. Neste trabalho, adotou-se uma janela de GC entre 40\% e 60\%, adotada como configuração do protótipo, mais permissiva que a faixa de 45--55\% utilizada no experimento original.
+    \item \textbf{Substitutions}: A base is incorrectly synthesized or read as another base (e.g., a G nucleotide misread as an A by the sequencer).
     
-    \item \textbf{Homopolímeros}: sequências que contêm longas repetições consecutivas da mesma base (por exemplo, AAAA ou GGGG) são propensas a erros de síntese e de leitura, especialmente em tecnologias de sequenciamento baseadas em detecção de fluxo. Neste trabalho, o limite máximo adotado é de 3 repetições consecutivas ($\leq 3$), seguindo a configuração proposta por \citeonline{erlich2017}.
+    \item \textbf{Insertions}: An extraneous base is erroneously inserted into the sequence during synthesis or sequencing, shifting all subsequent bases.
+    
+    \item \textbf{Deletions}: A base is omitted during synthesis or reading, causing a frameshift in the direction opposite to insertions.
+    
+    \item \textbf{Erasures}: An entire oligonucleotide is lost during the process, resulting from physical decay, molecular dropout, synthesis failure, or insufficient sequencing coverage. In this case, the receiver does not receive the sequence, but knows that an erasure has occurred.
 \end{itemize}
 
-Essas restrições biológicas \textbf{não constituem erros físicos de canal}, mas sim filtros de aceitabilidade aplicados ainda na etapa de codificação. Quando um droplet gerado viola os limites de GC ou homopolímeros no \emph{screening}, ele é descartado antes do envio e outro droplet é gerado em seu lugar. Essa distinção entre erros estocásticos do canal e critérios de filtragem é essencial para a compreensão do sistema.
+In this work, the DNA storage channel is modeled in a simplified manner as a \textbf{packet erasure channel}, where complete oligonucleotides are lost with an independent erasure probability $p_{\text{loss}}$, while received sequences are treated as error-free. This simplification aligns with the scope declared in Chapter~\ref{chap:introduction} and isolates the pure effect of packet losses on rateless decoding without the confounding complexity of insertions, deletions, and substitutions.
 
-\section{Códigos de Apagamento e Fountain Codes}
+\subsection{Biological Acceptability Constraints}
+
+Independently of channel noise, not all arbitrary DNA sequences can be synthesized and sequenced with uniform reliability. Certain sequence properties directly govern biochemical efficiency, and sequences violating these rules must be screened out prior to synthesis. The two most critical constraints in DNA Fountain are:
+
+\begin{itemize}
+    \item \textbf{GC Content}: The proportion of guanine (G) and cytosine (C) bases relative to total sequence length must lie within an acceptable window, typically between 40\% and 60\%. Sequences with extreme GC content exhibit anomalous melting temperatures ($T_m$), hindering Polymerase Chain Reaction (PCR) amplification and introducing substantial sequencing bias~\cite{erlich2017}. In this work, an operational GC window of 40\% to 60\% was adopted as the prototype configuration, slightly wider than the 45--55\% window utilized in the original wet-lab experiment.
+    
+    \item \textbf{Homopolymers}: Sequences containing consecutive runs of identical bases (e.g., AAAA or GGGG) are highly vulnerable to synthesis and sequencing errors, particularly in flow-based or optical sequencing platforms. In this work, the maximum permitted homopolymer run length is 3 consecutive bases ($\le 3$), adhering to the threshold established by \citeonline{erlich2017}.
+\end{itemize}
+
+These biological constraints \textbf{do not constitute stochastic channel errors}; rather, they represent deterministic acceptability filters applied at the encoding stage. When a candidate droplet generated by the encoder violates GC or homopolymer bounds during screening, it is rejected before transmission, and a new droplet is generated in its place. This distinction between stochastic channel dropouts and deterministic biological screening filters is fundamental to understanding system dynamics.
+
+\section{Erasure Codes and Fountain Codes}
 \label{sec:erasure_codes_and_fountain_codes}
 
-Dado que o canal de DNA é sujeito a perdas de oligonucleotídeos, é necessário utilizar alguma forma de codificação redundante que permita a recuperação dos dados mesmo quando parte das sequências é perdida. Nesse contexto, os \textbf{códigos de apagamento} (\emph{erasure codes}) são a classe de códigos corretores de erros adequada ao problema.
+Given that the DNA storage channel is prone to oligonucleotide erasures, redundant coding is essential to recover original data when partial sequences are lost. In this domain, \textbf{erasure codes} represent the appropriate class of Forward Error Correction (FEC) codes.
 
-Os códigos de apagamento tradicionais, como os códigos de Reed-Solomon, são códigos de \textbf{taxa fixa} (\emph{fixed-rate codes}). Em um código MDS (\emph{Maximum Distance Separable}) de taxa fixa $R_c = K/N$, quaisquer $K$ símbolos recebidos são suficientes para recuperar a mensagem, o que garante correção de até $N - K$ apagamentos. Abaixo desse limiar, a recuperação já não é garantida e depende da estrutura do código e do padrão de perdas~\cite{mackay2003}. A existência de retransmissão depende do protocolo adotado, não apenas do código em si. Em canais de armazenamento molecular em pool, nos quais não há canal de retorno em tempo real (\emph{feedback}) para negociar retransmissões durante a síntese, essa rigidez impõe um dilema entre desperdício excessivo de síntese (se a perda for superestimada) ou perda irreversível de dados (se a perda for subestimada).
+Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate codes}. In a fixed-rate Maximum Distance Separable (MDS) code with rate $R_c = K/N$, any $K$ received symbols are sufficient to recover the message, guaranteeing correction of up to $N - K$ erasures. Below this threshold, recovery is no longer guaranteed and depends on the code's algebraic structure and the specific loss pattern~\cite{mackay2003}. The existence of retransmission depends on the adopted communication protocol, not solely on the code itself. In molecular pool storage channels where no real-time feedback channel exists to negotiate retransmissions during synthesis, this rigidity imposes an acute dilemma between excessive synthesis over-provisioning (if channel losses are overestimated) or irreversible data loss (if losses are underestimated).
 
-Os \textbf{\emph{fountain codes}} (ou códigos \emph{fountain}), por outro lado, pertencem à classe de códigos de canal sem taxa fixa (\emph{rateless codes}) projetados para canais de apagamento, não devendo ser confundidos com esquemas de codificação de fonte (\emph{source coding}, voltados à compressão). O codificador opera de forma contínua, gerando pacotes codificados (\emph{droplets}) sob demanda até que o receptor colete informação suficiente para reconstruir os $K$ blocos originais. As principais propriedades dessa abordagem são:
+\textbf{Fountain codes} (or rateless codes), conversely, belong to the class of channel erasure codes without a fixed rate, and should not be confused with source coding (data compression). The encoder operates continuously, generating encoded packets (\textbf{droplets}) on demand until the receiver collects sufficient information to reconstruct the $K$ original source blocks. The key properties of this approach are:
 
 \begin{itemize}
-    \item O transmissor pode gerar um fluxo potencialmente inesgotável de pacotes codificados a partir dos $K$ blocos originais, flexibilizando a geração de sequências e o dimensionamento da redundância antes da síntese química.
+    \item The transmitter can generate a potentially inexhaustible stream of encoded droplets from the $K$ original blocks, providing complete flexibility in sequence generation and redundancy budgeting prior to chemical synthesis.
     
-    \item O decodificador é capaz de reconstruir a mensagem com alta probabilidade ao coletar uma quantidade moderada de pacotes válidos, tipicamente $N = K(1 + \epsilon)$, com $\epsilon > 0$. Ao contrário de códigos MDS determinísticos (como Reed-Solomon), a recuperação pelo \emph{peeling decoder} é probabilística e depende da conectividade do grafo estocasticamente formado pelos pacotes recebidos.
+    \item The decoder can reconstruct the original message with high probability upon gathering a moderate volume of valid droplets, typically $N = K(1 + \epsilon)$, with overhead $\epsilon > 0$. Unlike deterministic MDS codes (such as Reed--Solomon), recovery under the iterative peeling decoder is probabilistic, depending on the random connectivity of the bipartite graph formed by received droplets.
     
-    \item Não há necessidade de canal de retorno (\emph{feedback}) entre receptor e transmissor durante a emissão.
+    \item No real-time feedback channel is required between receiver and transmitter during transmission.
 \end{itemize}
 
-Essas propriedades tornam os \emph{fountain codes} vantajosos no planejamento do armazenamento em DNA, no qual o volume exato de oligonucleotídeos que sobreviverão aos processos de síntese, conservação e sequenciamento não pode ser previsto rigidamente. Ressalta-se, contudo, que essa propriedade \emph{rateless} opera na fase de geração digital antes da síntese; uma vez produzida uma biblioteca física fixa de oligonucleotídeos em laboratório, não há criação autônoma de novas moléculas durante a leitura, permanecendo a recuperação condicionada à biblioteca efetivamente armazenada, à profundidade de amostragem no sequenciamento e às perdas moleculares ocorridas.
+These characteristics make fountain codes uniquely suited for DNA data storage planning, where the precise fraction of oligonucleotides surviving synthesis, storage, and sequencing cannot be rigidly forecasted. Crucially, this rateless flexibility operates during digital in silico generation before synthesis; once a fixed physical oligonucleotide library is produced in vitro, no new molecules are autonomously generated during readout, and recovery remains strictly conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
 
-\section{Códigos LT}
+\section{LT Codes}
 \label{sec:lt_codes}
 
-Os códigos LT (\emph{Luby Transform}), propostos por \citeonline{luby2002}, foram os primeiros \emph{fountain codes} práticos. A ideia central dos códigos LT é gerar cada pacote codificado --- chamado de \textbf{droplet} --- por meio da combinação de um subconjunto aleatório dos blocos originais utilizando a operação de ou-exclusivo (XOR) sobre o corpo finito binário $GF(2)$.
+Luby Transform (LT) codes, introduced by \citeonline{luby2002}, were the first practical realization of fountain codes. The central concept of LT codes is to generate each encoded droplet through the linear combination of a randomly selected subset of source blocks using bitwise exclusive-OR (XOR) operations over the Galois field $GF(2)$.
 
-O processo de geração de um droplet segue três passos:
+The generation process of a single droplet proceeds in three steps:
 
 \begin{enumerate}
-    \item \textbf{Amostragem do grau}: um valor inteiro $d$ é sorteado de acordo com uma distribuição de probabilidade sobre os graus $\{1, 2, \ldots, K\}$. Esse valor determina quantos blocos fonte serão combinados para formar o droplet.
+    \item \textbf{Degree Sampling}: An integer degree $d$ is randomly sampled according to a predefined probability distribution over $\{1, 2, \ldots, K\}$. This degree dictates how many source blocks will be combined to form the droplet.
     
-    \item \textbf{Seleção dos blocos}: $d$ blocos distintos são selecionados uniformemente ao acaso dentre os $K$ blocos fonte disponíveis. Os índices dos blocos selecionados são chamados de \textbf{vizinhos} do droplet.
+    \item \textbf{Neighbor Selection}: $d$ distinct blocks are selected uniformly at random without replacement from the $K$ available source blocks. The indices of these selected blocks are designated as the \textbf{neighbors} of the droplet.
     
-    \item \textbf{Combinação XOR}: o payload do droplet é calculado como a soma XOR dos $d$ blocos selecionados:
+    \item \textbf{XOR Combination}: The droplet payload is computed as the bitwise XOR sum of the $d$ selected blocks:
     
     \begin{equation}
         \label{eq:xor_droplet}
         y = b_{i_1} \oplus b_{i_2} \oplus \cdots \oplus b_{i_d}
     \end{equation}
 
-    onde $b_{i_j}$ denota o $j$-ésimo bloco fonte selecionado e $\oplus$ representa a operação XOR bit a bit.
+    where $b_{i_j}$ denotes the $j$-th selected source block and $\oplus$ represents the bitwise XOR operation.
 \end{enumerate}
 
-Esse processo pode ser representado por meio de um \textbf{grafo bipartido}, no qual os $K$ blocos fonte ocupam uma partição (nós de entrada) e os $N$ droplets gerados ocupam a outra partição (nós de saída). Uma aresta conecta um bloco fonte $b_i$ a um droplet $y_j$ se e somente se $b_i$ participou da combinação XOR que gerou $y_j$. O grau de um droplet no grafo corresponde ao número de arestas incidentes, ou seja, ao número de blocos que o compõem.
+This encoding process is naturally represented as a \textbf{bipartite graph}, where the $K$ original source blocks constitute the input partition and the $N$ generated droplets form the output partition. An edge connects source block $b_i$ to droplet $y_j$ if and only if $b_i$ was included in the XOR combination that formed $y_j$. The degree of a droplet in the graph corresponds directly to the number of incident edges.
 
-A escolha da distribuição de probabilidade para o grau $d$ é o fator determinante para o desempenho dos códigos LT. Uma distribuição mal calibrada pode gerar excesso de droplets de alto grau (inúteis nas primeiras iterações da decodificação) ou excesso de droplets de grau 1 (que não contribuem para a diversidade de combinações). A seção seguinte formaliza as distribuições utilizadas.
+The choice of degree distribution for $d$ is the critical determinant of LT code performance. A poorly calibrated distribution produces either an excess of high-degree droplets (which cannot be processed during early decoding iterations) or an excess of degree-1 droplets (which fail to provide combinatorial diversity). The following section formalizes the distributions employed.
 
-\section{Distribuição Robusta de Soliton}
+\section{Robust Soliton Distribution}
 \label{sec:robust_soliton_distribution}
 
-A distribuição de probabilidade utilizada para sortear o grau dos droplets é o componente teórico central dos códigos LT. \citeonline{luby2002} propôs inicialmente a \textbf{Distribuição Ideal de Soliton} $\rho(d)$, definida como:
+The probability distribution used to sample droplet degrees constitutes the core theoretical foundation of LT codes. \citeonline{luby2002} initially formulated the \textbf{Ideal Soliton Distribution} $\rho(d)$, defined as:
 
 \begin{equation}
     \label{eq:ideal_soliton}
     \rho(d) = \begin{cases}
-        \dfrac{1}{K}, & \text{se } d = 1 \\[10pt]
-        \dfrac{1}{d(d-1)}, & \text{se } d = 2, 3, \ldots, K
+        \dfrac{1}{K}, & \text{if } d = 1 \\[10pt]
+        \dfrac{1}{d(d-1)}, & \text{if } d = 2, 3, \ldots, K
     \end{cases}
 \end{equation}
 
-A distribuição ideal foi projetada de modo que, em expectativa, exatamente um droplet de grau 1 esteja disponível a cada passo da decodificação. Contudo, na prática, a variância estocástica do processo faz com que o número de droplets de grau 1 disponíveis flutue significativamente, levando com alta probabilidade à interrupção prematura da decodificação.
+The Ideal Soliton Distribution was engineered such that, in expectation, exactly one degree-1 droplet becomes available at each decoding step. In finite practice, however, stochastic variance causes the number of available degree-1 droplets to fluctuate, frequently dropping to zero and causing premature decoding stall.
 
-Para corrigir esse problema, Luby propôs a \textbf{Distribuição Robusta de Soliton} $\mu(d)$, que adiciona à distribuição ideal uma função auxiliar $\tau(d)$ com o objetivo de garantir uma quantidade mínima esperada de droplets de baixo grau. A função $\tau(d)$ é definida como:
+To resolve this fragility, Luby introduced the \textbf{Robust Soliton Distribution} (RSD) $\mu(d)$, which adds an auxiliary corrective function $\tau(d)$ to the ideal distribution to ensure a robust expected surplus of low-degree droplets. The function $\tau(d)$ is defined as:
 
 \begin{equation}
     \label{eq:tau}
     \tau(d) = \begin{cases}
-        \dfrac{R}{d \cdot K}, & \text{se } d = 1, 2, \ldots, \left\lfloor\dfrac{K}{R}\right\rfloor - 1 \\[10pt]
-        \dfrac{R \cdot \ln\!\left(\dfrac{R}{\delta}\right)}{K}, & \text{se } d = \left\lfloor\dfrac{K}{R}\right\rfloor \\[10pt]
-        0, & \text{se } d > \left\lfloor\dfrac{K}{R}\right\rfloor
+        \dfrac{R}{d \cdot K}, & \text{if } d = 1, 2, \ldots, \left\lfloor\dfrac{K}{R}\right\rfloor - 1 \\[10pt]
+        \dfrac{R \cdot \ln\!\left(\dfrac{R}{\delta}\right)}{K}, & \text{if } d = \left\lfloor\dfrac{K}{R}\right\rfloor \\[10pt]
+        0, & \text{if } d > \left\lfloor\dfrac{K}{R}\right\rfloor
     \end{cases}
 \end{equation}
 
-onde o parâmetro $R$ e o índice de pico $m$ são definidos por:
+where the scale parameter $R$ and the mode index $m$ are defined by:
 
 \begin{equation}
     \label{eq:R}
     R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}, \qquad m = \left\lfloor\frac{K}{R}\right\rfloor
 \end{equation}
 
-Na prática computacional, especialmente em regimes com número finito e reduzido de blocos ($K \le 64$), valores extremos de parâmetros podem violar pressupostos analíticos implícitos na formulação assintótica de Luby. Para manter a integridade operacional da amostragem em software, a implementação desenvolvida adota explicitamente uma extensão operacional modificada da DRS para os casos de fronteira em que o índice bruto satisfaz $m_{\text{bruto}} = \lfloor K/R \rfloor < 1$:
+In computational practice, particularly in finite regimes with small block counts ($K \le 64$), extreme parameter combinations can violate implicit analytical assumptions of Luby's asymptotic formulation. To preserve operational integrity during software sampling, the simulator explicitly implements a modified operational extension of the RSD for edge cases where the raw mode index satisfies $m_{\text{raw}} = \lfloor K/R \rfloor < 1$:
 \begin{enumerate}
-    \item \textbf{Salvaguarda para índice bruto $m_{\text{bruto}} < 1$}: Quando $c$ é elevado em mensagens curtas, o valor calculado de $R$ pode se aproximar ou superar a própria quantidade de blocos $K$, resultando em $m_{\text{bruto}} = \lfloor K/R \rfloor = 0$. Como os graus dos droplets sorteados devem ser inteiros pertencentes a $\{1, \ldots, K\}$, o algoritmo impõe o piso inferior computacional $m = 1$, delimitando o índice por:
+    \item \textbf{Safeguard for raw mode index $m_{\text{raw}} < 1$}: When $c$ is large for short messages, the computed value of $R$ can approach or exceed the block count $K$, yielding $m_{\text{raw}} = \lfloor K/R \rfloor = 0$. Because sampled droplet degrees must be valid integers in $\{1, \ldots, K\}$, the algorithm enforces an operational floor of $m = 1$, clamping the index via:
     \begin{equation}
         \label{eq:m_adaptado}
         m = \max\left(1, \min\left(K, \left\lfloor\frac{K}{R}\right\rfloor\right)\right)
     \end{equation}
-    Sob essa salvaguarda, o laço dos graus intermediários $d \in \{1, \ldots, m-1\}$ torna-se vazio (haja vista que $m - 1 = 0$), de modo que a componente $\frac{R}{d \cdot K}$ não é atribuída a nenhum grau. Em vez disso, o termo corretivo de pico $\tau(m) = \max\left(0, \frac{R}{K}\ln\left(\frac{R}{\delta}\right)\right)$ é alocado integralmente em $d = 1$, definindo a variante operacional:
+    Under this safeguard, the intermediate degree loop $d \in \{1, \ldots, m-1\}$ is empty (since $m - 1 = 0$), so the component $\frac{R}{d \cdot K}$ is assigned to no degree. Instead, the corrective peak term $\tau(m) = \max\left(0, \frac{R}{K}\ln\left(\frac{R}{\delta}\right)\right)$ is allocated entirely to $d = 1$, defining the operational variant:
     \begin{equation}
         \label{eq:tau_modificado_caso1}
         \tau(d) = \begin{cases}
-            \max\left(0{,}0, \dfrac{R}{K} \cdot \ln\!\left(\dfrac{R}{\delta}\right)\right), & \text{se } d = 1 \\[10pt]
-            0, & \text{se } d > 1
+            \max\left(0.0, \dfrac{R}{K} \cdot \ln\!\left(\dfrac{R}{\delta}\right)\right), & \text{if } d = 1 \\[10pt]
+            0, & \text{if } d > 1
         \end{cases}
-        \qquad (\text{para } m_{\text{bruto}} < 1)
+        \qquad (\text{for } m_{\text{raw}} < 1)
     \end{equation}
-    Essa atribuição concentra toda a massa da função auxiliar $\tau(d)$ no grau unitário. Em seguida, a distribuição completa é normalmente renormalizada por $\mu(d) = (\rho(d) + \tau(d)) / \beta$, onde $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. Trata-se, portanto, de uma variante modificada da DRS adotada pelo simulador para manter a consistência numérica no domínio finito, e não da DRS clássica estrita.
+    This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes an operational finite-domain variant adopted by the simulator to maintain numerical consistency, rather than the strict asymptotic classical RSD.
     
-    Na grade avaliada, essa variante é ativada exclusivamente em três combinações paramétricas: $(K, c, \delta) \in \{(16; 0{,}8; 0{,}10), (16; 0{,}8; 0{,}01), (32; 0{,}8; 0{,}01)\}$. Por exemplo, para $K = 16$, $c = 0{,}8$ e $\delta = 0{,}10$, obtém-se $R \approx 16{,}241$ e $m_{\text{bruto}} = 0$, sendo adotado $m = 1$;
+    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16; 0.8; 0.10), (16; 0.8; 0.01), (32; 0.8; 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
     
-    \item \textbf{Salvaguarda para $R < \delta$ ($\tau(m) < 0$)}: Caso hipotético em que $R < \delta$, o quociente $R/\delta$ torna-se menor que 1, fazendo com que $\ln(R/\delta) < 0$. Se não tratada, essa eventualidade produziria um termo corretivo negativo em $\tau(m)$, motivo pelo qual a implementação adota uma salvaguarda numérica defensiva:
+    \item \textbf{Safeguard for $R < \delta$ ($\tau(m) < 0$)}: In the hypothetical scenario where $R < \delta$, the quotient $R/\delta < 1$, yielding $\ln(R/\delta) < 0$. If unhandled, this would produce a negative probability mass in $\tau(m)$, which is why the implementation adopts a defensive numerical safeguard:
     \begin{equation}
         \label{eq:tau_adaptado}
-        \tau(m) = \max\left(0{,}0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
+        \tau(m) = \max\left(0.0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
     \end{equation}
-    Na grade principal de 216 combinações avaliada neste estudo ($K \ge 16$, $\delta \le 0{,}10$ e $c \ge 0{,}1$), tem-se sempre $R \ge 2{,}03 \gg \delta$, atuando essa salvaguarda como guarda estrutural preventiva.
+    Across the primary factorial grid of 216 combinations ($K \ge 16$, $\delta \le 0.10$, and $c \ge 0.1$), $R \ge 2.03 \gg \delta$ always holds, making this safeguard a preventive structural guard.
 \end{enumerate}
 
-Dessa forma, a grade experimental avalia a DRS clássica nas configurações válidas da formulação teórica original e a extensão operacional modificada nos casos de fronteira em que $m_{\text{bruto}} < 1$.
+Thus, the experimental grid evaluates the classical RSD across theoretically valid configurations and the operational modified extension in boundary cases where $m_{\text{raw}} < 1$.
 
-Os parâmetros $c > 0$ e $0 < \delta < 1$ controlam a forma da distribuição robusta:
+The parameters $c > 0$ and $0 < \delta < 1$ govern the shape of the robust distribution:
 
 \begin{itemize}
-    \item O parâmetro $c$ escala o valor de $R$. Embora em regimes assintóticos ($K \to \infty$) valores maiores de $c$ aumentem o número esperado de droplets de grau baixo, em regimes com $K$ finito e pequeno o aumento excessivo de $c$ desloca o índice de máximo da função corretiva $\tau(d)$, dado por $m = \lfloor K/R \rfloor$, para graus muito baixos ($m=1$ ou $m=2$). Cabe enfatizar a distinção entre o índice $m$, que maximiza o termo corretivo $\tau(d)$, e a moda global da distribuição $\mu(d)$: para $K = 32$ e $c = 0{,}5$, a translação do pico de $\tau$ para $m=1$ faz com que cerca de 73\% da massa de probabilidade total concentre-se no próprio grau 1, reduzindo expressivamente o grau médio teórico e privando o sistema de conexões intermediárias. Nas configurações avaliadas, o grau médio amostrado diminuiu quando $c$ passou de 0,1 para 0,8, refletindo a redução discreta de $m$; contudo, isso não estabelece monotonicidade estrita em toda a reta real de $c$, haja vista que pequenas oscilações locais podem surgir para variações infinitesimais nos parâmetros da distribuição.
+    \item The parameter $c$ scales $R$. While in asymptotic regimes ($K \to \infty$) larger values of $c$ increase the expected supply of low-degree droplets, in finite regimes with small $K$, excessively large $c$ drives the corrective mode $m = \lfloor K/R \rfloor$ down to degrees $m=1$ or $m=2$. It is crucial to distinguish between the index $m$, which maximizes $\tau(d)$, and the global mode of $\mu(d)$: for $K = 32$ and $c = 0.5$, shifting the corrective peak to $m=1$ concentrates approximately 73\% of total probability mass onto degree 1 alone, drastically lowering the theoretical mean degree and depriving the bipartite graph of intermediate connecting edges. In evaluated configurations, sample mean degree decreased as $c$ increased from 0.1 to 0.8, reflecting the discrete drop in $m$; however, this does not imply strict monotonicity across the entire continuous domain of $c$, as localized fluctuations can arise from parameter shifts.
     
-    \item O parâmetro $\delta$ orienta o dimensionamento assintótico da cauda da distribuição. De acordo com a formalização original de \citeonline{luby2002}, ao receber $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets sob a DRS, o processo de decodificação assegura sucesso na recuperação com probabilidade de pelo menos $1 - \delta$ sob as hipóteses assintóticas do modelo. A garantia teórica assintótica de Luby é apresentada como referência clássica da teoria; ela não se transfere automaticamente às distribuições empíricas de droplets aceitos após screening biológico nem às configurações em blocos finitos ajustadas pelas salvaguardas.
+    \item The parameter $\delta$ governs the asymptotic tail scaling. According to \citeonline{luby2002}, upon collecting $K + O(\sqrt{K}\ln^2(K/\delta))$ droplets under the RSD, decoding succeeds with probability at least $1 - \delta$ under asymptotic assumptions. Luby's asymptotic bound serves as a foundational theoretical benchmark; it does not automatically translate to empirical distributions of accepted droplets post-biological screening or to small-block regimes adjusted by finite-domain safeguards.
 \end{itemize}
 
-A distribuição robusta normalizada $\mu(d)$ é então obtida pela soma de $\rho(d)$ e $\tau(d)$, dividida pela constante de normalização $\beta$:
+The normalized Robust Soliton Distribution $\mu(d)$ is obtained by summing $\rho(d)$ and $\tau(d)$ and dividing by the normalization factor $\beta$:
 
 \begin{equation}
     \label{eq:mu}
-    \mu(d) = \frac{\rho(d) + \tau(d)}{\beta}, \quad \text{onde} \quad \beta = \sum_{d=1}^{K} \left[\rho(d) + \tau(d)\right]
+    \mu(d) = \frac{\rho(d) + \tau(d)}{\beta}, \quad \text{where} \quad \beta = \sum_{d=1}^{K} \left[\rho(d) + \tau(d)\right]
 \end{equation}
 
-A distribuição resultante $\mu(d)$ satisfaz $\sum_{d=1}^{K} \mu(d) = 1$ e é utilizada para sortear o grau de cada droplet durante a codificação. O grau médio esperado teórico de um droplet sob essa distribuição é formalizado como:
+The resulting distribution satisfies $\sum_{d=1}^{K} \mu(d) = 1$ and is used to sample droplet degrees during encoding. The theoretical expected mean degree of a droplet under this distribution is formalised as:
 
 \begin{equation}
     \label{eq:grau_medio}
     \mathbb{E}_\mu[D] = \sum_{d=1}^{K} d \cdot \mu(d)
 \end{equation}
 
-Na implementação do simulador, a amostragem de um grau é realizada por meio da função de distribuição acumulada (CDF) de $\mu(d)$: um valor uniforme $u \sim \mathcal{U}(0,1)$ é gerado e o grau $d$ é determinado como o menor valor tal que $\text{CDF}(d) \geq u$. Essa técnica garante que a frequência empírica dos graus sorteados convirja para a distribuição $\mu(d)$ à medida que o número de amostras aumenta.
+In the simulator implementation, degree sampling is executed via the Cumulative Distribution Function (CDF) of $\mu(d)$: a uniform variate $u \sim \mathcal{U}(0,1)$ is drawn, and degree $d$ is determined as the smallest integer such that $\text{CDF}(d) \ge u$. This technique guarantees that the empirical sampling frequencies converge to $\mu(d)$ as sample size increases.
 
-\section{Decodificador Peeling e Dinâmica do Ripple}
+\section{Peeling Decoder and Ripple Dynamics}
 \label{sec:peeling_decoder_and_ripple}
 
-O \textbf{\emph{peeling decoder}} é o algoritmo de decodificação utilizado nos códigos LT para reconstruir os blocos fonte originais a partir dos droplets recebidos. Trata-se de um algoritmo iterativo baseado em propagação de crença (\emph{belief propagation}) sobre o grafo bipartido, que opera exclusivamente com operações XOR no corpo finito binário $GF(2)$.
+The \textbf{peeling decoder} is the iterative algorithm employed in LT codes to reconstruct original source blocks from received droplets. It is a belief propagation algorithm over the bipartite graph that operates exclusively through XOR operations on the Galois field $GF(2)$.
 
-O princípio de funcionamento do \emph{peeling decoder} pode ser descrito intuitivamente da seguinte forma: se um droplet possui grau 1, ou seja, se ele é a combinação XOR de um único bloco fonte, então seu payload é exatamente igual ao valor desse bloco. Uma vez que o valor de um bloco é descoberto, ele pode ser ``removido'' (por XOR) de todos os demais droplets que o continham, reduzindo o grau desses droplets em uma unidade. Se algum desses droplets atinge grau 1 após a remoção, um novo bloco é descoberto, e o processo se repete.
+The operational principle of the peeling decoder can be intuitively described as follows: if a received droplet has degree 1—meaning it represents the XOR combination of a single source block—its payload is identically equal to that source block. Once a block's value is uncovered, it can be ``peeled off'' (via XOR) from all other received droplets containing it, decrementing their residual degrees by one. If any of those droplets reach degree 1 after peeling, another source block is revealed, and the process iterates.
 
-O algoritmo pode ser formalizado nos seguintes passos:
+The algorithm is formalized in three phases:
 
 \begin{enumerate}
-    \item \textbf{Inicialização}: Construir o grafo bipartido a partir dos droplets recebidos. Identificar todos os droplets com grau $d = 1$ e inseri-los em uma fila de processamento.
+    \item \textbf{Initialization}: Construct the bipartite graph from received droplets. Identify all droplets with degree $d = 1$ and insert them into a processing queue.
     
-    \item \textbf{Iteração}: Enquanto a fila não estiver vazia:
+    \item \textbf{Iteration}: While the queue is non-empty:
     \begin{enumerate}
-        \item Retirar um droplet $y$ de grau 1 da fila.
-        \item Identificar o único bloco fonte $b_i$ associado a $y$. Se $b_i$ já foi desvendado em passo anterior (droplet redundante), descartar $y$ e prosseguir para a próxima iteração.
-        \item Caso $b_i$ seja inédito, registrar $b_i = y$ como bloco descoberto.
-        \item Para cada droplet $y'$ que contém $b_i$ em seus vizinhos:
+        \item Dequeue a degree-1 droplet $y$.
+        \item Identify the unique source block $b_i$ associated with $y$. If $b_i$ has already been resolved in a prior step (redundant droplet), discard $y$ and proceed to the next iteration.
+        \item If $b_i$ is newly resolved, store $b_i = y$ as a recovered source block.
+        \item For each droplet $y'$ that contains $b_i$ among its neighbors:
         \begin{enumerate}
-            \item Atualizar o payload de $y'$: $y' \leftarrow y' \oplus b_i$.
-            \item Remover $b_i$ da lista de vizinhos de $y'$, reduzindo seu grau em 1.
-            \item Se o grau residual de $y'$ for reduzido a zero (equação redundante satisfeita), descartar $y'$. Se o grau de $y'$ se tornar igual a 1, inserir $y'$ na fila de processamento.
+            \item Update the payload of $y'$: $y' \leftarrow y' \oplus b_i$.
+            \item Remove $b_i$ from the neighbor set of $y'$, decrementing its degree by 1.
+            \item If the residual degree of $y'$ reaches zero (redundant equation satisfied), discard $y'$. If its residual degree becomes 1, enqueue $y'$ into the processing queue.
         \end{enumerate}
     \end{enumerate}
     
-    \item \textbf{Término}: O algoritmo termina quando a fila esvazia. Se todos os $K$ blocos foram descobertos, a decodificação foi bem-sucedida. Caso contrário, o processo de peeling é interrompido sem recuperar a totalidade dos blocos por ausência de equações residuais de grau 1 na fila (o que não exclui a possibilidade de resolução por eliminação gaussiana sobre $GF(2)$, embora o algoritmo de peeling linear tenha estagnado).
+    \item \textbf{Termination}: The algorithm terminates when the queue becomes empty. If all $K$ source blocks have been recovered, decoding is successful. Otherwise, the peeling process stalls prematurely without recovering all blocks due to the absence of residual degree-1 equations in the queue (which does not preclude recovery via Gaussian elimination over $GF(2)$, though the linear-time peeling process has halted).
 \end{enumerate}
 
-\subsection{Conceito de Ripple e Fila Operacional}
+\subsection{Ripple Concept and Operational Queue}
 \label{sec:ripple_concept}
 
-O conceito de \textbf{ripple} descreve a dinâmica do algoritmo ao longo das iterações. Na definição original de \citeonline{luby2002}, o \emph{ripple} é formalizado como o conjunto de símbolos fonte (variáveis de entrada) cobertos por símbolos codificados liberados, mas ainda não processados pelo decodificador. No presente simulador, a métrica instrumentada corresponde ao comprimento da fila de droplets de grau 1 mantida em memória (\texttt{collections.deque}), a qual armazena operacionalmente os pacotes que atingem grau 1 durante o processo, podendo conter droplets redundantes associados a um mesmo símbolo fonte já desvendado. Essa fila operacional é empregada como indicador prático da dinâmica de decodificação, embora sua cardinalidade não coincida necessariamente com a do ripple teórico original de Luby.
+The concept of the \textbf{ripple} characterizes the internal dynamics of the algorithm across iterations. In Luby's original definition~\cite{luby2002}, the ripple is formalized as the set of source symbols (input variables) that are covered by released encoded symbols but have not yet been processed by the decoder. In this simulator, the instrumented metric corresponds to the length of the degree-1 droplet queue maintained in memory (\texttt{collections.deque}), which operationally stores packets reaching degree 1 during decoding, and may include redundant droplets associated with previously resolved source blocks. This operational queue serves as a practical indicator of decoding momentum, though its cardinality does not strictly coincide with Luby's theoretical ripple.
 
-A decodificação atinge sucesso quando todos os $K$ blocos são descobertos antes que a fila se esvazie. Se a fila atinge zero antes que todos os blocos tenham sido recuperados, ocorre a interrupção prematura do peeling (\emph{ripple die-out}). O registro do ripple mínimo como $1{,}0$ no histórico de execução decorre do fato de que a amostragem ocorre no início de cada iteração ativa do laço (\texttt{while ripple:}), de modo que o esvaziamento final (tamanho zero) representa a condição de término do algoritmo.
+Decoding succeeds when all $K$ source blocks are resolved before the queue empties. If the queue reaches zero before all blocks are recovered, premature cessation occurs (\emph{ripple die-out}). In execution logs, minimum ripple is recorded as $1.0$ because sampling occurs at the beginning of each active loop iteration (\texttt{while ripple:}), meaning that final emptying (size zero) represents the algorithm termination condition.
 
-\section{Arquitetura DNA Fountain}
+\section{DNA Fountain Architecture}
 \label{sec:dna_fountain_architecture}
 
-A arquitetura \textbf{DNA Fountain}, proposta por \citeonline{erlich2017}, combina os códigos LT com mecanismos específicos para o contexto de armazenamento em DNA, formando um pipeline completo que vai da codificação digital até a reconstrução do arquivo original.
+The \textbf{DNA Fountain} architecture, proposed by \citeonline{erlich2017}, integrates LT codes with mechanisms specifically tailored for molecular storage, forming an end-to-end pipeline from digital encoding to file reconstruction.
 
-O pipeline do DNA Fountain, conforme modelado neste trabalho, opera da seguinte forma:
+The DNA Fountain pipeline, as modeled in this work, operates as follows:
 
 \begin{enumerate}
-    \item \textbf{Segmentação}: O arquivo binário de entrada é dividido em $K$ blocos de tamanho fixo $L$ bytes. O último bloco recebe \emph{zero-padding} determinístico com bytes nulos caso não possua $L$ bytes completos.
+    \item \textbf{Segmentation}: The input binary file is partitioned into $K$ source blocks of fixed length $L$ bytes. The final block receives deterministic zero-padding with null bytes if it contains fewer than $L$ bytes.
     
-    \item \textbf{Geração de droplets}: Para cada droplet, uma \emph{seed} inteira é utilizada como entrada de um PRNG determinístico, que gera o grau $d$ (amostrado de $\mu(d)$) e os $d$ índices dos blocos fonte a serem combinados por XOR.
+    \item \textbf{Droplet Generation}: For each droplet, an integer \emph{seed} serves as input to a deterministic PRNG, which generates the degree $d$ (sampled from $\mu(d)$) and the $d$ source block indices to be combined via XOR.
     
-    \item \textbf{Cabeçalho}: Cada droplet recebe um cabeçalho contendo a \emph{seed} codificada. A \emph{seed} atua como o identificador pseudoaleatório compacto que permite regenerar deterministicamente o grau e os índices no decodificador, desde que ambos compartilhem os mesmos parâmetros de protocolo ($K$, algoritmo de PRNG e parametrização da DRS).
+    \item \textbf{Header Packing}: Each droplet receives a header containing the encoded \emph{seed}. The seed acts as a compact pseudorandom identifier allowing the decoder to deterministically regenerate the degree and block indices, provided both sides share identical protocol parameters ($K$, PRNG algorithm, and RSD configuration).
     
-    \item \textbf{Conversão para DNA}: O conjunto cabeçalho + payload é convertido em uma sequência de nucleotídeos utilizando o mapeamento binário descrito na Seção~\ref{sec:digital_to_dna_encoding}.
+    \item \textbf{DNA Mapping}: The header and payload combination is converted into a nucleotide sequence using the 2-bit mapping described in Section~\ref{sec:digital_to_dna_encoding}.
     
-    \item \textbf{Screening biológico}: A sequência de DNA resultante é avaliada quanto ao conteúdo GC e ao comprimento de homopolímeros. Se a sequência viola alguma das restrições biológicas, o droplet é descartado e um novo droplet é gerado com a próxima \emph{seed} disponível.
+    \item \textbf{Biological Screening}: The resulting DNA sequence is evaluated for GC content and homopolymer run length. If it violates biological constraints, the candidate droplet is rejected, and a new droplet is generated with the next available seed.
     
-    \item \textbf{Transmissão pelo canal}: Os oligonucleotídeos que passaram pelo screening são submetidos ao canal de apagamento estocástico com probabilidade de perda $p_{\text{loss}}$.
+    \item \textbf{Channel Transmission}: Oligonucleotides passing biological screening are transmitted across a stochastic erasure channel with loss probability $p_{\text{loss}}$.
     
-    \item \textbf{Decodificação}: O receptor coleta os oligonucleotídeos recebidos, extrai as \emph{seeds} dos cabeçalhos, regenera os índices dos blocos associados e executa o \emph{peeling decoder} para reconstruir os $K$ blocos fonte originais.
+    \item \textbf{Decoding}: The receiver collects arriving oligonucleotides, extracts seeds from headers, regenerates neighbor indices, and executes the peeling decoder to reconstruct the $K$ original source blocks.
 \end{enumerate}
 
-Um aspecto central da arquitetura DNA Fountain é o papel da \emph{seed}. Ao utilizar um PRNG determinístico inicializado com a \emph{seed}, tanto o codificador quanto o decodificador podem calcular independentemente o grau e os índices dos blocos associados a cada droplet. Isso elimina a necessidade de transmitir metadados adicionais sobre a estrutura do grafo bipartido, reduzindo significativamente o overhead de informação lateral.
+A central strength of DNA Fountain is the role of the \emph{seed}. By utilizing a deterministic PRNG initialized with the seed, encoder and decoder can independently reconstruct degree and neighbor connections. This eliminates the need to transmit explicit bipartite graph metadata, substantially reducing communication overhead.
 
-\section{Métricas de Avaliação}
+\section{Evaluation Metrics}
 \label{sec:evaluation_metrics}
 
-Para avaliar quantitativamente o desempenho do simulador sob diferentes configurações, este trabalho utiliza um conjunto de métricas formais que capturam aspectos distintos do processo de codificação e decodificação. As métricas adotadas são:
+To quantitatively evaluate simulator performance across configurations, this work employs a formal set of metrics capturing distinct dimensions of encoding and decoding:
 
 \begin{itemize}
-    \item \textbf{Taxa de sucesso na decodificação} ($P_{\text{succ}}$): a proporção de execuções em que o \emph{peeling decoder} conseguiu recuperar todos os $K$ blocos fonte. Calculada como:
+    \item \textbf{Decoding Success Rate} ($P_{\text{succ}}$): The proportion of runs in which the peeling decoder successfully recovered all $K$ source blocks:
     
     \begin{equation}
         \label{eq:taxa_sucesso}
-        P_{\text{succ}} = \frac{\text{número de decodificações completas}}{\text{número total de execuções}}
+        P_{\text{succ}} = \frac{\text{number of complete decodings}}{\text{total number of runs}}
     \end{equation}
     
-    \item \textbf{Overhead relativo nominal e efetivo} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$): a sobrecarga de droplets em relação ao número mínimo teórico $K$. Distinguem-se:
+    \item \textbf{Nominal and Effective Overhead} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$): Droplet overhead relative to the theoretical minimum $K$. We distinguish:
     \begin{enumerate}
-        \item \textbf{Overhead nominal de transmissão}: $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, onde $N_{\text{tx}}$ representa o volume de oligonucleotídeos codificados transmitidos (aprovados no screening biológico);
-        \item \textbf{Overhead efetivo recebido}: $\epsilon_{\text{rx}} = (N_{\text{rx}} - K) / K$, onde $N_{\text{rx}}$ representa o total de oligonucleotídeos que chegam ao decodificador após as perdas estocásticas do canal. Em canal ideal ($p_{\text{loss}} = 0{,}0$), tem-se $N_{\text{rx}} = N_{\text{tx}}$ e $\epsilon_{\text{rx}} = \epsilon_{\text{tx}}$.
+        \item \textbf{Nominal transmission overhead}: $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, where $N_{\text{tx}}$ is the number of encoded oligonucleotides transmitted (passing biological screening);
+        \item \textbf{Effective received overhead}: $\epsilon_{\text{rx}} = (N_{\text{rx}} - K) / K$, where $N_{\text{rx}}$ is the total number of oligonucleotides reaching the decoder after stochastic channel erasures. Over ideal channels ($p_{\text{loss}} = 0.0$), $N_{\text{rx}} = N_{\text{tx}}$ and $\epsilon_{\text{rx}} = \epsilon_{\text{tx}}$.
     \end{enumerate}
     
-    \item \textbf{Taxa de rejeição no screening} ($R_{\text{screen}}$): a fração de oligonucleotídeos candidatos gerados que violaram as restrições biológicas físico-químicas (conteúdo GC ou homopolímeros) e foram descartados antes da transmissão:
+    \item \textbf{Screening Rejection Rate} ($R_{\text{screen}}$): The fraction of generated candidate oligonucleotides that violated physicochemical constraints (GC content or homopolymers) and were rejected prior to transmission:
     
     \begin{equation}
         \label{eq:rejeicao}
         R_{\text{screen}} = \frac{N_{\text{cand}} - N_{\text{tx}}}{N_{\text{cand}}}
     \end{equation}
     
-    onde $N_{\text{cand}}$ é o número total de candidatos gerados pelo codificador até atingir a cota de $N_{\text{tx}}$ oligos válidos transmitidos.
+    where $N_{\text{cand}}$ is the total number of candidate droplets generated until fulfilling the quota of $N_{\text{tx}}$ valid transmitted oligos.
     
-    \item \textbf{Número de operações XOR}: a contagem acumulada de operações XOR executadas pelo decodificador durante o processo de \emph{peeling}. Cada operação contabilizada corresponde à aplicação da operação XOR bit a bit entre dois blocos completos de $L$ bytes ($\texttt{xor\_blocos}$), executada exatamente uma vez por aresta removida no grafo bipartido durante a propagação de vizinhanças. Essa métrica fornece um indicador direto e agnóstico de plataforma para o esforço algorítmico da decodificação.
+    \item \textbf{Number of XOR Operations}: The cumulative count of XOR operations executed by the decoder during peeling. Each recorded operation corresponds to a bitwise XOR between two full $L$-byte blocks (\texttt{xor\_blocos}), executed exactly once per edge peeled on the bipartite graph during neighbor elimination. This metric provides a platform-agnostic measure of algorithmic decoding work.
     
-    \item \textbf{Tamanho do ripple}: registrado ao longo dos passos de decodificação, tanto o valor máximo quanto o valor médio. A trajetória do ripple permite analisar a estabilidade da decodificação e identificar pontos de estagnação.
+    \item \textbf{Ripple Size}: Recorded across decoding steps, tracking both peak and mean queue length. Ripple trajectory characterizes decoding momentum and reveals stall points.
     
-    \item \textbf{Blocos recuperados}: o número de blocos fonte efetivamente reconstruídos ao final da decodificação. Em casos de falha, essa métrica indica o quanto o sistema se aproximou da decodificação completa.
+    \item \textbf{Recovered Blocks}: The count of source blocks successfully reconstructed upon decoding termination. In failure cases, this metric indicates how close the decoder was to full recovery.
     
-    \item \textbf{Tempo de processamento}: medido separadamente para as etapas de codificação e decodificação, em milissegundos. Essa métrica permite avaliar a escalabilidade do simulador em função do número de blocos $K$.
+    \item \textbf{Processing Runtime}: Measured separately for encoding and decoding stages in milliseconds, enabling scalability assessment as a function of block count $K$.
 \end{itemize}
 
-Essas métricas são coletadas automaticamente pelo simulador a cada execução e consolidadas em arquivos CSV para análise estatística posterior, conforme detalhado no Capítulo~\ref{chap:experimental_methodology}.
+These metrics are automatically gathered by the simulator on each trial and consolidated into structured CSV files for statistical analysis, as detailed in Chapter~\ref{chap:experimental_methodology}.
