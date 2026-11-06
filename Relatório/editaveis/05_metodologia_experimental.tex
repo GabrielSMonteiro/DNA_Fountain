@@ -213,7 +213,7 @@ To compare success proportions between specific experimental configurations (e.g
 Experimental reproducibility is grounded in five key methodological measures:
 
 \begin{enumerate}
-    \item \textbf{Deterministic Seed Control}: Each batch execution receives a base seed (\texttt{seed\_base}) governing synthetic payload generation, droplet seeds, and stochastic channel losses. With fixed base seed, execution deterministically reproduces the exact same sequence of instances and algorithmic transitions in the declared environment (CPython~3.12.7), given matching seeds and files. Bit-level equivalence across different Python runtime versions is not guaranteed due to potential variations in internal sampling routines within the \texttt{random} module~\cite{python_random}. CPU elapsed runtime measurements vary naturally under operating system scheduling.
+    \item \textbf{Deterministic Seed Control}: Each batch execution receives a base seed (\texttt{seed\_base}) governing synthetic payload generation, droplet seeds, and stochastic channel losses. With a fixed base seed, execution deterministically reproduces the exact same sequence of instances and algorithmic transitions in the declared environment (CPython~3.12.7), given matching seeds and files. Bit-level equivalence across different Python runtime versions is not guaranteed due to potential variations in internal sampling routines within the \texttt{random} module~\cite{python_random}. CPU elapsed runtime measurements vary naturally under operating system scheduling.
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
