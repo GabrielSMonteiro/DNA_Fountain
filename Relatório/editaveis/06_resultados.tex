@@ -137,7 +137,7 @@ Analysis of Figure~\ref{fig:dinamica_ripple} and Table~\ref{tab:ripple_metricas}
 \section{Overhead versus Success Rate}
 \label{sec:results_overhead_success_rate}
 
-The relationship between transmitted relative overhead $\epsilon = (N - K)/K$ and decoding success probability is a defining characteristic of fountain codes. Across the experimental grid, $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). LT code theory proves that required relative overhead diminishes asymptotically with $K$. In finite block regimes, the empirical relationship must be characterized experimentally across evaluated overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$), manifesting as a gradual transition.
+The relationship between transmitted relative overhead $\epsilon = (N - K)/K$ and decoding success probability is a defining characteristic of fountain codes. Across the experimental grid, $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). LT code theory proves that required relative overhead diminishes asymptotically with $K$. In finite block regimes, the empirical relationship must be characterized experimentally across evaluated overhead levels ($\epsilon \in \{0.25, 0.50, 1.00\}$), manifesting as a gradual transition.
 
 Table~\ref{tab:overhead_sucesso} summarizes success rates obtained for different overhead tiers over an ideal channel ($p_{\text{loss}} = 0.0$) with $\delta = 0.10$.
 
@@ -171,7 +171,7 @@ Table~\ref{tab:overhead_sucesso} summarizes success rates obtained for different
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$, and $K = 64$) and constants $c \in \{0.1; 0.3; 0.5; 0.8\}$.
+Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$, and $K = 64$) and constants $c \in \{0.1, 0.3, 0.5, 0.8\}$.
 
 \begin{figure}[htbp]
     \centering
@@ -181,7 +181,7 @@ Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of 
     \fonte{Prepared by the author (2026).}
 \end{figure}
 
-The visualization in Figure~\ref{fig:overhead_sucesso} demonstrates that, across evaluated overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$), response curves steepen noticeably as $K$ increases:
+The visualization in Figure~\ref{fig:overhead_sucesso} demonstrates that, across evaluated overhead levels ($\epsilon \in \{0.25, 0.50, 1.00\}$), response curves steepen noticeably as $K$ increases:
 \begin{itemize}
     \item For $K = 16$, the transition is gradual, peaking at 91\% even under $\epsilon = 1.00$, illustrating heightened vulnerability to stochastic variance in small block counts;
     \item For $K = 32$ and $K = 64$, the $c = 0.1$ curve climbs rapidly from $\epsilon = 0.25$, reaching 85\%--88\% at $\epsilon = 0.50$ and consolidating at 100\% under $\epsilon = 1.00$ (95\% CI: $[96.4\%, 100.0\%]$);
@@ -255,7 +255,7 @@ Characterizing $c = 0.1$ and $\delta = 0.10$ as the most effective configuration
 \section{System Resilience to Channel Losses}
 \label{sec:results_system_resilience}
 
-The ability to operate over lossy channels without retransmission feedback is a primary motivation for fountain code architectures. To quantify this tolerance, the simulator was evaluated under stochastic erasure probabilities $p_{\text{loss}} \in \{0.0; 0.10; 0.20\}$, representing erasure rates up to 20\% per transmitted oligonucleotide.
+The ability to operate over lossy channels without retransmission feedback is a primary motivation for fountain code architectures. To quantify this tolerance, the simulator was evaluated under stochastic erasure probabilities $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, representing erasure rates up to 20\% per transmitted oligonucleotide.
 
 Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations under channel losses for the reference parameterization ($c = 0.1$, $\delta = 0.10$) across overhead levels.
 

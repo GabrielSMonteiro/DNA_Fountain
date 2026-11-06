@@ -3,9 +3,9 @@
 \label{chap:introduction}
 
 \section{Context}
-With the continuous growth of technology worldwide, the dependence on storing massive volumes of data is expanding significantly on a global scale. In this context, the search for long-term storage alternatives has become increasingly relevant, as conventional magnetic media exhibit limitations in volumetric density, energy consumption, and a typical lifespan of only 5 to 10 years~\cite{ceze2019}.
+With continuous technological growth, the demand for storing massive volumes of data has expanded rapidly worldwide. In this context, the search for long-term storage alternatives has become increasingly relevant, as conventional magnetic media face limitations in volumetric density, energy consumption, and an operational lifespan of only 5 to 10 years~\cite{ceze2019}.
 
-A widely investigated alternative is synthetic DNA, which stands out for its high potential for long-term data storage due to its extraordinary theoretical information density, passive preservation without continuous energy consumption, and millennial durability under appropriate encapsulation conditions. The concept has historical precedents dating back to the pioneering demonstration by Joe Davis and Dana Boyd in 1988~\cite{davis1996}, while subsequent scaled experiments, such as that by \citeonline{church2012}, demonstrated the practical feasibility of synthesizing and sequencing digital files, establishing its systematic study as an archival alternative~\cite{ceze2019}. However, DNA storage has traditionally faced complex challenges, such as the efficient mapping of digital data into nucleotide sequences, the high costs of chemical synthesis, and the occurrence of sequencing errors. Although recent methodological advances have consolidated the technical feasibility of the approach in laboratory proofs of concept, the economic cost per gigabyte and access latency remain open practical challenges~\cite{ceze2019}.
+A widely investigated alternative is synthetic DNA, which stands out for long-term data storage due to its high theoretical information density, passive preservation without continuous energy consumption, and millennial durability under appropriate encapsulation conditions. The concept has historical precedents dating back to the pioneering demonstration by Joe Davis and Dana Boyd in 1988~\cite{davis1996}. Later scaled experiments, such as that by \citeonline{church2012}, demonstrated the practical feasibility of synthesizing and sequencing digital files, establishing its systematic study as an archival alternative~\cite{ceze2019}. However, DNA storage has traditionally faced complex challenges, including the efficient mapping of digital data into nucleotide sequences, high chemical synthesis costs, and sequencing errors. Although recent methodological advances have proven the technical feasibility of the approach in laboratory proofs of concept, the economic cost per gigabyte and access latency remain open practical hurdles~\cite{ceze2019}.
 
 In this scenario, in 2017 \citeonline{erlich2017} published the DNA Fountain architecture in \emph{Science}, proposing the application of rateless codes (\emph{fountain codes}) combined with biological screening filters and error-correcting codes to circumvent physical-chemical losses and constraints in DNA storage. This approach serves as the conceptual foundation for this undergraduate thesis. The central objective of this research is to design, implement, and evaluate a modular simulator of the DNA Fountain pipeline in pure software, experimentally analyzing the influence of its encoding, screening, and decoding parameters in a finite block regime.
 
@@ -17,7 +17,7 @@ Thus, motivated by the identified problem, by the opportunity to investigate thi
 
 \section{Research Problem}
 
-In the presented context, although DNA data storage has advanced significantly in recent years, there is still a lack of didactic, modular, and easily extensible tools focused on the integrated analysis of DNA Fountain pipeline parameters within an academic experimental context. In this scenario, there is a clear need for a reproducible software infrastructure that allows testing hypotheses regarding system behavior under different configurations.
+In this context, although DNA data storage has progressed rapidly in recent years, there is still a lack of didactic, modular, and easily extensible tools focused on analyzing DNA Fountain pipeline parameters within an academic setting. There is a clear need for a reproducible software infrastructure that allows testing hypotheses regarding system behavior under different configurations.
 
 Accordingly, the research problem of this work can be formulated as follows: how to design and validate a modular simulator of the DNA Fountain pipeline that represents LT encoding, biological constraints, erasure losses, and peeling decoding, enabling the experimental analysis of the impact of parameters such as $c$, $\delta$, number of source blocks $K$, erasure loss rate, and overhead on the recovery rate and computational cost?
 
@@ -42,7 +42,7 @@ The specific objectives are:
     
     \item Experimentally evaluate the impact of $c$, $\delta$, $K$, overhead, and erasure probability.
     
-    \item Ensure reproducibility through pseudorandom seed control, batch experiment orchestration, and comprehensive configuration documentation for each scenario.
+    \item Ensure reproducibility through pseudorandom seed control, batch experiment orchestration, and detailed configuration documentation for each scenario.
 \end{enumerate}
 
 \section{Scope Delimitation}

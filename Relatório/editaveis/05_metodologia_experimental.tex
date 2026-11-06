@@ -21,7 +21,7 @@ The core simulator relies strictly on the Python standard library. Running the a
 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
-    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0;\; 0.10;\; 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
+    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
     \item \textbf{Integrity of Surviving Packets}: Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions;
     \item \textbf{Pre-Transmission Screening Rejection with Deterministic Replacement}: DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
 \end{enumerate}
@@ -34,13 +34,13 @@ Independent variables comprise the pipeline parameters systematically varied acr
 \begin{itemize}
     \item \textbf{Source Block Count ($K$)}: Determines the number of segments into which the message is partitioned. Evaluated levels: $K \in \{16, 32, 64\}$ (3 levels), representing short finite block regimes to assess practical boundaries of the peeling decoder.
 
-    \item \textbf{RSD Parameter $c$}: Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1;\; 0.3;\; 0.5;\; 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
+    \item \textbf{RSD Parameter $c$}: Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1, 0.3, 0.5, 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
 
-    \item \textbf{RSD Parameter $\delta$}: Formal design parameter governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01;\; 0.10\}$ (2 levels).
+    \item \textbf{RSD Parameter $\delta$}: Formal design parameter governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels).
 
-    \item \textbf{Relative Overhead ($\epsilon$)}: Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25;\; 0.50;\; 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
+    \item \textbf{Relative Overhead ($\epsilon$)}: Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
 
-    \item \textbf{Channel Erasure Probability ($p_{\text{loss}}$)}: Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0;\; 0.10;\; 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
+    \item \textbf{Channel Erasure Probability ($p_{\text{loss}}$)}: Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
 \end{itemize}
 
 \section{Dependent Variables}
@@ -101,10 +101,10 @@ Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, an
         \midrule
         \multirow{5}{*}{\parbox{2.5cm}{Independent (216 Grid)}}
             & Source block count ($K$) & $\{16, 32, 64\}$ (3 levels) \\
-            & RSD parameter $c$ & $\{0.1;\; 0.3;\; 0.5;\; 0.8\}$ (4 levels) \\
-            & RSD parameter $\delta$ & $\{0.01;\; 0.10\}$ (2 levels) \\
-            & Nominal overhead ($\epsilon$) & $\{0.25;\; 0.50;\; 1.00\}$ (3 levels) \\
-            & Channel loss probability ($p_{\text{loss}}$) & $\{0.0;\; 0.10;\; 0.20\}$ (3 levels) \\
+            & RSD parameter $c$ & $\{0.1, 0.3, 0.5, 0.8\}$ (4 levels) \\
+            & RSD parameter $\delta$ & $\{0.01, 0.10\}$ (2 levels) \\
+            & Nominal overhead ($\epsilon$) & $\{0.25, 0.50, 1.00\}$ (3 levels) \\
+            & Channel loss probability ($p_{\text{loss}}$) & $\{0.0, 0.10, 0.20\}$ (3 levels) \\
         \midrule
         \multirow{5}{*}{\parbox{2.5cm}{Dependent (216 Grid)}}
             & Decoding success rate & $0\%$ to $100\%$ (with 95\% Clopper--Pearson CI) \\
@@ -145,7 +145,7 @@ The initial scenario evaluates the probabilistic behavior of the pipeline under 
 
 \subsection{Experiment 2: Impact of Overhead}
 
-The second scenario investigates the relationship between relative overhead $\epsilon$ and decoding success rate. Holding parameters $\delta = 0.10$ and $p_{\text{loss}} = 0.0$ fixed, the three overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$) are crossed with the three block counts ($K \in \{16, 32, 64\}$) and four RSD constants ($c \in \{0.1;\; 0.3;\; 0.5;\; 0.8\}$), totaling 36 evaluated configurations.
+The second scenario investigates the relationship between relative overhead $\epsilon$ and decoding success rate. Holding parameters $\delta = 0.10$ and $p_{\text{loss}} = 0.0$ fixed, the three overhead levels ($\epsilon \in \{0.25, 0.50, 1.00\}$) are crossed with the three block counts ($K \in \{16, 32, 64\}$) and four RSD constants ($c \in \{0.1, 0.3, 0.5, 0.8\}$), totaling 36 evaluated configurations.
 
 The goal is to map the transition boundary between incomplete recovery and successful decoding, identifying the threshold where recovery rates reach operational plateaus.
 
@@ -177,10 +177,10 @@ Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
         \textbf{\#} & \textbf{Name} & \textbf{Varied Factor} & \textbf{Primary Metric} \\
         \midrule
         1 & Reference Baseline & Block count regime ($K$) & Success rate under $\epsilon = 1.00$ \\
-        2 & Impact of Overhead & $\epsilon \in \{0.25;\; 0.50;\; 1.00\}$ & Success rate vs. $\epsilon$ \\
-        3 & Impact of $c$ and $\delta$ & $c \in \{0.1; 0.3; 0.5; 0.8\}$, $\delta \in \{0.01; 0.10\}$ & XOR count, ripple, success \\
+        2 & Impact of Overhead & $\epsilon \in \{0.25, 0.50, 1.00\}$ & Success rate vs. $\epsilon$ \\
+        3 & Impact of $c$ and $\delta$ & $c \in \{0.1, 0.3, 0.5, 0.8\}$, $\delta \in \{0.01, 0.10\}$ & XOR count, ripple, success \\
         4 & Biological Screening & Sampling trial (2,000 oligos) & $R_{\text{screen}}$, degree comparison \\
-        5 & Erasure Channel & $p_{\text{loss}} \in \{0.0; 0.10; 0.20\}$ & Resilience, minimum overhead \\
+        5 & Erasure Channel & $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ & Resilience, minimum overhead \\
         \bottomrule
     \end{tabular}
     \fonte{Prepared by the author (2026).}

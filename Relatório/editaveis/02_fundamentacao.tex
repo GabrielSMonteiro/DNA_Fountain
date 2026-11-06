@@ -11,7 +11,7 @@ The deoxyribonucleic acid (DNA) molecule is the biopolymer responsible for stori
 
 From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This fundamental characteristic endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, an order of magnitude vastly superior to conventional magnetic or optical storage media.
 
-In addition to its extraordinary physical density, DNA exhibits exceptional physicochemical stability: when encapsulated under appropriate conditions of low temperature and dehydration (or shielded within synthetic silica microcapsules), genetic material can preserve molecular strands for millennia with viable retrieval. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
+Beyond its high physical density, DNA exhibits remarkable physicochemical stability. When encapsulated under appropriate conditions of low temperature and dehydration (or shielded within synthetic silica microcapsules), genetic material can preserve molecular strands for millennia with viable retrieval. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
 
 However, DNA data storage also faces substantial technological challenges. The chemical synthesis of oligonucleotides—the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)—remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, it is essential to distinguish laboratory proofs of concept—widely demonstrated in academic literature—from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
@@ -180,7 +180,7 @@ In computational practice, particularly in finite regimes with small block count
     \end{equation}
     This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes an operational finite-domain variant adopted by the simulator to maintain numerical consistency, rather than the strict asymptotic classical RSD.
     
-    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16; 0.8; 0.10), (16; 0.8; 0.01), (32; 0.8; 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
+    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
     
     \item \textbf{Safeguard for $R < \delta$ ($\tau(m) < 0$)}: In the hypothetical scenario where $R < \delta$, the quotient $R/\delta < 1$, yielding $\ln(R/\delta) < 0$. If unhandled, this would produce a negative probability mass in $\tau(m)$, which is why the implementation adopts a defensive numerical safeguard:
     \begin{equation}
@@ -207,7 +207,7 @@ The normalized Robust Soliton Distribution $\mu(d)$ is obtained by summing $\rho
     \mu(d) = \frac{\rho(d) + \tau(d)}{\beta}, \quad \text{where} \quad \beta = \sum_{d=1}^{K} \left[\rho(d) + \tau(d)\right]
 \end{equation}
 
-The resulting distribution satisfies $\sum_{d=1}^{K} \mu(d) = 1$ and is used to sample droplet degrees during encoding. The theoretical expected mean degree of a droplet under this distribution is formalised as:
+The resulting distribution satisfies $\sum_{d=1}^{K} \mu(d) = 1$ and is used to sample droplet degrees during encoding. The theoretical expected mean degree of a droplet under this distribution is formalized as:
 
 \begin{equation}
     \label{eq:grau_medio}
@@ -274,7 +274,7 @@ The DNA Fountain pipeline, as modeled in this work, operates as follows:
     \item \textbf{Decoding}: The receiver collects arriving oligonucleotides, extracts seeds from headers, regenerates neighbor indices, and executes the peeling decoder to reconstruct the $K$ original source blocks.
 \end{enumerate}
 
-A central strength of DNA Fountain is the role of the \emph{seed}. By utilizing a deterministic PRNG initialized with the seed, encoder and decoder can independently reconstruct degree and neighbor connections. This eliminates the need to transmit explicit bipartite graph metadata, substantially reducing communication overhead.
+A key advantage of DNA Fountain is the role of the \emph{seed}. By using a deterministic PRNG initialized with the seed, the encoder and decoder can independently reconstruct degree and neighbor connections. This eliminates the need to transmit explicit bipartite graph metadata, reducing communication overhead.
 
 \section{Evaluation Metrics}
 \label{sec:evaluation_metrics}
