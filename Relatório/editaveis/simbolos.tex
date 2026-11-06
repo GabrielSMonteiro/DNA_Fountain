@@ -1,28 +1,28 @@
 \begin{simbolos}
-  \item[$K$] Número de blocos ou pacotes fonte originais
-  \item[$N$] Número total de droplets codificados
-  \item[$N_{\text{cand}}$] Número de oligonucleotídeos candidatos gerados antes do screening
-  \item[$N_{\text{tx}}$] Número de oligonucleotídeos codificados transmitidos (aprovados no screening)
-  \item[$N_{\text{rx}}$] Número de oligonucleotídeos recebidos pelo decodificador
-  \item[$L$] Comprimento dos segmentos ou blocos fonte em bytes
-  \item[$\epsilon$] Sobrecarga de codificação (\emph{overhead}, $\epsilon = (N - K)/K$)
-  \item[$\epsilon_{\text{tx}}$] Overhead nominal de transmissão ($\epsilon_{\text{tx}} = (N_{\text{tx}} - K)/K$)
-  \item[$\epsilon_{\text{rx}}$] Overhead efetivo recebido ($\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$)
-  \item[$d$] Grau do droplet (quantidade de blocos fonte combinados)
-  \item[{$\bar{d}_{\text{emp}}$}] Grau médio amostrado empírico dos droplets
-  \item[{$\mathbb{E}_\mu[D]$}] Grau médio teórico da Distribuição Robusta de Soliton
-  \item[$\rho(d)$] Função de probabilidade da Distribuição Ideal de Soliton
-  \item[$\tau(d)$] Termo corretivo da Distribuição Robusta de Soliton
-  \item[$\mu(d)$] Função de probabilidade normalizada da Distribuição Robusta de Soliton
-  \item[$\beta$] Fator de normalização da DRS ($\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$)
-  \item[$c$] Parâmetro livre de sintonia da DRS ($c > 0$)
-  \item[$\delta$] Parâmetro de robustez teórica da DRS (limitador assintótico da probabilidade de falha sob o número de pacotes recebidos $K + O(\sqrt{K}\ln^2(K/\delta))$)
-  \item[$R$] Parâmetro de escala associado ao tamanho esperado do \emph{ripple} ($R = c \ln(K/\delta)\sqrt{K}$)
-  \item[$Q_{\max}$] Pico máximo observado do comprimento da fila operacional de droplets processáveis
-  \item[$Q_{\min}$] Comprimento mínimo da fila operacional durante o laço ativo de decodificação
-  \item[$m$] Índice de máximo do componente corretivo $\tau(d)$ da DRS ($m = \lfloor K/R \rfloor$)
-  \item[$R_{\text{screen}}$] Taxa de rejeição do módulo de screening biológico
-  \item[$H_{\max}$] Comprimento máximo permitido de sequências homopoliméricas
-  \item[$p_{\text{loss}}$] Probabilidade de apagamento de droplet no canal
-  \item[$\oplus$] Operação OU-Exclusivo (\emph{bitwise XOR}, adição em $GF(2)$)
+  \item[$K$] Number of original source blocks or packets
+  \item[$N$] Total number of encoded droplets
+  \item[$N_{\text{cand}}$] Number of candidate oligonucleotides generated before screening
+  \item[$N_{\text{tx}}$] Number of transmitted encoded oligonucleotides (passed screening)
+  \item[$N_{\text{rx}}$] Number of encoded oligonucleotides received by the decoder
+  \item[$L$] Length of source segments or blocks in bytes
+  \item[$\epsilon$] Coding overhead ($\epsilon = (N - K)/K$)
+  \item[$\epsilon_{\text{tx}}$] Nominal transmission overhead ($\epsilon_{\text{tx}} = (N_{\text{tx}} - K)/K$)
+  \item[$\epsilon_{\text{rx}}$] Effective received overhead ($\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$)
+  \item[$d$] Droplet degree (number of combined source blocks)
+  \item[{$\bar{d}_{\text{emp}}$}] Empirical sample mean degree of droplets
+  \item[{$\mathbb{E}_\mu[D]$}] Theoretical expected mean degree under the Robust Soliton Distribution
+  \item[$\rho(d)$] Probability mass function of the Ideal Soliton Distribution
+  \item[$\tau(d)$] Corrective term of the Robust Soliton Distribution
+  \item[$\mu(d)$] Normalized probability mass function of the Robust Soliton Distribution
+  \item[$\beta$] Normalization factor of the RSD ($\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$)
+  \item[$c$] Free tuning parameter of the RSD ($c > 0$)
+  \item[$\delta$] Theoretical robustness parameter of the RSD (asymptotic bound on failure probability with $K + O(\sqrt{K}\ln^2(K/\delta))$ received packets)
+  \item[$R$] Scale parameter associated with the expected ripple size ($R = c \ln(K/\delta)\sqrt{K}$)
+  \item[$Q_{\max}$] Maximum observed length of the operational queue of processable droplets
+  \item[$Q_{\min}$] Minimum length of the operational queue during the active decoding loop
+  \item[$m$] Mode index of the corrective component $\tau(d)$ of the RSD ($m = \lfloor K/R \rfloor$)
+  \item[$R_{\text{screen}}$] Rejection rate of the biological screening module
+  \item[$H_{\max}$] Maximum allowable homopolymer run length
+  \item[$p_{\text{loss}}$] Droplet erasure probability in the channel
+  \item[$\oplus$] Bitwise Exclusive-OR operation (addition in $GF(2)$)
 \end{simbolos}

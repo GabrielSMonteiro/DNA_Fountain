@@ -1,28 +1,28 @@
 % !TEX root = ../main.tex
-\chapter{Trabalhos Futuros}
+\chapter{Future Work}
 \label{chap:future_work}
 
-A partir dos resultados e das conclusões estabelecidas neste trabalho, identificam-se direções naturais para a continuidade e expansão da pesquisa em Engenharia de Software e sistemas de armazenamento molecular:
+Based on the findings and conclusions established in this work, several natural directions emerge for the continuation and expansion of research in Software Engineering and molecular storage systems:
 
 \begin{enumerate}
-    \item \textbf{Modelagem de Canais Ruidosos com Indels e Substituições}:
-    Evoluir o modelo de canal estocástico para além do apagamento puro, incorporando taxas realistas de mutação pontual (substituição de nucleotídeos), deleção e inserção (indels), típicas de tecnologias de síntese química e sequenciamento de terceira geração (como Oxford Nanopore e Pacific Biosciences). A implementação de algoritmos de sincronização e alinhamento com distância de Levenshtein ou códigos HEDGES~\cite{press2020} permitirá avaliar a robustez do pipeline sob ruído de fase.
+    \item \textbf{Noisy Channel Modeling with Indels and Substitutions}:
+    Extend the stochastic channel model beyond pure erasures to incorporate realistic rates of point mutations (nucleotide substitutions), deletions, and insertions (indels), which are characteristic of chemical synthesis and third-generation sequencing technologies (such as Oxford Nanopore and Pacific Biosciences). Implementing synchronization and alignment algorithms based on Levenshtein distance or HEDGES codes~\cite{press2020} will allow assessing pipeline robustness under phase noise.
 
-    \item \textbf{Integração de Códigos Concatenados de Correção de Erros}:
-    Acoplar ao simulador uma arquitetura em duas camadas, combinando um código interno de correção de erros em bloco (como Reed-Solomon de 2 bytes por oligo ou códigos convolucionais) aplicado sobre a semente e a carga útil de cada oligonucleotídeo com o código LT externo sem taxa, aproximando o simulador da especificação integral empregada por \citeonline{erlich2017}.
+    \item \textbf{Integration of Concatenated Error-Correcting Codes}:
+    Couple a two-layered architecture to the simulator, combining an inner block error-correcting code (such as Reed--Solomon with 2 bytes per oligo or convolutional codes) applied across each oligonucleotide's seed and payload with the outer rateless LT code, thereby closely aligning the simulator with the full specification employed by \citeonline{erlich2017}.
 
-    \item \textbf{Investigação de Distribuições Alternativas e Códigos Sistemáticos}:
-    Explorar distribuições de probabilidade alternativas à DRS clássica de Luby, como as distribuições otimizadas para códigos Raptor e códigos BATS (\emph{Batched Sparse Codes}), além de versões sistemáticas de \emph{fountain codes}, nas quais os primeiros $K$ pacotes transmitidos correspondem diretamente aos blocos fonte não codificados, reduzindo o overhead necessário em regimes de mensagens pequenas.
+    \item \textbf{Investigation of Alternative Distributions and Systematic Codes}:
+    Explore alternative probability distributions to Luby's classic RSD, such as degree distributions optimized for Raptor codes and Batched Sparse (BATS) codes, as well as systematic fountain code variants where the first $K$ transmitted packets directly correspond to unencoded source blocks, thereby reducing required overhead in small message regimes.
 
-    \item \textbf{Escalabilidade para Arquivos em Larga Escala}:
-    Expandir a infraestrutura experimental para avaliar cargas úteis na escala de megabytes ou gigabytes (ampliando o produto $K \times L$ por meio do aumento conjunto de blocos $K$ e do tamanho de payload $L$), incorporando técnicas de decodificação concorrente com paralelismo em nível de threads e processos (\texttt{multiprocessing} ou OpenMP) e otimização de representação de grafos em memória.
+    \item \textbf{Scalability for Large-Scale Datasets}:
+    Scale the experimental infrastructure to evaluate megabyte- or gigabyte-scale payloads (expanding the product $K \times L$ through joint increases in block count $K$ and payload size $L$), incorporating concurrent decoding techniques with thread- and process-level parallelism (\texttt{multiprocessing} or OpenMP) and memory-optimized bipartite graph representations.
 
-    \item \textbf{Aceleração em Hardware Dedicado (FPGA)}:
-    Projetar e sintetizar um núcleo de processamento em hardware (IP Core) para o algoritmo de \emph{peeling decoder} utilizando linguagens de descrição de hardware (VHDL ou Verilog), voltado a dispositivos FPGA de baixo custo (como a placa Digilent Basys 3 equipada com FPGA Xilinx Artix-7). A paralelização das operações XOR e o gerenciamento de filas de adjacência em hardware dedicado têm o potencial de reduzir a latência de decodificação, a ser quantificada após implementação e síntese em FPGA em sistemas de armazenamento em tempo real.
+    \item \textbf{Dedicated Hardware Acceleration (FPGA)}:
+    Design and synthesize an IP core for the peeling decoder algorithm using hardware description languages (VHDL or Verilog), targeting low-cost FPGA devices (such as the Digilent Basys 3 board equipped with a Xilinx Artix-7 FPGA). Parallelizing XOR operations and managing adjacency queues in dedicated hardware has the potential to substantially reduce decoding latency, to be quantified following FPGA implementation and synthesis for real-time storage systems.
 
-    \item \textbf{PRNG Autônomo e Portável para Síntese em Hardware}:
-    Implementar um gerador pseudoaleatório autônomo e de alta velocidade (como LFSR aritmético com registradores de deslocamento ou geradores da família PCG32/xoshiro), eliminando a dependência do interpretador Python e viabilizando a síntese direta dos circuitos de regeneração de índices de vizinhança em hardware reconfigurável.
+    \item \textbf{Autonomous and Portable PRNG for Hardware Synthesis}:
+    Implement an autonomous, high-speed pseudorandom number generator (such as an arithmetic LFSR with linear shift registers or PCG32/xoshiro family generators), eliminating dependency on the Python interpreter and enabling direct synthesis of neighborhood index regeneration circuits in reconfigurable logic.
 
-    \item \textbf{Testes de Aderência sobre a Distribuição de Graus sob Screening}:
-    Conduzir levantamento amostral em larga escala ($10^5$ ou mais droplets) com teste de aderência qui-quadrado ($\chi^2$) e versões adaptadas para distribuições discretas do teste de Kolmogorov--Smirnov sobre os histogramas completos de frequência de cada grau $d \in \{1, \ldots, K\}$, aprofundando a avaliação de eventual associação estatística entre restrições físico-químicas de sequência e a probabilidade de aceitação de graus na DRS.
+    \item \textbf{Goodness-of-Fit Tests on Degree Distribution under Screening}:
+    Conduct large-scale sampling trials ($10^5$ or more droplets) utilizing chi-square ($\chi^2$) goodness-of-fit tests and discrete-adapted Kolmogorov--Smirnov tests across the full frequency histograms of each degree $d \in \{1, \ldots, K\}$, deepening the evaluation of any potential statistical association between sequence physicochemical constraints and degree acceptance probabilities in the RSD.
 \end{enumerate}

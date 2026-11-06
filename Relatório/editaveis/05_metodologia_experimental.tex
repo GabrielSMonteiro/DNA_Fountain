@@ -1,240 +1,240 @@
 % !TEX root = ../main.tex
-\chapter{Metodologia Experimental}
+\chapter{Experimental Methodology}
 \label{chap:experimental_methodology}
 
-Este capítulo define o protocolo experimental adotado para avaliar o simulador desenvolvido. São especificados o ambiente de execução, as variáveis independentes que foram sistematicamente variadas na matriz de ensaios, as variáveis dependentes que foram medidas, os parâmetros controlados mantidos fixos, os cinco cenários experimentais planejados, os procedimentos de análise estatística com intervalos de confiança exatos e testes de hipótese e, por fim, as medidas de reprodutibilidade que asseguram a rastreabilidade completa dos resultados.
+This chapter defines the experimental protocol employed to evaluate the simulator. It specifies the execution environment, independent variables systematically swept across the factorial matrix, measured dependent variables, controlled parameters held fixed, the five planned experimental scenarios, statistical procedures including exact confidence intervals and hypothesis tests, and reproducibility measures ensuring full traceability of results.
 
-\section{Ambiente Experimental e Hipóteses do Canal}
+\section{Experimental Environment and Channel Assumptions}
 \label{sec:experimental_environment}
 
-Todos os experimentos foram executados em uma única máquina com a seguinte configuração de hardware e software:
+All experiments were executed on a dedicated host with the following hardware and software configuration:
 
 \begin{itemize}
-    \item \textbf{Processador}: AMD Ryzen 5 5600X (6 núcleos, 12 threads, 3.7 GHz base / 4.6 GHz boost);
-    \item \textbf{Memória RAM}: 16 GB DDR4 3200 MHz;
-    \item \textbf{Sistema Operacional}: Microsoft Windows 11 Home 24H2;
-    \item \textbf{Interpretador}: Python 3.12.7 (CPython);
-    \item \textbf{Bibliotecas}: Apenas módulos da biblioteca padrão (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), sem dependências externas para o núcleo do simulador.
+    \item \textbf{Processor}: AMD Ryzen 5 5600X (6 cores, 12 threads, 3.7 GHz base / 4.6 GHz boost);
+    \item \textbf{RAM}: 16 GB DDR4 3200 MHz;
+    \item \textbf{Operating System}: Microsoft Windows 11 Home 24H2;
+    \item \textbf{Runtime}: Python 3.12.7 (CPython);
+    \item \textbf{Dependencies}: Pure Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), with zero external dependencies for the simulator core.
 \end{itemize}
 
-O núcleo do simulador depende exclusivamente da biblioteca padrão do Python. A execução da suíte de testes automatizados e a regeneração das figuras utilizam dependências de desenvolvimento (\texttt{pytest} e \texttt{matplotlib}), descritas no arquivo de requisitos da versão experimental (\texttt{requirements-dev.txt}).
+The core simulator relies strictly on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements-dev.txt}).
 
-Em consonância com a delimitação de escopo estabelecida no Capítulo~\ref{chap:introduction}, o canal de transmissão é modelado sob as seguintes hipóteses operacionais:
+Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
-    \item \textbf{Canal de Apagamento de Pacotes (abstração BEC)}: Canal de apagamento de pacotes, com eventos Bernoulli independentes por oligonucleotídeo, usado como abstração do canal molecular. Cada oligonucleotídeo transmitido é submetido a uma perda independente e identicamente distribuída (i.i.d.) com probabilidade fixa $p_{\text{loss}} \in \{0{,}0;\; 0{,}10;\; 0{,}20\}$, de modo que a quantidade de droplets recebidos segue uma distribuição binomial $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
-    \item \textbf{Integridade dos Pacotes Sobreviventes}: Os oligonucleotídeos que sobrevivem ao canal chegam ao decodificador com integridade lógica perfeita, sem mutações de substituição, inserções ou deleções pontuais;
-    \item \textbf{Rejeição Prévia no Screening com Substituição Determinística}: Sequências de DNA que violam as restrições físico-químicas de viabilidade biológica (janela de GC ou limite de homopolímeros) são descartadas na origem pelo codificador. Os candidatos rejeitados são substituídos por novos candidatos gerados com seeds incrementais, até atingir o total estipulado de $N_{\text{tx}}$ sequências aprovadas e transmitidas. Esse descarte prévio de candidatos não se confunde com o apagamento estocástico do canal de transmissão.
+    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0;\; 0.10;\; 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
+    \item \textbf{Integrity of Surviving Packets}: Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions;
+    \item \textbf{Pre-Transmission Screening Rejection with Deterministic Replacement}: DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
 \end{enumerate}
 
-\section{Variáveis Independentes}
+\section{Independent Variables}
 \label{sec:independent_variables}
 
-As variáveis independentes são os parâmetros do pipeline sistematicamente variados na grade experimental fatorial para avaliar seu impacto sobre o desempenho e a robustez do sistema. A combinação dos níveis dessas variáveis define o espaço de busca de $3 \times 4 \times 2 \times 3 \times 3 = 216$ pontos paramétricos:
+Independent variables comprise the pipeline parameters systematically varied across the factorial experimental grid to evaluate their impact on system performance and resilience. Combining the levels of these variables defines a search space of $3 \times 4 \times 2 \times 3 \times 3 = 216$ parametric points:
 
 \begin{itemize}
-    \item \textbf{Quantidade de blocos fonte ($K$)}: Determina o número de segmentos em que a mensagem é particionada. Valores avaliados: $K \in \{16, 32, 64\}$ (3 níveis), representando regimes de blocos finitos para avaliar os limites práticos do \emph{peeling decoder}.
+    \item \textbf{Source Block Count ($K$)}: Determines the number of segments into which the message is partitioned. Evaluated levels: $K \in \{16, 32, 64\}$ (3 levels), representing short finite block regimes to assess practical boundaries of the peeling decoder.
 
-    \item \textbf{Parâmetro $c$ da DRS}: Constante multiplicativa que controla a escala de $R$ na distribuição robusta de soliton. Valores avaliados: $c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis). A grade avalia a DRS clássica nas configurações válidas da formulação analítica e a extensão operacional com $m$ limitado a 1 nos casos de fronteira ($m_{\text{bruto}} < 1$), conforme especificado na Seção~\ref{sec:robust_soliton_distribution}.
+    \item \textbf{RSD Parameter $c$}: Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1;\; 0.3;\; 0.5;\; 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
 
-    \item \textbf{Parâmetro $\delta$ da DRS}: Balizador formal de projeto da cauda da distribuição. Valores avaliados: $\delta \in \{0{,}01;\; 0{,}1\}$ (2 níveis).
+    \item \textbf{RSD Parameter $\delta$}: Formal design parameter governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01;\; 0.10\}$ (2 levels).
 
-    \item \textbf{Overhead relativo ($\epsilon$)}: Fração de redundância injetada acima de $K$, definida como $\epsilon = (N - K) / K$, onde $N$ denota o número de oligonucleotídeos aprovados no screening e transmitidos, isto é, $N = N_{\text{tx}}$. Valores avaliados: $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis), correspondentes a $25\%$, $50\%$ e $100\%$ de pacotes adicionais.
+    \item \textbf{Relative Overhead ($\epsilon$)}: Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25;\; 0.50;\; 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
 
-    \item \textbf{Taxa de perda no canal ($p_{\text{loss}}$)}: Probabilidade de apagamento de cada oligonucleotídeo no canal i.i.d. Valores avaliados: $p_{\text{loss}} \in \{0{,}0;\; 0{,}1;\; 0{,}2\}$ (3 níveis), abrangendo desde canal sem ruído até probabilidade de apagamento de até 0{,}20 por oligonucleotídeo transmitido.
+    \item \textbf{Channel Erasure Probability ($p_{\text{loss}}$)}: Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0;\; 0.10;\; 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
 \end{itemize}
 
-\section{Variáveis Dependentes}
+\section{Dependent Variables}
 \label{sec:dependent_variables}
 
-As variáveis dependentes são as métricas de saída coletadas pelo simulador em cada execução. Essas métricas quantificam o desempenho e o custo do pipeline sob diferentes configurações:
+Dependent variables correspond to output metrics collected by the simulator on each execution run. These metrics quantify pipeline performance and computational cost across configurations:
 
 \begin{itemize}
-    \item \textbf{Taxa de sucesso na decodificação}: Proporção de execuções em que todos os $K$ blocos fonte foram recuperados corretamente pelo \emph{peeling decoder}, expressa como um valor entre $0\%$ e $100\%$.
+    \item \textbf{Decoding Success Rate}: Proportion of trials in which all $K$ source blocks were successfully recovered by the peeling decoder, expressed as a percentage between $0\%$ and $100\%$.
 
-    \item \textbf{Número médio de blocos recuperados}: Contagem média de blocos fonte descobertos, útil para avaliar a progressão parcial em cenários de falha.
+    \item \textbf{Mean Recovered Blocks}: Average count of resolved source blocks, useful for evaluating partial recovery in failure cases.
 
-    \item \textbf{Taxa de rejeição no screening ($R_{\text{screen}}$)}: Proporção de droplets descartados pelo módulo de screening biológico antes da transmissão, indicando o custo adicional de overhead imposto pelas restrições de GC e homopolímeros.
+    \item \textbf{Screening Rejection Rate ($R_{\text{screen}}$)}: Proportion of candidate droplets rejected by the biological screening module prior to transmission, quantifying the overhead penalty imposed by GC and homopolymer constraints.
 
-    \item \textbf{Quantidade efetiva de droplets recebidos}: Número de oligonucleotídeos que sobreviveram simultaneamente ao screening biológico e ao canal de apagamento, representando a informação efetivamente disponível ao decodificador.
+    \item \textbf{Effective Received Droplet Count}: Number of oligonucleotides surviving both biological screening and channel erasures, representing the effective information available to the decoder.
 
-    \item \textbf{Operações XOR de propagação do peeling}: Soma acumulada das operações de ou-exclusivo executadas entre blocos durante as atualizações de vizinhança no \emph{peeling}, servindo como métrica do esforço computacional do decodificador.
+    \item \textbf{Peeling Propagation XOR Operations}: Cumulative count of bitwise exclusive-OR operations executed between blocks during neighbor updates, providing a platform-agnostic metric of decoder algorithmic effort.
 
-    \item \textbf{Tamanho da fila operacional do ripple}: Comprimento da fila de droplets processáveis monitorado a cada passo da decodificação. O valor máximo ($Q_{\max}$) registra o pico de droplets unitários simultâneos na fila, enquanto o valor mínimo ($Q_{\min}$) reflete a condição de guarda operacional durante o laço ativo de processamento (\texttt{while ripple:}), no qual $Q_{\min} = 1$ por definição da guarda.
+    \item \textbf{Operational Ripple Queue Size}: Monitored length of the processable droplet queue across decoding iterations. The maximum value ($Q_{\max}$) captures the peak number of simultaneous degree-1 droplets, while the minimum value ($Q_{\min}$) reflects the operational guard condition during the active loop (\texttt{while ripple:}), where $Q_{\min} = 1$ by definition.
 
-    \item \textbf{Tempo de decodificação}: Intervalo de tempo em milissegundos consumido pelo método \texttt{decoder.decodificar()}, medido via \texttt{time.perf\_counter()} com resolução de microssegundos.
+    \item \textbf{Decoding Runtime}: Execution time in milliseconds consumed by \texttt{decoder.decodificar()}, measured via \texttt{time.perf\_counter()} with microsecond resolution.
 \end{itemize}
 
-\section{Variáveis Controladas}
+\section{Controlled Variables}
 \label{sec:controlled_variables}
 
-Para garantir a validade interna dos experimentos, os seguintes parâmetros permaneceram estritamente fixos em todos os ensaios da matriz fatorial de 216 combinações:
+To maintain internal experimental validity, the following parameters remained strictly fixed across all trials in the 216-combination factorial grid:
 
 \begin{itemize}
-    \item \textbf{Tamanho do bloco ($L$)}: Fixado em $L = 4$ bytes (32 bits de carga útil, gerando 16 nucleotídeos de payload por droplet), mantendo oligonucleotídeos de comprimento curto e uniforme ao longo de toda a grade.
+    \item \textbf{Block Length ($L$)}: Fixed at $L = 4$ bytes (32 payload bits, producing 16 payload nucleotides per droplet), maintaining uniform short oligonucleotides across the grid.
 
-    \item \textbf{Módulo de screening biológico}: Mantido ativado com janela de aceitabilidade de GC entre $40\%$ e $60\%$ e limite máximo de homopolímeros de $H_{\max} = 3$ bases consecutivas idênticas.
+    \item \textbf{Biological Screening}: Active with GC acceptability window $[40\%, 60\%]$ and maximum homopolymer run length $H_{\max} = 3$ consecutive identical bases.
 
-    \item \textbf{Carga útil sintética}: Os blocos fonte são gerados como vetores de bytes pseudoaleatórios governados pela \emph{seed} base do experimento, garantindo reprodutibilidade sem depender de arquivos externos.
+    \item \textbf{Synthetic Payload}: Source blocks generated as pseudorandom byte streams governed by the experiment base seed, ensuring reproducibility without external file dependencies.
 
-    \item \textbf{Mapeamento de bases}: Mapeamento direto de 2 bits por base ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), conforme Seção~\ref{sec:digital_to_dna_encoding}.
+    \item \textbf{Nucleotide Mapping}: Direct 2-bit-per-base mapping ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), as described in Section~\ref{sec:digital_to_dna_encoding}.
 
-    \item \textbf{Cabeçalho de seed}: Armazenado em 16 bits (2 bytes) ofuscado por máscara XOR \texttt{0x1B1B}.
+    \item \textbf{Seed Header}: Encoded in 16 bits (2 bytes) obfuscated by static XOR mask \texttt{0x1B1B}.
 
-    \item \textbf{Política de padding}: Preenchimento determinístico com bytes nulos (\texttt{0x00}).
+    \item \textbf{Padding Policy}: Deterministic zero-byte padding (\texttt{0x00}).
 
-    \item \textbf{CRC-8}: Ativo por padrão com polinômio gerador \texttt{0x07}.
+    \item \textbf{CRC-8}: Active by default with generator polynomial \texttt{0x07}.
 
-    \item \textbf{Scrambler}: Ativo por padrão como máscara aditiva pseudoaleatória via XOR com offset \texttt{0x5A5A}.
+    \item \textbf{Scrambler}: Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A}.
 \end{itemize}
 
-A Tabela~\ref{tab:parametros_experimentais} consolida a relação entre variáveis independentes, dependentes e controladas do protocolo experimental.
+Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, and controlled variables within the experimental protocol.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Consolidação dos parâmetros e variáveis experimentais.}
+    \caption{Consolidation of experimental parameters and variables.}
     \label{tab:parametros_experimentais}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{llp{7.5cm}}
         \toprule
-        \textbf{Tipo} & \textbf{Variável} & \textbf{Valores / Faixa} \\
+        \textbf{Type} & \textbf{Variable} & \textbf{Values / Range} \\
         \midrule
-        \multirow{5}{*}{\parbox{2.5cm}{Independentes (Grade 216)}}
-            & Quantidade de blocos fonte ($K$) & $\{16, 32, 64\}$ (3 níveis) \\
-            & Parâmetro $c$ da DRS & $\{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$ (4 níveis) \\
-            & Parâmetro $\delta$ da DRS & $\{0{,}01;\; 0{,}10\}$ (2 níveis) \\
-            & Overhead nominal ($\epsilon$) & $\{0{,}25;\; 0{,}50;\; 1{,}00\}$ (3 níveis) \\
-            & Taxa de perda no canal ($p_{\text{loss}}$) & $\{0{,}0;\; 0{,}10;\; 0{,}20\}$ (3 níveis) \\
+        \multirow{5}{*}{\parbox{2.5cm}{Independent (216 Grid)}}
+            & Source block count ($K$) & $\{16, 32, 64\}$ (3 levels) \\
+            & RSD parameter $c$ & $\{0.1;\; 0.3;\; 0.5;\; 0.8\}$ (4 levels) \\
+            & RSD parameter $\delta$ & $\{0.01;\; 0.10\}$ (2 levels) \\
+            & Nominal overhead ($\epsilon$) & $\{0.25;\; 0.50;\; 1.00\}$ (3 levels) \\
+            & Channel loss probability ($p_{\text{loss}}$) & $\{0.0;\; 0.10;\; 0.20\}$ (3 levels) \\
         \midrule
-        \multirow{5}{*}{\parbox{2.5cm}{Dependentes (Grade 216)}}
-            & Taxa de sucesso na decodificação & $0\%$ a $100\%$ (com IC de 95\% Clopper--Pearson) \\
-            & Blocos fonte recuperados & $0$ a $K$ \\
-            & Droplets recebidos efetivos & Contagem pós-screening e pós-perda \\
-            & Operações XOR acumuladas & Total computado no peeling \\
-            & Fila do ripple ($Q_{\max}$, $Q_{\min}$) & Dinâmica da fila instrumentada \\
-            & Tempo total do decodificador & Milissegundos (\texttt{time.perf\_counter}) \\
+        \multirow{5}{*}{\parbox{2.5cm}{Dependent (216 Grid)}}
+            & Decoding success rate & $0\%$ to $100\%$ (with 95\% Clopper--Pearson CI) \\
+            & Recovered source blocks & $0$ to $K$ \\
+            & Effective received droplets & Post-screening and post-loss count \\
+            & Cumulative XOR operations & Total computed during peeling \\
+            & Ripple queue size ($Q_{\max}$, $Q_{\min}$) & Instrumented queue dynamics \\
+            & Total decoder runtime & Milliseconds (\texttt{time.perf\_counter}) \\
         \midrule
-        \multirow{2}{*}{\parbox{2.5cm}{Ensaio Dedicado (Screening)}}
-            & Taxa de rejeição ($R_{\text{screen}}$) & Descarte em 2.000 oligos candidatos ($K=32$) \\
-            & Grau médio amostrado ($\bar{d}$) & Subconjuntos aceito e rejeitado vs. DRS \\
+        \multirow{2}{*}{\parbox{2.5cm}{Dedicated Screening Trial}}
+            & Rejection rate ($R_{\text{screen}}$) & Rejection across 2,000 candidate oligos ($K=32$) \\
+            & Sampled mean degree ($\bar{d}$) & Accepted and rejected subsets vs. RSD \\
         \midrule
-        \multirow{9}{*}{\parbox{2.5cm}{Controladas}}
-            & Tamanho do bloco ($L$) & $4$ bytes (fixo em todos os ensaios) \\
-            & Screening na grade principal & Ativado (janela GC $40$--$60\%$, $H_{\max} = 3$) \\
-            & Scrambler pseudoaleatório & Ativado (combinação XOR determinística) \\
-            & Mapeamento digital $\to$ DNA & $2$ bits/base direto (fixo) \\
-            & Cabeçalho de seed & $16$ bits (2 bytes), máscara \texttt{0x1B1B} \\
-            & Política de padding & \emph{Zero-padding} determinístico (\texttt{0x00}) \\
-            & Carga útil binária & Sintética pseudoaleatória governada por seed \\
-            & Checksum CRC-8 & Ativo com polinômio \texttt{0x07} \\
-            & Repetições por ponto fatorial & $n = 100$ repetições independentes \\
+        \multirow{9}{*}{\parbox{2.5cm}{Controlled}}
+            & Block length ($L$) & $4$ bytes (fixed across all runs) \\
+            & Primary grid screening & Active (GC window $40$--$60\%$, $H_{\max} = 3$) \\
+            & Pseudorandom scrambler & Active (deterministic XOR combination) \\
+            & Digital $\to$ DNA mapping & Direct $2$ bits/base (fixed) \\
+            & Seed header & $16$ bits (2 bytes), mask \texttt{0x1B1B} \\
+            & Padding policy & Deterministic zero-padding (\texttt{0x00}) \\
+            & Binary payload & Pseudorandom synthetic stream governed by seed \\
+            & CRC-8 checksum & Active with polynomial \texttt{0x07} \\
+            & Repetitions per factorial point & $n = 100$ independent trials \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-\section{Cenários Experimentais}
+\section{Experimental Scenarios}
 \label{sec:experimental_scenarios}
 
-Cinco cenários experimentais foram planejados para investigar, de forma isolada e progressiva, os principais fatores que influenciam o desempenho do pipeline DNA Fountain. Cada cenário fixa determinados parâmetros e varia sistematicamente um fator de interesse, conforme descrito a seguir.
+Five experimental scenarios were designed to investigate, in an isolated and progressive manner, the primary factors influencing DNA Fountain pipeline performance. Each scenario holds specific parameters fixed while systematically varying a factor of interest:
 
-\subsection{Experimento 1: Validação sob Condições de Referência}
+\subsection{Experiment 1: Baseline Reference Condition Validation}
 
-O primeiro cenário tem como objetivo avaliar o comportamento probabilístico do pipeline sob condições operacionais de referência, com canal ideal ($p_{\text{loss}} = 0$) e overhead elevado ($\epsilon = 1{,}00$). Diferentemente dos testes unitários determinísticos (que empregam grafos canônicos com solução garantida), o processo de geração sob a DRS é estocástico. Sob essas condições de referência, avalia-se se o overhead é suficiente para manter o ripple ativo até a decodificação completa, permitindo contrastar o regime de alta recuperação de $K=32$ e $K=64$ com a maior vulnerabilidade estocástica de $K=16$.
+The initial scenario evaluates the probabilistic behavior of the pipeline under reference operational conditions, featuring an ideal channel ($p_{\text{loss}} = 0$) and elevated overhead ($\epsilon = 1.00$). Unlike deterministic unit tests (which employ canonical graphs with guaranteed solutions), degree sampling under the RSD is stochastic. Under reference conditions, this scenario examines whether overhead is sufficient to sustain ripple activity through full reconstruction, contrasting high-recovery regimes ($K=32$ and $K=64$) with the heightened stochastic vulnerability of $K=16$.
 
-\subsection{Experimento 2: Impacto do Overhead}
+\subsection{Experiment 2: Impact of Overhead}
 
-O segundo cenário investiga a relação entre o overhead relativo $\epsilon$ e a taxa de sucesso na decodificação. Os parâmetros $\delta = 0{,}10$ e $p_{\text{loss}} = 0{,}0$ são mantidos fixos, cruzando-se os três níveis de overhead ($\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$) com as três quantidades de blocos fonte ($K \in \{16, 32, 64\}$) e as quatro constantes da DRS ($c \in \{0{,}1;\; 0{,}3;\; 0{,}5;\; 0{,}8\}$), totalizando 36 configurações avaliadas.
+The second scenario investigates the relationship between relative overhead $\epsilon$ and decoding success rate. Holding parameters $\delta = 0.10$ and $p_{\text{loss}} = 0.0$ fixed, the three overhead levels ($\epsilon \in \{0.25;\; 0.50;\; 1.00\}$) are crossed with the three block counts ($K \in \{16, 32, 64\}$) and four RSD constants ($c \in \{0.1;\; 0.3;\; 0.5;\; 0.8\}$), totaling 36 evaluated configurations.
 
-O objetivo é mapear a transição entre decodificação incompleta e decodificação bem-sucedida, identificando o patamar a partir do qual a taxa de sucesso atinge patamares elevados de recuperação.
+The goal is to map the transition boundary between incomplete recovery and successful decoding, identifying the threshold where recovery rates reach operational plateaus.
 
-\subsection{Experimento 3: Impacto dos Parâmetros $c$ e $\delta$}
+\subsection{Experiment 3: Impact of Parameters $c$ and $\delta$}
 
-O terceiro cenário avalia como os parâmetros da distribuição robusta de soliton afetam o desempenho do sistema. Para cada par $(c, \delta)$, são medidos a taxa de sucesso, o grau médio amostrado $\bar{d}$, o valor de $R$, o número de operações XOR e a dinâmica do \emph{ripple}.
+The third scenario evaluates how Robust Soliton Distribution parameters govern system performance. For each $(c, \delta)$ pair, decoding success rate, sample mean degree $\bar{d}$, scale parameter $R$, XOR operations count, and ripple dynamics are evaluated.
 
-Esse experimento permite observar o compromisso entre robustez e custo: valores moderados ($c=0{,}1$) sustentam a conectividade do grafo, enquanto valores elevados de $c$ podem deslocar o índice do termo corretivo para graus baixos, com efeitos dependentes de $K$ e $\delta$. A avaliação experimental investiga em quais configurações essa concentração favorece ou prejudica a recuperação da mensagem original.
+This experiment captures the tradeoff between robustness and overhead: moderate values ($c=0.1$) maintain balanced graph connectivity, whereas elevated $c$ values drive the corrective mode down to low degrees, with outcomes dependent on $K$ and $\delta$. Experimental evaluation determines under which configurations this mass concentration aids or hinders original message recovery.
 
-\subsection{Experimento 4: Impacto do Screening Biológico}
+\subsection{Experiment 4: Impact of Biological Screening}
 
-O quarto cenário isola o impacto das restrições biológicas físico-químicas sobre a amostragem de droplets. Para isso, foi conduzida uma amostragem dedicada de $2.000$ droplets para $K=32$ sob a parametrização recomendada ($c=0{,}1$, $\delta=0{,}10$), medindo-se a taxa empírica de descarte ($R_{\text{screen}}$) e comparando-se os graus médios dos droplets aceitos e rejeitados frente ao valor analítico da DRS. Na matriz principal de 216 combinações, o screening manteve-se ativo para representar realisticamente as restrições de síntese.
+The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 2,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring empirical rejection rate ($R_{\text{screen}}$) and comparing sampled mean degrees of accepted and rejected droplets against the theoretical RSD expectation. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
 
-\subsection{Experimento 5: Impacto do Canal de Apagamento}
+\subsection{Experiment 5: Impact of the Erasure Channel}
 
-O quinto cenário avalia a resiliência do sistema sob diferentes taxas de perda, variando $p_{\text{loss}}$ de $0\%$ a $20\%$ em incrementos de $10\%$. Para cada taxa de perda, a bateria é executada com múltiplos valores de overhead para quantificar a degradação e a redundância compensatória.
+The fifth scenario evaluates system resilience across erasure rates, varying $p_{\text{loss}}$ from $0\%$ to $20\%$ in 10\% increments. Across loss rates, the test battery runs under multiple overhead values to quantify performance degradation and compensatory redundancy requirements.
 
-Cabe explicitar a relação metodológica entre os cenários e a grade experimental: os Cenários 1, 2, 3 e 5 constituem subconjuntos de análise focalizada extraídos da grade fatorial principal de 216 combinações paramétricas ($3 \times 4 \times 2 \times 3 \times 3$), cujas 100 repetições totalizam exatamente $216 \times 100 = 21.600$ execuções completas do simulador. Por sua vez, o Cenário 4 consiste em um ensaio amostral dedicado e independente, concebido especificamente para avaliar a seletividade físico-química e a distribuição de graus sobre uma população isolada de 2.000 oligonucleotídeos candidatos gerados sob carga pseudoaleatória, não se confundindo com as 21.600 execuções da grade fatorial.
+The methodological distinction between scenarios and the experimental grid is explicit: Scenarios 1, 2, 3, and 5 constitute focused sub-analyses drawn directly from the primary 216-combination factorial grid ($3 \times 4 \times 2 \times 3 \times 3$), whose 100 repetitions total exactly $216 \times 100 = 21,600$ full simulator executions. Scenario 4, conversely, consists of a dedicated independent sampling trial designed specifically to evaluate physicochemical selectivity and degree distributions over an isolated cohort of 2,000 candidate oligonucleotides, separate from the 21,600 grid runs.
 
-A Tabela~\ref{tab:cenarios_experimentais} sintetiza os cinco cenários avaliados.
+Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Cenários experimentais planejados.}
+    \caption{Planned experimental scenarios.}
     \label{tab:cenarios_experimentais}
     \begin{tabular}{clp{4.5cm}p{4.5cm}}
         \toprule
-        \textbf{\#} & \textbf{Nome} & \textbf{Fator Variado} & \textbf{Métrica Principal} \\
+        \textbf{\#} & \textbf{Name} & \textbf{Varied Factor} & \textbf{Primary Metric} \\
         \midrule
-        1 & Validação sob Referência & Regime de blocos ($K$) & Sucesso sob $\epsilon = 1{,}00$ \\
-        2 & Impacto do Overhead & $\epsilon \in \{0{,}25;\; 0{,}50;\; 1{,}00\}$ & Taxa de sucesso vs. $\epsilon$ \\
-        3 & Impacto de $c$ e $\delta$ & $c \in \{0{,}1; 0{,}3; 0{,}5; 0{,}8\}$, $\delta \in \{0{,}01; 0{,}1\}$ & XOR, ripple, sucesso \\
-        4 & Screening Biológico & Amostragem (2.000 oligos) & $R_{\text{screen}}$, comparação de graus \\
-        5 & Canal de Apagamento & $p_{\text{loss}} \in \{0{,}0; 0{,}1; 0{,}2\}$ & Resiliência, overhead mínimo \\
+        1 & Reference Baseline & Block count regime ($K$) & Success rate under $\epsilon = 1.00$ \\
+        2 & Impact of Overhead & $\epsilon \in \{0.25;\; 0.50;\; 1.00\}$ & Success rate vs. $\epsilon$ \\
+        3 & Impact of $c$ and $\delta$ & $c \in \{0.1; 0.3; 0.5; 0.8\}$, $\delta \in \{0.01; 0.10\}$ & XOR count, ripple, success \\
+        4 & Biological Screening & Sampling trial (2,000 oligos) & $R_{\text{screen}}$, degree comparison \\
+        5 & Erasure Channel & $p_{\text{loss}} \in \{0.0; 0.10; 0.20\}$ & Resilience, minimum overhead \\
         \bottomrule
     \end{tabular}
-    \fonte{Elaborado pelo autor (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-\section{Repetições e Procedimentos Estatísticos}
+\section{Repetitions and Statistical Procedures}
 \label{sec:repetitions_and_statistics}
 
-Cada configuração foi executada 100 vezes para estimar a frequência de recuperação e sua incerteza amostral. A suíte disponibiliza três patamares de repetição ($n \in \{10, 30, 100\}$), sendo o nível de 100 repetições utilizado para as análises consolidadas, totalizando 21.600 execuções completas.
+Each configuration was executed across 100 repetitions to estimate recovery frequency and sample uncertainty. The experimental suite supports three repetition tiers ($n \in \{10, 30, 100\}$), with the 100-repetition tier utilized for consolidated analyses, totaling 21,600 full executions.
 
-Para cada métrica contínua reportada (tempo de decodificação e contagem de operações XOR), são calculados:
+For continuous metrics (decoding runtime and XOR operation counts), the following statistics are reported:
 \begin{itemize}
-    \item \textbf{Média amostral}: $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$;
-    \item \textbf{Desvio-padrão amostral}: $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$;
-    \item \textbf{Mediana e dispersão}: quartis e extremos para caracterização de assimetria.
+    \item \textbf{Sample Mean}: $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$;
+    \item \textbf{Sample Standard Deviation}: $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$;
+    \item \textbf{Median and Dispersion}: Quartiles and extreme values to characterize distribution skewness.
 \end{itemize}
 
-Para a taxa de sucesso na decodificação (variável binária associada a $n$ ensaios de Bernoulli), além da frequência observada $\hat{p} = k/n$, foram calculados intervalos de confiança exatos de Clopper--Pearson~\cite{clopper1934} ao nível de 95\%, derivados dos quantis da distribuição Beta:
+For decoding success rate (a binary variable associated with $n$ Bernoulli trials), in addition to the observed sample proportion $\hat{p} = k/n$, 95\% exact Clopper--Pearson confidence intervals~\cite{clopper1934} were computed, derived from Beta distribution quantiles:
 \begin{equation}
     \label{eq:clopper_pearson}
-    \text{IC}_{95\%} = \left[ Q_{\text{Beta}}\!\left(\frac{\alpha}{2}; k, n - k + 1\right), \; Q_{\text{Beta}}\!\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
+    \text{CI}_{95\%} = \left[ Q_{\text{Beta}}\!\left(\frac{\alpha}{2}; k, n - k + 1\right), \; Q_{\text{Beta}}\!\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
 \end{equation}
-com $\alpha = 0{,}05$ e $Q_{\text{Beta}}(p; a, b)$ denotando o quantil de ordem $p$ da distribuição Beta com parâmetros $a$ e $b$. Nos casos de fronteira, adota-se $L = 0$ quando $k = 0$ (nenhum sucesso) e $U = 1$ quando $k = n$ (sucesso total). Para $k = 100$ sucessos em $n = 100$ repetições, o intervalo exato resulta em $[96{,}4\%, 100{,}0\%]$, o que reflete a incerteza amostral e evita a declaração de certeza determinística absoluta.
+with $\alpha = 0.05$ and $Q_{\text{Beta}}(p; a, b)$ denoting the order-$p$ quantile of the Beta distribution with shape parameters $a$ and $b$. For boundary cases, $L = 0$ when $k = 0$ (zero successes) and $U = 1$ when $k = n$ (full success). For $k = 100$ successes in $n = 100$ trials, the exact interval evaluates to $[96.4\%, 100.0\%]$, capturing sample uncertainty and avoiding unjustified claims of absolute certainty.
 
-Para a comparação de proporções de sucesso entre configurações experimentais pontuais (por exemplo, entre $c=0{,}1$ e $c=0{,}3$ para $K=16$), aplicou-se o teste exato de Fisher bicaudal~\cite{fisher1922}. Como a semente base (\texttt{seed\_base}) de cada configuração é computada deterministicamente em função de seus próprios hiperparâmetros ($K, c, \delta, N$), foram utilizados fluxos pseudoaleatórios distintos, sem pareamento deliberado entre configurações, tratados como amostras independentes na análise estatística. O teste foi executado via rotina computacional em Python baseada no somatório da distribuição hipergeométrica exata, tendo sido motivado \emph{post-hoc} para verificar a significância estatística da inversão de desempenho observada em regimes curtos com overhead restrito.
+To compare success proportions between specific experimental configurations (e.g., between $c=0.1$ and $c=0.3$ for $K=16$), two-tailed Fisher's exact tests~\cite{fisher1922} were applied. Because each configuration's base seed (\texttt{seed\_base}) is derived deterministically from its own parameters ($K, c, \delta, N$), independent pseudorandom streams without deliberate pairwise matching were generated and treated as independent samples in statistical evaluations. The test was executed via a Python implementation evaluating the exact hypergeometric distribution sum, motivated post-hoc to assess the statistical significance of observed performance inversions in short regimes with constrained overhead.
 
-\section{Reprodutibilidade e Rastreabilidade Experimental}
+\section{Experimental Reproducibility and Traceability}
 \label{sec:reproducibility}
 
-A reprodutibilidade dos experimentos apoia-se em cinco medidas metodológicas fundamentais:
+Experimental reproducibility is grounded in five key methodological measures:
 
 \begin{enumerate}
-    \item \textbf{Controle determinístico de seeds}: Cada bateria recebe uma semente base (\texttt{seed\_base}) que governa a geração das cargas úteis sintéticas, os sorteios de sementes de droplets e os apagamentos estocásticos. Fixada a semente base, a execução reproduz exatamente a mesma sequência de instâncias e decisões algorítmicas no ambiente declarado (CPython~3.12.7), com as seeds e arquivos fornecidos. A reprodução bit a bit em outras versões ou implementações do interpretador não é garantida devido a eventuais variações em rotinas internas de amostragem do módulo \texttt{random}~\cite{python_random}. Medições de tempo decorrido de execução, sujeito à carga do sistema operacional, apresentam variações normais entre execuções.
+    \item \textbf{Deterministic Seed Control}: Each batch execution receives a base seed (\texttt{seed\_base}) governing synthetic payload generation, droplet seeds, and stochastic channel losses. With fixed base seed, execution deterministically reproduces the exact same sequence of instances and algorithmic transitions in the declared environment (CPython~3.12.7), given matching seeds and files. Bit-level equivalence across different Python runtime versions is not guaranteed due to potential variations in internal sampling routines within the \texttt{random} module~\cite{python_random}. CPU elapsed runtime measurements vary naturally under operating system scheduling.
 
-    \item \textbf{Distinção entre dados agregados e registros individuais}: Estão disponíveis publicamente no repositório as matrizes agregadas da grade fatorial e os registros individuais dos ensaios de auditoria especificados:
+    \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
-        \item \emph{Matrizes de resultados agregados}: Os dados de cada bateria fatorial estão consolidados nos arquivos \texttt{resultados\_10.csv}, \texttt{resultados\_}\allowbreak\texttt{30.csv} e \texttt{resultados\_}\allowbreak\texttt{100.csv}, contendo exatamente 216 linhas cada. Cada linha sintetiza as médias, desvios e taxas observadas sobre as $n$ repetições independentes daquele ponto paramétrico fatorial;
-        \item \emph{Registros individuais de custo}: O arquivo \texttt{tempos\_brutos\_decodificacao.json} armazena individualmente as 100 medições de tempo e contagens de XOR obtidas para cada quantidade de blocos $K \in \{16, 32, 64\}$ na validação de desempenho;
-        \item \emph{Registros de auditoria de falhas}: O arquivo \texttt{falhas\_k16.json} documenta individualmente as 10 repetições com falha observadas no cenário baseline de $K=16$;
-        \item \emph{Histograma do ensaio de screening}: O arquivo \texttt{screening\_qui\_quadrado.json} registra as contagens observadas e esperadas nas 18 classes do teste de aderência $\chi^2$ para os 2.000 oligonucleotídeos candidatos avaliados.
+        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_10.csv}, \texttt{resultados\_30.csv}, and \texttt{resultados\_100.csv}, each containing exactly 216 rows summarizing means, standard deviations, and rates across $n$ independent repetitions per point;
+        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 100 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation;
+        \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs the 10 individual failure repetitions observed in the $K=16$ baseline scenario;
+        \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed and expected bin counts across the 18 classes of the $\chi^2$ goodness-of-fit test for the 2,000 evaluated candidate oligos.
     \end{itemize}
 
-    \item \textbf{Automação e regeneração de artefatos}: A execução completa dos experimentos e a geração dos artefatos documentais são governadas por scripts Python dedicados:
+    \item \textbf{Automation and Artifact Regeneration}: Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
     \begin{itemize}
-        \item Execução da grade fatorial: \texttt{python run\_experiments.py};
-        \item Estatísticas temporais e de custo (Tabela~\ref{tab:custo_computacional}): \texttt{python}\allowbreak\ \texttt{salvar\_}\allowbreak\texttt{estatisticas\_}\allowbreak\texttt{custo.py} (processa as medições fixadas no JSON arquivado, admitindo a flag opcional \texttt{-\relax-novo-benchmark} para novos testes ativos);
-        \item Análise de falhas em $K=16$: \texttt{python analisar\_falhas\_k16.py};
-        \item Histograma do teste $\chi^2$: \texttt{python salvar\_qui\_quadrado.py};
-        \item Geração de gráficos vetoriais: \texttt{python gerar\_graficos.py};
-        \item Geração do diagrama arquitetural: \texttt{python gerar\_diagrama\_arquitetura.py};
-        \item Execução da suíte de testes: \texttt{python -m pytest tests/}.
+        \item Factorial grid execution: \texttt{python run\_experiments.py};
+        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py} (processes measurements from archived JSON, supporting the optional \texttt{-\relax-novo-benchmark} flag for live runs);
+        \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py};
+        \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py};
+        \item Vector plot regeneration: \texttt{python gerar\_graficos.py};
+        \item Architecture diagram generation: \texttt{python gerar\_diagrama\_arquitetura.py};
+        \item Test suite execution: \texttt{python -m pytest tests/}.
     \end{itemize}
 
-    \item \textbf{Independência de bibliotecas do núcleo}: O núcleo do simulador depende exclusivamente da biblioteca padrão do Python. A execução da suíte de testes e a regeneração das figuras utilizam dependências de desenvolvimento (\texttt{pytest>=8.0.0} e \texttt{matplotlib>=3.8.0}), descritas no arquivo \texttt{requirements-dev.txt} na raiz do repositório.
+    \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Disponibilização do código sob versão imutável}: Todos os módulos do simulador, scripts de instrumentação e bases de dados experimentais estão versionados e publicamente acessíveis no repositório GitHub do projeto: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. Os resultados apresentados nesta monografia correspondem à versão identificada pelo commit \texttt{bb2f0ab}, documentada no arquivo \texttt{README.md} do repositório.
+    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. The results reported herein correspond to the commit identified by hash \texttt{bb2f0ab}, as documented in the repository's \texttt{README.md}.
 \end{enumerate}

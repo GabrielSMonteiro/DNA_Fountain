@@ -1,139 +1,139 @@
 % !TEX root = ../main.tex
-\chapter{Trabalhos Relacionados}
+\chapter{Related Work}
 \label{chap:related_work}
 
-Este capítulo apresenta o estado da arte em armazenamento de dados em DNA, com ênfase nas arquiteturas de codificação que precederam e sucederam o DNA Fountain, nos fundamentos teóricos que estabelecem os limites do canal de DNA, nos frameworks e ferramentas de software existentes na literatura e, por fim, na lacuna identificada que este trabalho se propõe a preencher.
+This chapter presents the state of the art in DNA data storage, emphasizing the encoding architectures that preceded and followed DNA Fountain, the theoretical foundations that establish DNA channel bounds, the existing software frameworks and tools in the literature, and finally, the identified gap that this work aims to address.
 
-\section{Esquemas de Codificação para Armazenamento em DNA}
+\section{Coding Schemes for DNA Data Storage}
 \label{sec:related_dna_encoding}
 
-O armazenamento de dados em DNA tem evoluído significativamente desde as primeiras demonstrações experimentais no início da década de 2010. A seguir, são apresentados cronologicamente os principais esquemas de codificação propostos na literatura, com destaque para as decisões de projeto, as limitações enfrentadas e as densidades de armazenamento alcançadas.
+DNA data storage has evolved significantly since the first experimental demonstrations in the early 2010s. The following sections chronologically present the primary coding schemes proposed in the literature, highlighting architectural design decisions, practical constraints, and achieved storage densities.
 
-\subsection{Church, Gao e Kosuri (2012)}
+\subsection{Church, Gao, and Kosuri (2012)}
 
-O trabalho de \citeonline{church2012} é considerado um dos marcos iniciais do armazenamento digital em DNA em escala significativa. Os autores codificaram um livro inteiro de 53.426 palavras, incluindo imagens e código JavaScript, em oligonucleotídeos sintéticos. O esquema de codificação utilizado foi relativamente simples: cada bit do arquivo original foi mapeado diretamente para uma base nitrogenada (0 $\rightarrow$ A ou C, 1 $\rightarrow$ G ou T), com alternância para evitar longos homopolímeros.
+The work by \citeonline{church2012} is considered one of the initial milestones in scaled digital DNA storage. The authors encoded an entire 53,426-word book, including images and JavaScript code, into synthetic oligonucleotides. The encoding scheme employed was straightforward: each bit of the original file was directly mapped to a nitrogenous base (0 $\rightarrow$ A or C, 1 $\rightarrow$ G or T), alternating assignments to avoid long homopolymers.
 
-Contudo, a abordagem de \citeonline{church2012} não empregava nenhuma forma de codificação redundante além de réplicas físicas dos oligonucleotídeos. A redundância era introduzida exclusivamente pela síntese de múltiplas cópias de cada sequência, o que elevava significativamente o custo de síntese. Além disso, a densidade de armazenamento alcançada foi de apenas 0,83 bits por nucleotídeo, substancialmente abaixo do limite teórico de $\log_2 4 = 2{,}0$ bits por nucleotídeo. Essa limitação decorria do mapeamento de 1 bit por base utilizado, que desperdiçava metade da capacidade informacional do alfabeto quaternário do DNA.
+However, the approach of \citeonline{church2012} did not employ any mathematical error-correcting redundancy beyond physical replicas of the oligonucleotides. Redundancy was introduced exclusively by synthesizing multiple copies of each sequence, substantially increasing synthesis costs. Furthermore, the achieved storage density was only 0.83 bits per nucleotide, substantially below the theoretical unconstrained limit of $\log_2 4 = 2.0$ bits per nucleotide. This limitation stemmed from the 1-bit-per-base mapping, which discarded half of the informational capacity of DNA's quaternary alphabet.
 
-Do ponto de vista da tolerância a falhas, o esquema apresentava fragilidade: a perda de um único oligonucleotídeo resultava na perda irreversível de todos os bits nele contidos, sem mecanismo de recuperação. Apesar dessas limitações, o trabalho demonstrou a viabilidade prática do conceito e motivou uma série de avanços subsequentes.
+From a fault-tolerance perspective, the scheme exhibited fragility: the loss of a single oligonucleotide resulted in the irreversible loss of all bits contained within it, with no recovery mechanism. Despite these limitations, the work demonstrated the practical feasibility of the concept and motivated numerous subsequent advances.
 
 \subsection{Goldman et al. (2013)}
 
-No ano seguinte, \citeonline{goldman2013} propuseram um esquema de codificação significativamente mais sofisticado, publicado na revista Nature. Os autores utilizaram um mapeamento em base 3 (trits) com rotação do alfabeto, no qual cada trit era convertido para uma das três bases distintas da base anterior, evitando assim qualquer repetição consecutiva de bases. Essa estratégia eliminava por construção os homopolímeros de comprimento maior que 1.
+The following year, \citeonline{goldman2013} proposed a significantly more sophisticated encoding scheme published in \emph{Nature}. The authors utilized a base-3 (trit) mapping with alphabet rotation, where each trit was mapped to one of three bases distinct from the preceding base, thereby preventing consecutive base repetitions by construction. This design inherently eliminated homopolymers of length greater than 1.
 
-Adicionalmente, \citeonline{goldman2013} introduziram redundância por meio de sobreposição (\emph{overlapping}) entre segmentos consecutivos: cada região do arquivo era coberta por quatro oligonucleotídeos parcialmente sobrepostos, permitindo a recuperação de dados mesmo diante da perda de segmentos individuais. Embora o potencial teórico de codificação do esquema rotativo fosse de 1,58 bits por nucleotídeo (sem considerar a redundância), a densidade líquida efetiva resultante da quadruplicação por sobreposição e do cabeçalho de indexação adotada naquela configuração experimental situou-se em aproximadamente $0{,}33$ bits por nucleotídeo, não constituindo um limite invariante de qualquer esquema baseado em sobreposição. Dessa forma, apesar da sofisticação biológica do esquema, a densidade de armazenamento real naquele ensaio permaneceu substancialmente inferior à capacidade do meio.
+Additionally, \citeonline{goldman2013} introduced redundancy through overlapping segments: each region of the file was covered by four partially overlapping oligonucleotides, enabling data recovery even in the presence of individual segment loss. Although the theoretical encoding potential of the rotating scheme was 1.58 bits per nucleotide (disregarding redundancy), the effective net density resulting from four-fold overlapping and indexing overhead in that experimental configuration was approximately $0.33$ bits per nucleotide, which does not constitute an invariant upper bound for all overlap-based schemes. Thus, despite its biological elegance, the practical storage density in that trial remained substantially below channel capacity.
 
-Contudo, a redundância por sobreposição apresentava uma taxa fixa, definida em tempo de projeto, o que limitava a adaptabilidade do sistema a canais com diferentes taxas de perda. Caso a degradação real excedesse o nível de redundância previamente definido, a decodificação falhava sem possibilidade de solicitar segmentos adicionais.
+Furthermore, overlap redundancy operated at a fixed rate set at design time, limiting adaptability to channels with varying loss profiles. If physical degradation exceeded the predefined redundancy budget, decoding failed irreversibly without the capability to request or generate additional segments.
 
 \subsection{Grass et al. (2015)}
 
-\citeonline{grass2015} abordaram o problema do armazenamento de longo prazo sob uma perspectiva distinta, focando na preservação física do DNA por meio do encapsulamento em microesferas de sílica. Do ponto de vista da codificação, os autores empregaram códigos de Reed-Solomon sobre o corpo finito $GF(47)$ (utilizando mapeamento de elementos do corpo para tripletos de bases nitrogenadas, evitando repetições de homopolímeros), organizados em dois níveis: um código interno para corrigir erros dentro de cada oligonucleotídeo e um código externo para recuperar oligonucleotídeos inteiros perdidos.
+\citeonline{grass2015} approached long-term storage from a distinct perspective, focusing on physical DNA preservation via silica encapsulation. From an information-theoretic standpoint, the authors employed Reed--Solomon codes over the finite field $GF(47)$ (mapping field elements to base triplets to avoid homopolymer runs), organized into two hierarchical tiers: an inner code to correct substitution errors within each oligonucleotide and an outer code to recover lost oligonucleotides.
 
-Essa abordagem hierárquica de correção de erros representou um avanço em relação aos esquemas anteriores, pois tratava separadamente os erros de substituição (corrigidos pelo código interno) e os apagamentos de sequências inteiras (corrigidos pelo código externo). Os autores demonstraram experimentalmente a recuperação sem erros de 83 kilobytes de dados após armazenamento acelerado equivalente a 2.000 anos em condições ambientais.
+This hierarchical error-correction strategy represented a significant advance over prior schemes by treating intra-oligo substitutions and whole-sequence erasures as separate error processes. The authors experimentally demonstrated error-free recovery of 83 kilobytes of data after accelerated aging equivalent to 2,000 years under ambient conditions.
 
-Entretanto, assim como \citeonline{goldman2013}, o esquema de \citeonline{grass2015} era um código de taxa fixa: a quantidade de redundância era definida previamente e não se adaptava às condições reais do canal. Além disso, a complexidade de decodificação dos códigos de Reed-Solomon é quadrática no caso geral, o que pode representar uma limitação para volumes maiores de dados.
+Nonetheless, like \citeonline{goldman2013}, the scheme of \citeonline{grass2015} relied on fixed-rate coding: redundancy was predetermined statically and could not adapt dynamically to channel conditions. Moreover, Reed--Solomon decoding complexity is quadratic in the general case, posing computational bottlenecks for larger data volumes.
 
-\subsection{Bornholt et al. (2016) e Blawat et al. (2016)}
+\subsection{Bornholt et al. (2016) and Blawat et al. (2016)}
 
-Dois trabalhos publicados em 2016 avançaram em direções complementares. \citeonline{bornholt2016} propuseram uma arquitetura completa de armazenamento baseada em DNA, incluindo mecanismos de acesso aleatório por meio de primers seletivos de PCR. O sistema demonstrou a capacidade de recuperar subconjuntos específicos de dados sem a necessidade de sequenciar todo o pool de oligonucleotídeos, aproximando-se de funcionalidades típicas de sistemas de armazenamento convencionais.
+Two works published in 2016 advanced in complementary directions. \citeonline{bornholt2016} proposed a comprehensive end-to-end DNA storage architecture, introducing random-access capabilities via selective PCR primers. The system demonstrated the ability to retrieve specific data subsets without sequencing the entire oligonucleotide pool, bringing functionality closer to conventional random-access storage systems.
 
-Paralelamente, \citeonline{blawat2016} investigaram especificamente o uso de códigos de correção de erros do tipo \emph{forward error correction} (FEC) para armazenamento em DNA, empregando códigos Reed-Solomon adaptados ao canal de DNA. Os autores avaliaram o tradeoff entre a taxa de codificação e a capacidade de correção, demonstrando que a escolha adequada dos parâmetros do código de correção era determinante para a eficiência do sistema.
+In parallel, \citeonline{blawat2016} systematically investigated Forward Error Correction (FEC) codes tailored to the DNA channel, employing adapted Reed--Solomon codes. The authors evaluated tradeoffs between code rate and correction capability, demonstrating that carefully tuning error-correction parameters was decisive for overall storage efficiency.
 
-Ambos os trabalhos, contudo, mantinham a característica de taxa fixa: a redundância era definida em tempo de projeto e não se adaptava dinamicamente às condições do canal.
+Both works, however, retained fixed-rate characteristics: redundancy was set statically at design time and could not dynamically adapt to fluctuating channel conditions.
 
-\subsection{Erlich e Zielinski --- DNA Fountain (2017)}
+\subsection{Erlich and Zielinski --- DNA Fountain (2017)}
 
-O trabalho de \citeonline{erlich2017}, publicado na revista Science em 2017, foi o pioneiro na aplicação de \emph{fountain codes} ao armazenamento em DNA. A arquitetura DNA Fountain combina uma estrutura hierárquica com dois níveis de codificação: um código externo LT (\emph{rateless}) operando entre blocos para reconstruir o arquivo na presença de apagamentos de oligonucleotídeos inteiros via DRS, e um código interno de Reed-Solomon (2 bytes de redundância dentro de cada oligonucleotídeo) voltado à detecção e descarte de erros pontuais de substituição e indels decorrentes da síntese química e sequenciamento. A propriedade \emph{rateless} do código externo permite gerar oligonucleotídeos codificados sob demanda até que o receptor colete uma quantidade suficiente ($K(1 + \epsilon)$) para reconstruir o arquivo original pelo \emph{peeling decoder}.
+The seminal work of \citeonline{erlich2017}, published in \emph{Science} in 2017, pioneered the application of \emph{fountain codes} to DNA data storage. The DNA Fountain architecture combines a two-tier hierarchical coding structure: an outer rateless Luby Transform (LT) code operating across blocks to reconstruct the file in the presence of full oligonucleotide erasures via the Robust Soliton Distribution (RSD), and an inner Reed--Solomon code (2 parity bytes per oligonucleotide) designed to detect and discard localized substitution and indel errors caused by synthesis and sequencing. The rateless property of the outer code enables generating encoded droplets on demand until the receiver collects a sufficient quantity ($K(1 + \epsilon)$) to reconstruct the original data via the iterative \emph{peeling decoder}.
 
-As contribuições principais do DNA Fountain em relação aos trabalhos anteriores podem ser sintetizadas em três aspectos:
+The key contributions of DNA Fountain relative to prior works can be summarized in three aspects:
 
 \begin{itemize}
-    \item \textbf{Taxa variável}: diferentemente dos códigos de taxa fixa (Reed-Solomon, sobreposição), o DNA Fountain gera droplets continuamente até que o número desejado de oligonucleotídeos válidos seja alcançado. A codificação \emph{rateless} permite gerar digitalmente oligonucleotídeos adicionais e escolher o orçamento de redundância sem depender de retransmissão em tempo real. Uma biblioteca física já sintetizada, contudo, permanece limitada ao conjunto efetivamente produzido.
+    \item \textbf{Rateless capability}: Unlike fixed-rate codes (Reed--Solomon, overlapping), DNA Fountain generates droplets continuously until the desired number of valid oligonucleotides is gathered. Rateless encoding enables generating additional oligonucleotides digitally and tuning the redundancy budget without requiring real-time feedback retransmission. However, an already synthesized physical pool remains limited to the generated batch.
     
-    \item \textbf{Densidade de armazenamento}: a densidade líquida alcançada de 1,57 bits por nucleotídeo representou o valor mais alto reportado na literatura até então, correspondendo a cerca de 86\% da capacidade prática de Shannon estimada sob desordem e indexação ($\approx 1{,}83$ bits/nt), frente a um potencial de codificação de 1,98 bits/nt sob restrições físico-químicas de GC e homopolímeros e ao limite teórico irrestrito de $\log_2 4 = 2{,}0$ bits por nucleotídeo.
+    \item \textbf{High storage density}: The achieved net density of 1.57 bits per nucleotide was the highest reported in the literature at the time, representing approximately 86\% of the practical Shannon capacity estimated under unordered pooling and indexing constraints ($\approx 1.83$ bits/nt), compared to a theoretical coding capacity of 1.98 bits/nt under GC and homopolymer constraints and the unconstrained limit of $\log_2 4 = 2.0$ bits per nucleotide.
     
-    \item \textbf{Screening biológico integrado}: o processo de descarte e re-sorteio de oligonucleotídeos que violam restrições biológicas (conteúdo GC fora da faixa, homopolímeros longos) é naturalmente absorvido pela propriedade \emph{rateless} dos \emph{fountain codes}, sem penalização estrutural no esquema de codificação.
+    \item \textbf{Integrated biological screening}: The process of discarding and re-drawing candidate oligonucleotides that violate biochemical synthesis constraints (such as GC bias or long homopolymers) is naturally absorbed by the rateless nature of fountain codes, without structural penalties to the coding scheme.
 \end{itemize}
 
-Os autores demonstraram experimentalmente a codificação e recuperação sem erros de um arquivo de 2,14 megabytes (incluindo um sistema operacional, um vírus de computador e um cartão-presente de 50 dólares da Amazon) particionado em $K = 67.088$ segmentos fonte, empacotados em 72.000 oligonucleotídeos de 200 nucleotídeos cada (overhead de $\approx 7{,}3\%$).
+The authors experimentally validated error-free encoding and decoding of a 2.14-megabyte file (including a full operating system, a computer virus, and a \$50 Amazon gift card) partitioned into $K = 67,088$ source segments, packaged into 72,000 oligonucleotides of 200 nucleotides each ($\approx 7.3\%$ overhead).
 
 \subsection{Organick et al. (2018)}
 
-\citeonline{organick2018} estenderam o conceito de armazenamento em DNA para a escala de centenas de megabytes, codificando 200 megabytes de dados em mais de 13 milhões de oligonucleotídeos. O trabalho demonstrou a viabilidade de acesso aleatório em larga escala utilizando primers seletivos, permitindo a recuperação de arquivos individuais de uma biblioteca heterogênea sem a necessidade de sequenciar todo o pool.
+\citeonline{organick2018} expanded the scale of DNA data storage to hundreds of megabytes, encoding 200 megabytes across more than 13 million oligonucleotides. The work demonstrated large-scale random access using selective primer libraries, enabling the retrieval of individual files from a complex heterogeneous pool without sequencing the entire molecular library.
 
-Do ponto de vista da codificação, \citeonline{organick2018} empregaram uma estratégia hierárquica baseada em códigos Reed-Solomon concatenados (código interno em cada oligo e código externo entre oligos) com redundância fixa, distinta da abordagem \emph{rateless} do DNA Fountain. Embora o sistema tenha demonstrado escalabilidade impressionante, a taxa de recuperação sem erros dependia criticamente da cobertura de sequenciamento, e o overhead de redundância era definido estaticamente em tempo de projeto.
+Regarding coding strategy, \citeonline{organick2018} employed a hierarchical approach based on concatenated Reed--Solomon codes (an inner code per oligo and an outer code across oligos) with fixed redundancy, distinct from the rateless methodology of DNA Fountain. While achieving impressive scalability, error-free recovery depended critically on high sequencing coverage, and redundancy overhead remained statically defined at design time.
 
-\section{Fundamentos Teóricos e Limites de Capacidade}
+\section{Theoretical Foundations and Capacity Bounds}
 \label{sec:related_theoretical}
 
-Paralelamente aos avanços experimentais, uma série de trabalhos teóricos buscou formalizar os limites fundamentais do armazenamento de dados em DNA, estabelecendo os tradeoffs entre capacidade, redundância e confiabilidade.
+In parallel with experimental breakthroughs, theoretical studies formalized fundamental limits for DNA data storage, establishing tradeoffs among capacity, redundancy, and reliability.
 
-\citeonline{heckel2017} derivaram limites fundamentais para a capacidade do canal de armazenamento em DNA, considerando um modelo no qual as sequências são armazenadas sem ordem em um pool molecular e sujeitas a amostragem aleatória e erros de mutação. Os autores demonstraram que, para que a capacidade seja positiva, o comprimento dos oligonucleotídeos deve crescer pelo menos logaritmicamente com o número de moléculas armazenadas, formalizando o impacto teórico da perda de ordenação das sequências. Cabe explicitar que esse resultado fornece contexto motivador sobre canais moleculares não ordenados, não atuando como validação física do canal de apagamento binário sem memória (BEC) simplificado adotado nas simulações deste trabalho.
+\citeonline{heckel2017} derived fundamental capacity limits for the DNA storage channel under a model where sequences are stored unordered in a molecular pool and subjected to random sampling and mutation errors. The authors proved that, for capacity to remain positive, oligonucleotide length must scale at least logarithmically with the number of stored molecules, mathematically formalizing the penalty imposed by unordered pooling. It is important to clarify that this result provides motivating theoretical context for unordered molecular channels, rather than serving as physical validation of the simplified memoryless Binary Erasure Channel (BEC) adopted in this work's simulations.
 
-Mais recentemente, \citeonline{shomorony2022} publicaram uma revisão abrangente dos fundamentos teóricos do armazenamento em DNA na série \emph{Foundations and Trends}, consolidando os resultados de teoria da informação aplicáveis ao problema. Esse trabalho formalizou a distinção entre o canal de \emph{sequencing} (onde a informação de ordenação é perdida) e o canal de \emph{storage} (que inclui erros físicos), estabelecendo os limites assintóticos de capacidade e as condições sob as quais esquemas com indexação e códigos de apagamento aproximam-se dos limites teóricos em modelos abstratos de armazenamento molecular.
+More recently, \citeonline{shomorony2022} published an extensive review of DNA data storage foundations in \emph{Foundations and Trends in Communications and Information Theory}, consolidating information-theoretic principles applicable to the domain. That work formalized the distinction between the \emph{sequencing channel} (where ordering information is lost) and the \emph{storage channel} (involving physical molecular errors), establishing asymptotic capacity bounds and the conditions under which indexing and erasure coding approach channel capacity in abstract molecular storage models.
 
-Esses modelos teóricos de canais de apagamento fornecem limites de referência para avaliar a relação entre overhead e taxa de sucesso observada nos experimentos do Capítulo~\ref{chap:results}.
+These theoretical erasure channel models provide reference bounds for evaluating the relationship between overhead and decoding success rate observed in the experimental results of Chapter~\ref{chap:results}.
 
-\section{Ferramentas de Software e Simuladores}
+\section{Software Tools and Simulators}
 \label{sec:related_simulators}
 
-Embora o armazenamento de dados em DNA tenha atraído atenção significativa da comunidade científica, a disponibilidade de ferramentas de software abertas, modulares e voltadas à experimentação acadêmica permanece limitada. A seguir, são apresentados os principais esforços identificados na literatura.
+Although DNA data storage has garnered significant interest within the scientific community, the availability of open, modular, and didactic software tools geared toward academic experimentation remains limited. The primary tools documented in the literature are reviewed below.
 
-No campo dos códigos sem taxa, a otimização de distribuições de graus para mensagens curtas foi investigada pioneiramente por \citeonline{hyytia2007}. Os autores analisaram códigos LT para mensagens com pequeno número de blocos em canais de apagamento de telecomunicações, demonstrando analiticamente e heuristicamente que a DRS padrão de Luby perde eficiência em pequenos regimes e propondo distribuições alternativas via modelagem por cadeias de Markov absorventes e otimização heurística combinatória recursiva. Esse estudo focou estritamente o canal clássico de redes, sem abranger restrições físico-químicas de viabilidade biológica ou a dinâmica de screening em DNA.
+In the realm of rateless codes, degree distribution optimization for short message regimes was pioneered by \citeonline{hyytia2007}. The authors analyzed LT codes for small block counts in telecommunication erasure channels, analytically and heuristically demonstrating that Luby's standard RSD suffers efficiency degradation in finite regimes, and proposed alternative distributions via absorbing Markov chains and recursive combinatorial optimization. That study focused strictly on classical network channels, without addressing biochemical sequence constraints or DNA screening dynamics.
 
-O sistema de armazenamento proposto por \citeonline{bornholt2016} incluía uma implementação de software para codificação e decodificação voltada à demonstração arquitetural completa de laboratório (síntese, armazenamento, recuperação), com software focado nas especificidades do ensaio físico conduzido pelos autores.
+The storage architecture proposed by \citeonline{bornholt2016} included a software pipeline for encoding and decoding geared toward end-to-end wet-lab validation (synthesis, storage, sequencing), with software closely coupled to their specific experimental setup.
 
-\citeonline{press2020} propuseram o sistema HEDGES (\emph{Hash Encoded, Decoded by Greedy Exhaustive Search}), um código de correção de erros especificamente projetado para o canal de DNA, capaz de corrigir inserções e deleções além de substituições. A implementação do HEDGES representou um avanço relevante na área, tendo como foco primordial a correção de erros pontuais e indels em fitas individuais.
+\citeonline{press2020} developed the HEDGES (\emph{Hash Encoded, Decoded by Greedy Exhaustive Search}) system, an error-correcting code designed specifically for the DNA channel capable of correcting insertions and deletions in addition to substitutions. The HEDGES implementation represented a notable contribution, focusing primarily on intra-strand indels and localized errors.
 
-\citeonline{chandak2019} investigaram o uso de códigos LDPC (\emph{Low-Density Parity-Check}) para armazenamento em DNA, explorando tradeoffs entre custo de síntese e esforço de leitura, em uma abordagem estrutural distinta dos códigos de fonte inesgotável.
+\citeonline{chandak2019} explored Low-Density Parity-Check (LDPC) codes for DNA storage, evaluating tradeoffs between synthesis costs and sequencing coverage, representing a structural approach distinct from rateless fountain codes.
 
-\citeonline{antkowiak2020} propuseram uma abordagem de baixo custo combinando síntese por fotolitografia com algoritmos de alinhamento e reconstrução desenhados para o respectivo pipeline experimental.
+\citeonline{antkowiak2020} proposed a low-cost photolithographic synthesis pipeline coupled with dedicated alignment and reconstruction algorithms tailored to their proprietary physical setup.
 
-\citeonline{erlich2017} disponibilizaram o código-fonte de sua implementação em repositório público aberto sob licença GPL-3.0. O software original foi estruturado como um pipeline de alto rendimento composto por módulos em Python 2 e rotinas de desempenho compiladas em Cython (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} e \texttt{receiver.py}). A ferramenta oferece interface de linha de comando que expõe parâmetros como tamanho do bloco, limites de GC (faixa padrão de 45\% a 55\%), probabilidade $\delta$, constante $c$ e quantidade de oligonucleotídeos a gerar. Contudo, essa base foi concebida como artefato de acompanhamento do artigo científico para viabilizar o experimento laboratorial em larga escala (empacotando arquivos de megabytes com $K = 67.088$ segmentos fonte, código interno de Reed-Solomon de 2 bytes de paridade por oligo e cabeçalhos de 32 bits), não tendo como objetivo pedagógico a instrumentação didática passo a passo da dinâmica interna do ripple, o desacoplamento puro em biblioteca padrão ou a execução automatizada de matrizes paramétricas em lote com persistência de métricas detalhadas.
+\citeonline{erlich2017} released the source code of their implementation in a public repository under the GPL-3.0 license. The original codebase was built as a high-throughput pipeline comprising Python 2 modules and performance-critical Cython routines (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py}, and \texttt{receiver.py}). The tool exposes a command-line interface with parameters such as block size, GC boundaries (default range 45\% to 55\%), failure probability $\delta$, tuning parameter $c$, and oligonucleotide target counts. However, this codebase was designed as a companion artifact to facilitate their large-scale wet-lab experiment (packaging multi-megabyte archives with $K = 67,088$ source blocks, 2-byte Reed--Solomon parity per oligo, and 32-bit headers), without the pedagogical objective of fine-grained step-by-step instrumentation of ripple dynamics, pure standard-library decoupling, or automated batch parametric grid execution with structured metric logging.
 
-\citeonline{schwarz2021} apresentaram o \textbf{NOREC4DNA}, um framework moderno de código aberto desenvolvido em Python voltado à exploração comparativa de códigos de apagamento sem taxa para armazenamento em DNA. O NOREC4DNA implementa códigos LT, Raptor e Online, oferecendo suporte à distribuição ideal e robusta de soliton, além de distribuições adaptativas programáveis. O framework integra restrições biológicas e simulação de canais ruidosos com erros de substituição e perda. Mais recentemente, \citeonline{schwarz2024} avançaram na otimização numérica de códigos sem taxa para o canal de armazenamento em DNA, introduzindo algoritmos para criar distribuições de graus ajustadas aos perfis de erro molecular e restrições de sequência, com ganhos substanciais de capacidade e confiabilidade frente às distribuições genéricas.
+\citeonline{schwarz2021} introduced \textbf{NOREC4DNA}, a modern open-source Python framework designed for comparative analysis of rateless erasure codes for DNA data storage. NOREC4DNA implements LT, Raptor, and Online codes, supporting ideal and robust soliton distributions as well as programmable adaptive distributions. The framework incorporates biological constraints and noisy channel simulation with substitution and erasure errors. More recently, \citeonline{schwarz2024} advanced numerical optimization of rateless codes for DNA storage, presenting algorithms to tailor degree distributions to specific molecular error profiles and sequence constraints, achieving substantial capacity and reliability gains over generic distributions.
 
-\section{Lacuna Identificada e Posicionamento do Trabalho}
+\section{Identified Gap and Positioning of this Work}
 \label{sec:identified_gap}
 
-A revisão do estado da arte evidencia que as soluções existentes dividem-se entre artefatos de replicação laboratorial em larga escala (como o DNA Fountain original~\cite{erlich2017}), estudos analíticos de códigos curtos em telecomunicações puras~\cite{hyytia2007} e frameworks comparativos amplos focados em códigos sem taxa avançados e otimizações heurísticas de distribuição~\cite{schwarz2021, schwarz2024}.
+A review of the state of the art reveals that existing solutions are divided among large-scale wet-lab replication artifacts (such as the original DNA Fountain~\cite{erlich2017}), theoretical analyses of short codes in telecommunication channels~\cite{hyytia2007}, and broad comparative frameworks focused on advanced rateless codes and numerical distribution optimizations~\cite{schwarz2021, schwarz2024}.
 
-A lacuna explorada neste trabalho reside na caracterização integrada e instrumentada do pipeline de DNA Fountain sob a ótica da Engenharia de Software. Este simulador prioriza a dependência exclusiva da biblioteca padrão do Python, a instrumentação operacional da dinâmica da fila de decodificação e uma grade experimental fatorial explicitamente documentada e reproduzível. Nesse contexto, a proposta estrutura-se sob quatro pilares:
+The gap addressed by this work lies in the integrated, instrumented characterization of the DNA Fountain pipeline through the lens of Software Engineering. This simulator prioritizes zero external dependencies beyond the Python standard library, fine-grained operational instrumentation of decoding queue dynamics, and an explicitly documented, reproducible factorial experimental grid. In this context, the proposal is structured upon four pillars:
 
 \begin{enumerate}
-    \item \textbf{Implementação Didática, Modular e Autocontida}: Construir uma implementação orientada a objetos em Python~3 contemporâneo que depende exclusivamente da biblioteca padrão (sem exigir extensões compiladas em C ou Cython), viabilizando execução imediata e reprodutível no ambiente declarado;
+    \item \textbf{Didactic, Modular, and Self-Contained Implementation}: Construct an object-oriented Python~3 implementation relying exclusively on the standard library (eliminating compiled C or Cython dependencies), ensuring immediate execution and deterministic reproducibility in the declared environment;
     
-    \item \textbf{Instrumentação Analítica Fina do Peeling}: Expor detalhadamente a mecânica interna do decodificador por peeling, registrando o histórico temporal passo a passo da fila do \emph{ripple}, a contagem exata de operações XOR por bloco fonte e as transições de grau dos droplets no grafo bipartido;
+    \item \textbf{Fine-Grained Analytical Peeling Instrumentation}: Expose the internal mechanics of the peeling decoder in detail, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph;
     
-    \item \textbf{Avaliação Experimental Integrada em Pequenos Blocos ($K \le 64$)}: Caracterizar empiricamente o comportamento conjunto da DRS clássica sob restrições físico-químicas de screening biológico e canais de apagamento estocástico em uma grade fatorial de 216 configurações, mapeando as transições de pico de $\tau(d)$ e as condições de esgotamento do ripple;
+    \item \textbf{Integrated Experimental Evaluation in Short Block Regimes ($K \le 64$)}: Empirically characterize the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions;
     
-    \item \textbf{Infraestrutura Experimental em Lote}: Disponibilizar scripts padronizados para execução de matrizes multidimensionais de parâmetros com controle determinístico de sementes e exportação estruturada em CSV.
+    \item \textbf{Batch Experimental Infrastructure}: Provide standardized execution scripts for multidimensional parameter grids with deterministic pseudorandom seed control and structured CSV metrics export.
 \end{enumerate}
 
-A Tabela~\ref{tab:comparacao_especificacao} compara as decisões técnicas do DNA Fountain original de \citeonline{erlich2017} com a especificação do simulador desenvolvido neste trabalho.
+Table~\ref{tab:comparacao_especificacao} compares the technical specifications of the original DNA Fountain by \citeonline{erlich2017} with the simulator developed in this work.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Comparação técnica entre o DNA Fountain original e o simulador deste trabalho.}
+    \caption{Technical comparison between the original DNA Fountain and the simulator developed in this work.}
     \label{tab:comparacao_especificacao}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{lp{5.5cm}p{5.5cm}}
         \toprule
-        \textbf{Característica} & \textbf{DNA Fountain Original~\cite{erlich2017}} & \textbf{Simulador Deste Trabalho} \\
+        \textbf{Feature} & \textbf{Original DNA Fountain~\cite{erlich2017}} & \textbf{This Work's Simulator} \\
         \midrule
-        Linguagem & Python 2.7 e Cython (módulos C) & Python 3.12 puro (biblioteca padrão) \\
-        Licença & GPL-3.0 & Código Aberto (Licença MIT) \\
-        Código interno (por oligo) & Reed-Solomon (2 bytes/oligo) & Validação complementar por CRC-8 \\
-        Código externo (entre blocos) & Código LT (DRS) & Código LT (DRS) \\
-        Tamanho da seed & 32 bits (4 bytes) no cabeçalho & 16 bits (2 bytes) com máscara XOR \\
-        Regime alvo ($K$) & Larga escala ($K = 67.088$, 72.000 oligos) & Poucos blocos ($K \in \{16, 32, 64\}$) \\
-        Faixa de GC & 45\% a 55\% & 40\% a 60\% \\
-        Tratamento do payload & Scrambler LFSR e primers PCR & Scrambler aditivo (máscara XOR) e mapeamento direto \\
-        Propósito central & Pipeline laboratorial de síntese real & Instrumentação analítica e didática \\
-        Métricas coletadas & Reconstrução do arquivo de entrada & XORs, fila do ripple, tempos e perdas \\
+        Language & Python 2.7 and Cython (C extensions) & Pure Python 3.12 (standard library only) \\
+        License & GPL-3.0 & Open Source (MIT License) \\
+        Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Complementary CRC-8 validation \\
+        Outer code (across blocks) & LT Code (RSD) & LT Code (RSD) \\
+        Seed header size & 32 bits (4 bytes) in header & 16 bits (2 bytes) with XOR mask \\
+        Target regime ($K$) & Large scale ($K = 67,088$, 72,000 oligos) & Short blocks ($K \in \{16, 32, 64\}$) \\
+        GC content range & 45\% to 55\% & 40\% to 60\% \\
+        Payload handling & LFSR scrambler and PCR primers & Additive scrambler (XOR mask) and direct mapping \\
+        Core purpose & Real-world wet-lab synthesis pipeline & Analytical and didactic instrumentation \\
+        Collected metrics & File reconstruction success & XOR operations, ripple queue, runtimes, and erasures \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Elaborado pelo autor com base em \citeonline{erlich2017} (2026).}
+    \fonte{Prepared by the author based on \citeonline{erlich2017} (2026).}
 \end{table}
