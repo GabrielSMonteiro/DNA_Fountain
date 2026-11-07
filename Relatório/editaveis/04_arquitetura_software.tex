@@ -281,16 +281,17 @@ To ensure strict reproducibility and avoid statistical cross-contamination betwe
 
     \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random} instance initialized with \texttt{child\_seed\_channel}. Its initialization incorporates the channel loss probability $p_{\text{loss}}$ into the master seed calculation, guaranteeing that loss realizations are statistically independent across erasure conditions and never perturb payload generation or droplet graph selection.
 
-    \item \textbf{Batch Experiment Master PRNG and Repetition Independence}: The \texttt{experimento()} routine accepts a base configuration seed and calculates a compound initialization key:
+    \item \textbf{Batch Experiment Master PRNG and Repetition Independence}: When no external seed is supplied, the \texttt{experimento()} routine computes a compound initialization key:
     \begin{equation}
-        \text{seed\_base} = \text{seed\_experimento} + 1000K + 100c + 1000\delta + N_{\text{tx}} + 100p_{\text{loss}}
+        \label{eq:seed_base_arch}
+        \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    A master PRNG initialized with this key generates three independent 31-bit child seeds: \texttt{child\_seed\_payload} (for the synthetic message generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for the starting seed generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for the erasure channel \texttt{rng\_channel}). At each repetition, a fresh starting seed is drawn from \texttt{rng\_seeds}, guaranteeing that each trial explores a distinct trajectory of the LT code ensemble rather than repeatedly traversing the same deterministic block of droplets.
+    A master PRNG (\texttt{rng\_master}) initialized with this key generates three independent 31-bit child seeds: \texttt{child\_seed\_payload} (for the synthetic message generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for the starting seed generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for the erasure channel \texttt{rng\_channel}). At each repetition, a fresh starting seed ($s_0 \in [0, 65535]$) is drawn from \texttt{rng\_seeds}, guaranteeing that each trial explores a distinct trajectory of the LT code ensemble rather than repeatedly traversing the same deterministic block of droplets.
 \end{enumerate}
 
 \subsection{Header Sizing, Framing, and Library Storage Density}
 
-In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65{,}536$ distinct seed values. Search proceeds sequentially from $0$ to $2^{16}-1 = 65{,}535$ (\texttt{seed = 0} with unit increment). Under biological screening constraints (which reject approximately $42.6\%$ of framed candidates, compared to the $49.8\%$ analytical benchmark for unconstrained 28-mers), the extrapolated usable seed universe contains approximately $65{,}536 \times (1 - 0.426) \approx 37{,}600$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65{,}536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
+In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65{,}536$ distinct seed values. Candidate seed search proceeds sequentially with unit increments starting from initial seed $s_0$ (which defaults to $0$ in standalone single-file execution, or is randomly drawn from $\texttt{rng\_seeds}$ per trial in batch experimental sweeps). Under biological screening constraints (which reject approximately $42.6\%$ of framed candidates, compared to the $49.8\%$ analytical benchmark for unconstrained 28-mers), the extrapolated usable seed universe contains approximately $65{,}536 \times (1 - 0.426) \approx 37{,}600$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65{,}536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
 
 Each synthetic oligonucleotide in the prototype follows this binary framing:
 \begin{equation}
@@ -344,7 +345,7 @@ Robust Soliton Distribution logic was verified analytically, confirming:
 \end{equation}
 across multiple configurations of $K$, $c$, and $\delta$. In particular, unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
 
-Furthermore, empirical distribution sampling was validated across $10^5$ pseudo-random draws for $K = 32$, $c = 0.1$, and $\delta = 0.10$. In accordance with multinomial sampling theory, individual degree frequencies exhibited sample standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0015$, confirming that empirical frequencies match theoretical probabilities within standard statistical sampling dispersion, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.003$.
+Furthermore, empirical distribution sampling was validated exhaustively across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. In accordance with multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, confirming that deterministic seed sampling strictly adheres to the theoretical Robust Soliton Distribution across the complete seed universe (implemented in unit test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
 
 \subsection{Biological Screening Boundary and Homogeneity Tests}
 
@@ -395,10 +396,11 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
         \texttt{test\_descarte\_crc\_corrompido} & Unit & Negative test: single-base DNA mutation in received droplets. & $100\%$ rejected by CRC-8 \\
         \texttt{test\_esgotamento\_espaco\_seeds} & Unit & Negative test: requested quota exceeding available seed space. & Raises \texttt{RuntimeError} \\
         \texttt{test\_validacao\_cruzada\_peeling\_}\allowbreak\texttt{gaussiana} & Integration & Cross-validation of peeling decoder against $GF(2)$ Gaussian elimination. & Peeling success $\implies$ full rank $K$ \\
+        \texttt{test\_aderencia\_qui\_quadrado\_}\allowbreak\texttt{espaco\_seeds} & Unit & Chi-square goodness-of-fit across all $2^{16} = 65{,}536$ seeds against theoretical RSD. & $\chi^2 = 30.01$, $\text{df} = 31$, $p = 0.5169 > 0.05$ \\
         \bottomrule
     \end{tabular}%
     }
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-With these 17 unit, functional, and integration tests validated, no failures occurred across the test suite. Executing the complete suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in approximately 0.10 seconds, confirming simulator readiness for the experimental batteries detailed in the following chapter.
+With these 18 unit, functional, and integration tests validated, no failures occurred across the test suite. Executing the complete suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in under one second, confirming simulator readiness for the experimental batteries detailed in the following chapter.

@@ -405,3 +405,68 @@ def test_validacao_cruzada_peeling_gaussiana():
         assert met_p["blocos_recuperados"] <= met_g["posto"]
 
 
+def test_aderencia_qui_quadrado_espaco_seeds():
+    """Valida a amostragem da DRS em todo o espaco de 16 bits (65.536 seeds).
+
+    Verifica que:
+      1. O desvio maximo absoluto entre frequencias observadas e probabilidades
+         teoricas e inferior a 0.004 (ruido amostral binomial).
+      2. O teste qui-quadrado de aderencia nao rejeita a hipotese nula (p > 0.05).
+    """
+    import math
+    from collections import Counter
+
+    config = DNAFountainConfig()
+    config.soliton_c = 0.1
+    config.soliton_delta = 0.1
+    K = 32
+    soliton = RobustSoliton(config, K)
+
+    n_seeds = 65536
+    degrees = [soliton.sortear_grau_e_indices(s)[0] for s in range(n_seeds)]
+    counts = Counter(degrees)
+
+    obs = [counts.get(d, 0) for d in range(1, K + 1)]
+    exp = [p * n_seeds for p in soliton.mu[1:]]
+
+    # 1. Desvio maximo absoluto
+    max_dev = max(abs(o / n_seeds - p) for o, p in zip(obs, soliton.mu[1:]))
+    assert max_dev < 0.004
+
+    # 2. Agrupamento para frequencia esperada >= 5
+    obs_g, exp_g = [], []
+    co, ce = 0, 0
+    for o, e in zip(obs, exp):
+        co += o
+        ce += e
+        if ce >= 5:
+            obs_g.append(co)
+            exp_g.append(ce)
+            co, ce = 0, 0
+    if ce > 0:
+        obs_g[-1] += co
+        exp_g[-1] += ce
+
+    chi2 = sum((o - e) ** 2 / e for o, e in zip(obs_g, exp_g))
+    df = len(obs_g) - 1
+
+    # Calculo do p-valor via funcao gama incompleta
+    def chi2_survival(x, df):
+        k = df / 2.0
+        s = x / 2.0
+        sum_term = 0.0
+        term = 1.0 / k
+        sum_term = term
+        for n in range(1, 200):
+            term *= s / (k + n)
+            sum_term += term
+            if term < 1e-12:
+                break
+        gamma_lower = sum_term * math.exp(-s) * (s ** k)
+        return 1.0 - (gamma_lower / math.gamma(k))
+
+    p_value = chi2_survival(chi2, df)
+    assert p_value > 0.05
+
+
+
