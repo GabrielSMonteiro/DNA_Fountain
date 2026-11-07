@@ -243,52 +243,6 @@ pdflatex main
 pdflatex main
 ```
 
-O PDF final compilado será gerado em `Relatório/main.pdf`.
-
----
-
-## 8. Estrutura do Repositório e Artefatos de Dados
-
-```text
-├── dna_fountain/                  # Pacote central do simulador (Python puro, zero dependências)
-│   ├── channel.py                 # Canal estocástico de apagamento (BEC)
-│   ├── config.py                  # Parâmetros e dataclasses de configuração
-│   ├── dna_conversion.py          # Conversão bidirecional Bytes <-> DNA (2 bits/nt)
-│   ├── experiments.py             # Rotinas de execução em lote da grade fatorial
-│   ├── gaussian.py                # Decodificador Gaussiano em GF(2) para auditoria algébrica
-│   ├── lt_codec.py                # Codificador LT e decodificador peeling com ripple queue
-│   ├── preprocessing.py           # Segmentação, padding e truncamento determinístico
-│   ├── screening.py               # Filtro de restrições de GC (40-60%) e homopolímeros (<=3)
-│   ├── soliton.py                 # Distribuição Robusta de Soliton (DRS) e amostragem
-│   └── utils.py                   # Operações XOR, CRC-8 SMBus e scrambler aditivo
-├── tests/                         # Suíte de testes automatizados (pytest)
-│   └── test_dna_fountain.py       # 18 testes unitários, canônicos, negativos e estatísticos
-├── Relatório/                     # Fontes da monografia em LaTeX (template UnB / abnTeX2)
-│   ├── editaveis/                 # Capítulos do texto (01 a 08), introdução, resumo, abstract
-│   ├── figuras/                   # Gráficos vetoriais (.pdf) e rasterizados (.png) gerados
-│   ├── fixos/                     # Estrutura institucional, folha de aprovação, pacotes
-│   ├── abntex2-alf.bst            # Estilo bibliográfico ABNT com localização inglesa padronizada
-│   ├── bibliografia.bib           # Base de referências bibliográficas em BibTeX
-│   ├── compilar.ps1               # Script automatizado de compilação (pdflatex + bibtex)
-│   ├── compilar.bat               # Script batch de compilação para Windows
-│   └── main.pdf                   # Versão oficial compilada da monografia
-├── analisar_falhas_k16.py         # Script de auditoria de falhas em K=16 com Eliminação Gaussiana
-├── falhas_k16.json                # Registros detalhados das 153 falhas em K=16
-├── gerar_graficos.py              # Script gerador de todas as 5 figuras da monografia
-├── reexecutar_grade.py            # Execução concorrente da grade fatorial (1.000 repetições)
-├── run_experiments.py             # Execução sequencial da grade fatorial
-├── salvar_estatisticas_custo.py   # Benchmark isolado de runtime e XORs (Tabela 6.7)
-├── salvar_qui_quadrado.py         # Teste qui-quadrado do screening (100.000 oligos) e estresse
-├── screening_qui_quadrado.json    # Histograma de 18 classes do screening e dados de estresse
-├── tempos_brutos_decodificacao.json # 1.000 amostras individuais de tempo de decodificação
-├── resultados_1000.csv            # Matriz agregada oficial da grade fatorial (216 linhas, n=1.000)
-├── resultados_100.csv             # Matriz agregada com n=100 repetições
-├── requirements-dev.txt           # Dependências de instrumentação e testes (pytest, matplotlib)
-├── LICENSE                        # Licença MIT
-└── README.md                      # Documentação técnica e guia de reprodução (este arquivo)
-```
-
----
 
 ## 9. Como Citar
 
