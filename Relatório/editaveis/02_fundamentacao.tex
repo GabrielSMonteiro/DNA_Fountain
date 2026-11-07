@@ -38,7 +38,7 @@ Once source blocks are partitioned, each byte is converted into a sequence of fo
         11 & T \\
         \hline
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three rigorous tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
@@ -306,11 +306,11 @@ To quantitatively evaluate simulator performance across configurations, this wor
     
     \item \textbf{Number of XOR Operations}: The cumulative count of XOR operations executed by the decoder during peeling. Each recorded operation corresponds to a bitwise XOR between two full $L$-byte blocks (\texttt{xor\_blocos}), executed exactly once per edge peeled on the bipartite graph during neighbor elimination. This metric provides a platform-agnostic measure of algorithmic decoding work.
     
-    \item \textbf{Ripple Size}: Recorded across decoding steps, tracking both peak and mean queue length. Ripple trajectory characterizes decoding momentum and reveals stall points.
+    \item \textbf{Ripple Size}: Recorded across decoding steps, tracking both peak ($Q_{\max}$) and active minimum ($Q_{\min}$) queue lengths. Ripple trajectory characterizes decoding momentum and reveals stall points.
     
     \item \textbf{Recovered Blocks}: The count of source blocks successfully reconstructed upon decoding termination. In failure cases, this metric indicates how close the decoder was to full recovery.
     
-    \item \textbf{Processing Runtime}: Measured separately for encoding and decoding stages in milliseconds, enabling scalability assessment as a function of block count $K$.
+    \item \textbf{Processing Runtime}: Measured for the iterative decoding stage in milliseconds (the primary computational bottleneck of belief propagation on the bipartite graph), enabling scalability assessment as a function of block count $K$.
 \end{itemize}
 
 These metrics are automatically gathered by the simulator on each trial and consolidated into structured CSV files for statistical analysis, as detailed in Chapter~\ref{chap:experimental_methodology}.

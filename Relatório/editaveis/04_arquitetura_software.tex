@@ -52,7 +52,7 @@ Table~\ref{tab:requisitos_funcionais} summarizes the functional requirements and
         FR08 & Collect statistical metrics and export to structured CSV files. \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Table~\ref{tab:rastreabilidade_requisitos} establishes the Software Engineering traceability matrix, mapping each functional requirement to its implementation components and automated verification tests.
@@ -78,7 +78,7 @@ Table~\ref{tab:rastreabilidade_requisitos} establishes the Software Engineering 
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 \subsection{Non-Functional Requirements}
@@ -165,7 +165,7 @@ Table~\ref{tab:modulos_sistema} summarizes the modular organization of the simul
         \texttt{main.py} & Interactive single-run demonstration with terminal logging. \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 \section{Data Models}
@@ -185,7 +185,7 @@ The following terms define conceptual entities within the pipeline, with their c
         \item \texttt{dna}: nucleotide string over $\{A, C, G, T\}$ representing header + payload + CRC.
     \end{itemize}
 
-    \item \textbf{ExperimentConfig}: The \texttt{DNAFountainConfig} dataclass centralizes 14 parameters across six categories: preprocessing ($L$, padding), soliton distribution ($c$, $\delta$), LT encoding ($N$, seed bit width, XOR mask), payload processing (scrambling, CRC), biological screening (GC boundaries, max homopolymer), and simulation ($p_{\text{loss}}$, experiment seed).
+    \item \textbf{DNAFountainConfig}: The dataclass defined in \texttt{config.py} centralizes 14 parameters across six categories: preprocessing ($L$, padding), soliton distribution ($c$, $\delta$), LT encoding ($N$, seed bit width, XOR mask), payload processing (scrambling, CRC), biological screening (GC boundaries, max homopolymer), and simulation ($p_{\text{loss}}$, experiment seed).
 
     \item \textbf{ExperimentResult}: The \texttt{experimento()} routine returns an aggregated dictionary over $n$ trials: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, sent overhead, $R$, mean degree, success rate, average XOR count, average peak/minimum ripple, and decoding runtime in milliseconds.
 \end{itemize}
@@ -200,7 +200,7 @@ Figure~\ref{fig:diagrama_arquitetura} illustrates the conceptual architecture an
     \includegraphics[width=\textwidth]{figuras/diagrama_arquitetura.pdf}
     \caption{Modular architecture and data processing flow of the DNA Fountain simulator.}
     \label{fig:diagrama_arquitetura}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 The simulator operates across ten sequential stages, described below:
@@ -398,7 +398,7 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 With these 17 unit, functional, and integration tests validated, no failures occurred across the test suite. Executing the complete suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in approximately 0.10 seconds, confirming simulator readiness for the experimental batteries detailed in the following chapter.

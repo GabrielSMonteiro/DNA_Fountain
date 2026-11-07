@@ -4,21 +4,30 @@
 \renewcommand*{\backrefalt}[4]{}
 % ---
 
-% Adaptacao para ABNT NBR 10520:2023 (autor em caixa mista nas citacoes entre parenteses)
-% Substitui ' e ' por ' and ' nas citacoes em texto ingles conforme recomendacao da banca
+% Titulo da bibliografia em ingles padronizado para "References" (NBR / Memoir / Babel)
+\addto\captionsenglish{\renewcommand{\bibname}{References}}
+\renewcommand{\bibname}{References}
+
+% Adaptacao para ABNT NBR 10520:2023 (autor em caixa mista nas citacoes)
+% Citacoes entre parenteses: autores separados por ponto e virgula (Ceze; Nivala; Strauss, 2019)
+% Citacoes narrativas em texto ingles: autores separados por "and" (Ceze, Nivala and Strauss, 2019)
 \makeatletter
 \renewcommand{\abntrefinfo}[3]{%
   \if@filesw
     {%
      \let\protect\noexpand
+     % EXPL (citacao narrativa em ingles): substitui ' e ' por ' and '
      \StrSubstitute{#1}{ e }{ and }[\@authand]%
+     % IMPL (citacao entre parenteses, NBR 10520): separa autores por ponto e virgula
+     \StrSubstitute{#1}{, }{; }[\@authsc]%
+     \StrSubstitute{\@authsc}{ e }{; }[\@authimpl]%
      \ifthenelse{\boolean{ABNThyperref}}{%
        \immediate\write\@auxout{\string\bibciteEXPL{\abntnextkey}{\@authand}}%
-       \immediate\write\@auxout{\string\bibciteIMPL{\abntnextkey}{\@authand}}%
+       \immediate\write\@auxout{\string\bibciteIMPL{\abntnextkey}{\@authimpl}}%
        \immediate\write\@auxout{\string\bibciteYEAR{\abntnextkey}{#3}}%
      }{%
        \immediate\write\@auxout{\string\bibcite{\abntnextkey++EXPL}{\@authand}}%
-       \immediate\write\@auxout{\string\bibcite{\abntnextkey++IMPL}{\@authand}}%
+       \immediate\write\@auxout{\string\bibcite{\abntnextkey++IMPL}{\@authimpl}}%
        \immediate\write\@auxout{\string\bibcite{\abntnextkey++YEAR}{#3}}%
      }%
     }%

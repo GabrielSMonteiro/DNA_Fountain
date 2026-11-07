@@ -36,7 +36,7 @@ Table~\ref{tab:validacao_funcional} presents the performance observed across the
         64 & 0.3 & 1.00 & 96.6 & 493.5 & 43.0 & 8.32 \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 The results confirm that, under overhead $\epsilon = 1.00$, ideal channel ($p_{\text{loss}} = 0.0$), and reference parameters $c = 0.1$ and $\delta = 0.10$, robust recovery was observed across 1,000 independent executions: 92.0\% for $K = 32$ (95\% exact Clopper--Pearson confidence interval: $[90.1\%, 93.6\%]$) and 98.5\% for $K = 64$ (95\% CI: $[97.5\%, 99.2\%]$). In all successful executions, reconstructed data integrity was verified byte-for-byte against the original source blocks with zero discrepancies.
@@ -50,7 +50,7 @@ The biological screening module acts as a physicochemical quality filter, reject
 
 To assess the screening impact rigorously, a direct homogeneity evaluation across $N = 100{,}000$ framed candidate droplets was conducted ($K = 32$, $c = 0.1$, $\delta = 0.10$). Screening rejected 42.6\% of candidate sequences (42,605 out of 100,000 candidates). This rejection rate reflects the combined stringency of both criteria applied to framed candidates: the 3-base homopolymer threshold eliminates sequences such as \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG}, and \texttt{TTTT}, while GC boundaries discard oligos deviating from the central window.
 
-Analytically, for pure unconstrained uniform random 28-mers, exact dynamic programming over the joint distribution of GC count ($\in [12, 16]$) and homopolymer length ($\le 3$) yields a theoretical rejection rate of $49.77\%$. The lower rejection observed on framed candidates ($42.60\%$) arises from binary encapsulation: the static XOR mask \texttt{0x1B1B} applied to 16-bit seeds causes low seeds to begin with nucleotide sequence \texttt{ACGTACGT}, which has exactly 50\% GC and a maximum homopolymer length of 1, shielding the first 8 nucleotides from constraint violations.
+Analytically, for pure unconstrained uniform random 28-mers, exact dynamic programming over the joint distribution of GC count ($\in [12, 16]$) and homopolymer length ($\le 3$) yields a theoretical rejection rate of $49.77\%$. The lower rejection rate observed on framed candidates ($42.60\%$) arises directly from the structured binary encapsulation: each 28-nucleotide strand comprises an 8-nucleotide seed header, a 16-nucleotide scrambled payload, and a 4-nucleotide CRC-8 checksum. The static XOR mask \texttt{0x1B1B} (\texttt{0001101100011011} in binary) applied to 16-bit seeds causes low seeds to begin with nucleotide sequence \texttt{ACGTACGT}, which has exactly 50\% GC and a maximum homopolymer length of 1. Across all $2^{16}$ possible seeds, this alternating bit pattern enforces balanced GC content in the header and eliminates long homopolymer runs in the first 8 nucleotides. Consequently, the header contributes zero homopolymer violations and minimal GC variance, reducing overall strand rejection relative to the unconstrained theoretical benchmark of $49.77\%$.
 
 Table~\ref{tab:screening_graus} compares the theoretical expected value of the population distribution with empirical mean degrees observed across the total 100,000 candidates and within the accepted and rejected subsets.
 
@@ -71,12 +71,12 @@ Table~\ref{tab:screening_graus} compares the theoretical expected value of the p
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
-The sample mean across accepted droplets was $4.935$, while for rejected droplets it was $4.924$—a negligible difference of only $0.011$ degrees. To formally verify whether biological filtering preserves the full degree distribution beyond the mean, a direct Pearson chi-square ($\chi^2$) test of homogeneity was conducted comparing the degree distributions of accepted versus rejected candidates across 18 canonical bins ($d \in \{1\}, \{2\}, \ldots, \{12\}$, and adjacent composite classes up to degree 32, ensuring expected cell counts $\ge 5$). The test yielded $\chi^2 = 23.66$ ($\text{df} = 17$, $p = 0.1289$). Because $p > 0.05$, the null hypothesis of homogeneity cannot be rejected, providing empirical proof that biological screening does not introduce degree distribution bias under the evaluated framing.
+The sample mean across accepted droplets was $4.935$, while for rejected droplets it was $4.924$—a negligible difference of only $0.011$ degrees. To formally verify whether biological filtering preserves the full degree distribution beyond the mean, a direct Pearson chi-square ($\chi^2$) test of homogeneity was conducted comparing the degree distributions of accepted versus rejected candidates across 18 canonical bins ($d \in \{1\}, \{2\}, \ldots, \{12\}$, and adjacent composite classes up to degree 32, ensuring expected cell counts $\ge 5$). The test yielded $\chi^2 = 23.66$ ($\text{df} = 17$, $p = 0.1289$). Because $p > 0.05$, the null hypothesis of homogeneity is not rejected, indicating that no statistically significant difference was detected between the degree distributions of accepted and rejected candidates under the evaluated framing.
 
-Furthermore, the necessity of the additive scrambler was demonstrated by stressing the pipeline with low-entropy payloads: an all-zero byte payload evaluated across 1,000 trials suffered 100.0\% rejection without scrambling due to the immediate formation of 16-base poly-A homopolymers, completely halting droplet generation. With scrambling enabled, the rejection rate normalized to $38.5\%$, confirming the scrambler's role in breaking sequence periodicity. Detailed test records are archived in \texttt{screening\_qui\_quadrado.json}.
+Furthermore, the necessity of the additive scrambler was demonstrated by stressing the pipeline with an extreme low-entropy payload: an all-zero byte payload (\texttt{0x00000000}) evaluated across 1,000 trials suffered 100.0\% rejection without scrambling due to the immediate formation of 16-base poly-A homopolymers, completely halting droplet generation. With scrambling enabled, the rejection rate normalized to $38.5\%$ (385 out of 1,000 trials), confirming the scrambler's role in breaking sequence periodicity. Note that this $38.5\%$ rejection rate under scrambled all-zero payloads is an empirical result of the stress test (archived in \texttt{screening\_qui\_quadrado.json}), distinct from the aggregate $38.5\%$ decoding success rate observed for $c = 0.5$ in Table~\ref{tab:validacao_k32_k64}.
 
 \section{Ripple Dynamics and Behavior}
 \label{sec:results_ripple_behavior}
@@ -115,7 +115,7 @@ Table~\ref{tab:ripple_metricas} presents mean ripple queue dynamics as a functio
     }
     \par \vspace{3pt}
     {\footnotesize $^*$Sampling of $Q_{\min}$ occurs during active iterations (\texttt{while ripple:}); final emptying (size zero) terminates the loop and is not included in active trajectory logs.}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple queue size across peeling decoding iterations for $K = 32$ with overhead $\epsilon = 1.00$ and ideal channel, contrasting the recommended parameterization ($c = 0.1$, $\delta = 0.10$) against a degenerate configuration ($c = 0.5$, $\delta = 0.10$).
@@ -123,9 +123,9 @@ Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple q
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{figuras/grafico_ripple.pdf}
-    \caption{Evolution of ripple queue length across peeling decoding steps ($K = 32$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$). Single illustrative run; aggregate ensemble success rate for $c = 0.5$ is 38.5\% (385/1,000).}
+    \caption[Evolution of ripple queue length across peeling decoding steps]{Evolution of ripple queue length across peeling decoding steps ($K = 32$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$). Single illustrative run; aggregate ensemble success rate for $c = 0.5$ is 38.5\% (385/1,000 independent runs).}
     \label{fig:dinamica_ripple}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 Analysis of Figure~\ref{fig:dinamica_ripple} and Table~\ref{tab:ripple_metricas} clarifies operational differences between aggregate means and individual runs:
@@ -170,7 +170,7 @@ Table~\ref{tab:overhead_sucesso} summarizes success rates obtained for different
         64 & 0.8 & 0.0 & 0.0 & 7.1 \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$, and $K = 64$) and constants $c \in \{0.1, 0.3, 0.5, 0.8\}$.
@@ -180,7 +180,7 @@ Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of 
     \includegraphics[width=\textwidth]{figuras/grafico_overhead_sucesso.pdf}
     \caption{Decoding success rate as a function of sent overhead ($\delta = 0.10$, $p_{\text{loss}} = 0.0$).}
     \label{fig:overhead_sucesso}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 The visualization in Figure~\ref{fig:overhead_sucesso} demonstrates that, across evaluated overhead levels ($\epsilon \in \{0.25, 0.50, 1.00\}$), response curves steepen noticeably as $K$ increases:
@@ -230,7 +230,7 @@ Table~\ref{tab:impacto_c_delta} details the systematic impact of $c$ and $\delta
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Figure~\ref{fig:impacto_c_delta} illustrates the joint behavior of theoretical mean degree ($\mathbb{E}_\mu[D]$) and decoding success rate as functions of $c$, for both evaluated $\delta$ levels ($0.10$ and $0.01$).
@@ -240,7 +240,7 @@ Figure~\ref{fig:impacto_c_delta} illustrates the joint behavior of theoretical m
     \includegraphics[width=0.88\textwidth]{figuras/grafico_impacto_c_delta.pdf}
     \caption{Impact of parameters $c$ and $\delta$ on degree distribution and success rate ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$).}
     \label{fig:impacto_c_delta}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 The relationship in Figure~\ref{fig:impacto_c_delta} highlights the mechanics of the RSD in finite block regimes:
@@ -252,7 +252,7 @@ The relationship in Figure~\ref{fig:impacto_c_delta} highlights the mechanics of
     \item \textbf{Relationship with XOR Operations}: As mean degree falls, average XOR operations executed during decoding also decrease (from 150.4 to 69.8). However, this computational reduction reflects premature decoder stall due to connection exhaustion rather than algorithmic efficiency.
 \end{enumerate}
 
-Characterizing $c = 0.1$ and $\delta = 0.10$ as the most effective configuration must be contextualized within the evaluated parameter domain. While this combination proved superior for $K = 32$ and $K = 64$ under full overhead ($\epsilon = 1.00$), under intermediate overhead $\epsilon = 0.50$, $c = 0.3$ achieved higher success rates than $c = 0.1$ for $K = 32$ ($63.3\%$ vs. $49.2\%$, $p = 1.8 \times 10^{-10}$, two-tailed Fisher's exact test) and $K = 16$ ($56.0\%$ vs. $47.3\%$, $p = 0.0001$). Under constrained overhead ($\epsilon = 0.25$) over an ideal channel, $c = 0.3$ also statistically outperformed $c = 0.1$ for $K = 16$, recording $27.2\%$ success versus $16.9\%$ ($p = 8.1 \times 10^{-8}$), and for $K = 32$ ($23.9\%$ vs. $11.8\%$, $p = 1.8 \times 10^{-11}$). For $K = 16$, the advantage of $c = 0.3$ under constrained redundancy stems from RSD dynamics: under $c = 0.1$, $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating a substantial $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration provides a rich reserve of binary equations ready to become degree-1 as soon as the first source block is resolved, sustaining continuous peeling momentum and preventing early stall under tight packet budgets.
+Characterizing $c = 0.1$ and $\delta = 0.10$ as the reference configuration must be contextualized within the finite parameter domain. While this combination proved superior for $K = 32$ (92.0\%) and $K = 64$ (98.5\%) under full overhead ($\epsilon = 1.00$), for $K = 16$ under $\epsilon = 1.00$, $c = 0.3$ outperformed $c = 0.1$ with statistical significance ($89.3\%$ vs. $84.7\%$, $p = 0.0027$, two-tailed Fisher's exact test). Under intermediate overhead $\epsilon = 0.50$, $c = 0.3$ also achieved higher success rates than $c = 0.1$ for $K = 32$ ($63.3\%$ vs. $49.2\%$, $p = 1.8 \times 10^{-10}$) and $K = 16$ ($56.0\%$ vs. $47.3\%$, $p = 0.0001$). Under constrained overhead ($\epsilon = 0.25$) over an ideal channel, $c = 0.3$ likewise statistically outperformed $c = 0.1$ for $K = 16$ ($27.2\%$ vs. $16.9\%$, $p = 8.1 \times 10^{-8}$) and for $K = 32$ ($23.9\%$ vs. $11.8\%$, $p = 1.8 \times 10^{-11}$). This demonstrates that no single parameterization dominates the entire finite block regime. For $K = 16$, the advantage of $c = 0.3$ under constrained redundancy stems from RSD dynamics: under $c = 0.1$, $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration provides an immediate reserve of binary equations that collapse to degree-1 as soon as the first block is resolved. For $K = 32$, increasing $c$ to $0.3$ expands $R$ to $9.79$, shifting the corrective peak to mode $m = 3$ with $\mu(3) \approx 0.548$ and $\mu(2) \approx 0.228$; this likewise sustains ripple replenishment while avoiding premature exhaustion under low-to-moderate redundancy budgets.
 
 \section{System Resilience to Channel Losses}
 \label{sec:results_system_resilience}
@@ -283,7 +283,7 @@ Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations unde
         64 & 1.00 & 98.5\% & 92.3\% & 78.8\% & 522.5 \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Figure~\ref{fig:resiliencia_canal} illustrates recovery rate as a function of $p_{\text{loss}}$ across the three overhead tiers ($\epsilon = 0.25$, $\epsilon = 0.50$, and $\epsilon = 1.00$) for $K = 32$ and $K = 64$.
@@ -293,12 +293,12 @@ Figure~\ref{fig:resiliencia_canal} illustrates recovery rate as a function of $p
     \includegraphics[width=0.88\textwidth]{figuras/grafico_resiliencia.pdf}
     \caption{System resilience under stochastic channel losses ($c = 0.1$, $\delta = 0.10$).}
     \label{fig:resiliencia_canal}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 The results show that a packet erasure channel with loss probability $p_{\text{loss}}$ directly reduces effective received overhead. Mathematically, the expected number of arriving droplets is $\mathbb{E}[N_{\text{rx}}] = N_{\text{tx}}(1 - p_{\text{loss}})$, yielding an expected effective overhead $\mathbb{E}[\epsilon_{\text{rx}}] = (1 + \epsilon_{\text{tx}})(1 - p_{\text{loss}}) - 1$.
 
-When transmitting with nominal overhead $\epsilon = 1.00$ ($N_{\text{tx}} = 2K$), even under erasure probability $p_{\text{loss}} = 0.10$, the decoder still receives on average $1.8K$ droplets ($\mathbb{E}[\epsilon_{\text{rx}}] = 0.80$). Because this volume remains well above the threshold required to sustain peeling across evaluated configurations, high recovery rates are sustained: 82.9\% for $K = 32$ and 92.3\% for $K = 64$. Even under $p_{\text{loss}} = 0.20$, the system sustains 63.4\% recovery for $K = 32$ and 78.8\% for $K = 64$.
+When transmitting with nominal overhead $\epsilon = 1.00$ ($N_{\text{tx}} = 2K$), under erasure probability $p_{\text{loss}} = 0.10$, the decoder receives on average $1.8K$ droplets ($\mathbb{E}[\epsilon_{\text{rx}}] = 0.80$), with recovery reaching 82.9\% for $K = 32$ and 92.3\% for $K = 64$. Under a higher loss rate of $p_{\text{loss}} = 0.20$, expected received droplets drop to $1.6K$ ($\mathbb{E}[\epsilon_{\text{rx}}] = 0.60$), and decoding success decreases to 63.4\% for $K = 32$ and 78.8\% for $K = 64$, consistent with the reduction of effective received overhead.
 
 Conversely, configurations operating with intermediate nominal overhead ($\epsilon = 0.50$, marginal for full recovery) degrade sharply under losses: for $K = 64$, under $p_{\text{loss}} = 0.10$ success drops from 61.6\% to 27.3\%, and under $p_{\text{loss}} = 0.20$ plummets to 6.0\%. This behavior reinforces a core design principle: in physical DNA storage channels subject to molecular decay and sequencing dropout, overhead margins must be provisioned according to anticipated sequencing losses.
 
@@ -327,7 +327,7 @@ Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR 
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 Figure~\ref{fig:custo_computacional} illustrates average decoding runtime (with $\pm 1$ standard deviation error bars) and XOR operations as functions of block count $K$.
@@ -337,7 +337,7 @@ Figure~\ref{fig:custo_computacional} illustrates average decoding runtime (with 
     \includegraphics[width=0.88\textwidth]{figuras/grafico_custo_computacional.pdf}
     \caption{Total decoder computational cost as a function of $K$ ($c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$, $p_{\text{loss}} = 0.0$).}
     \label{fig:custo_computacional}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{figure}
 
 LT code theory establishes asymptotic decoding complexity of order $O(K \ln(K/\delta))$ symbol operations~\cite{luby2002}. Empirical data gathered across the narrow range $K \le 64$ align with this theoretical trend, though a three-point sample does not conclusively substantiate asymptotic scaling:
@@ -357,7 +357,7 @@ To uphold academic rigor, the scope and limitations of the presented findings mu
 \begin{enumerate}
     \item \textbf{Simplified Communication Channel}: The simulator models DNA storage as an abstract memoryless Binary Erasure Channel (BEC), where droplets arrive intact or are entirely erased. In physical wet-lab practice, synthesis, storage, and sequencing suffer from substitution errors, insertions, deletions (indels), and non-uniform sequence-dependent coverage bias~\cite{heckel2019, shomorony2022}. Resilience results reported herein reflect performance under idealized packet erasures without phase noise or point mutations. Moreover, evaluated erasure probabilities represent controlled simulation scenarios rather than calibrated estimates for a specific laboratory protocol;
     
-    \item \textbf{Source Block Scale ($K$)}: Experimental batteries focused on $K \in \{16, 32, 64\}$. This choice enabled exhaustive exploration of a 216-combination factorial matrix with 1,000 independent repetitions per point (216,000 trials). While suitable for analyzing transition dynamics and RSD behavior in small regimes, real-world DNA archiving platforms~\cite{erlich2017} operate with $K$ on the order of tens or hundreds of thousands of blocks, where boundary effects diminish and required overhead drops to 5\%--10\%;
+    \item \textbf{Source Block Scale ($K$)}: Experimental batteries focused on $K \in \{16, 32, 64\}$. This choice enabled exhaustive exploration of a 216-combination factorial matrix with 1,000 independent repetitions per point (216,000 trials). While suitable for analyzing transition dynamics and RSD behavior in small regimes, real-world DNA archiving platforms~\cite{erlich2017} operate with $K$ on the order of tens or hundreds of thousands of blocks, where boundary effects diminish and required overhead drops to 5\%--10\%. In addition, the original DNA Fountain experiment by \citeonline{erlich2017} employed $c = 0.025$ and $\delta = 0.001$, which lie strictly below the evaluated parameter grid ($c \in \{0.1, 0.3, 0.5, 0.8\}$), reinforcing the limitation that the sub-0.1 parameter domain ($c < 0.1$) was not examined in this study;
     
     \item \textbf{High-Level Language Implementation}: The simulator was developed in pure Python 3 for modularity, didactic clarity, maintainability, and reproducibility. Consequently, runtime measurements reflect CPython interpretation overhead rather than the performance obtainable via optimized C/C++, Rust, or FPGA implementations;
     

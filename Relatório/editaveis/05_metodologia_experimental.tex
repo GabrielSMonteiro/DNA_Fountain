@@ -128,7 +128,7 @@ Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, an
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 \section{Experimental Scenarios}
@@ -180,7 +180,7 @@ Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
         5 & Erasure Channel & $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ & Resilience, minimum overhead \\
         \bottomrule
     \end{tabular}
-    \fonte{Gabriel Monteiro (2026).}
+    \fonte{Prepared by the author (2026).}
 \end{table}
 
 \section{Repetitions and Statistical Procedures}
@@ -210,7 +210,12 @@ To compare success proportions between specific experimental configurations (e.g
 Experimental reproducibility is grounded in five key methodological measures:
 
 \begin{enumerate}
-    \item \textbf{Deterministic Seed Control and PRNG Decoupling}: Each batch execution receives a base seed (\texttt{seed\_base}) incorporating grid parameters and channel loss probability. Three dedicated PRNG instances are decoupled: \texttt{rng\_payload} for synthetic data, \texttt{rng\_seeds} for random initial droplet seed selection per repetition, and \texttt{rng\_channel} for stochastic packet erasures. With this separation, executions deterministically reproduce the exact same ensemble statistics in the declared environment (CPython~3.12.7).
+    \item \textbf{Deterministic Master Seed Control and PRNG Decoupling}: Each batch execution calculates a deterministic master seed:
+    \begin{equation}
+        \label{eq:master_seed}
+        \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
+    \end{equation}
+    which initializes a master generator (\texttt{rng\_master}). From this generator, three dedicated PRNG seeds are drawn to initialize isolated streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing an independent initial encoder seed ($s_0 \in [0, 65535]$) on each repetition, and \texttt{rng\_channel} for stochastic packet erasures. With this separation, the 1,000 repetitions explore distinct bipartite graph realizations across the ensemble while remaining strictly, deterministically reproducible in the declared environment (CPython~3.12.7).
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
@@ -226,11 +231,11 @@ Experimental reproducibility is grounded in five key methodological measures:
         \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py};
         \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py};
         \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py};
-        \item Vector plot regeneration: \texttt{python gerar\_graficos\_artigo.py};
+        \item Vector plot regeneration: \texttt{python gerar\_graficos.py};
         \item Test suite execution: \texttt{python -m pytest tests/}.
     \end{itemize}
 
     \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible under release tag \texttt{v1.0-tcc} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-tcc}.
+    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
 \end{enumerate}
