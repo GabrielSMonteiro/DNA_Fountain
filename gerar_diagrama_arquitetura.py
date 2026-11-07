@@ -175,7 +175,7 @@ draw_box(
         '• Padding reversal and exact truncation to original file length',
         '• Strict byte-by-byte comparison against source blocks (success rate)',
         '• Metrics logging: success rate, queue peak (Q_max), runtime, XORs',
-        '• Factorial grid: 216 combinations (K, c, δ, ε, p_loss) × 100 runs (21,600 trials)',
+        '• Factorial grid: 216 combinations (K, c, δ, ε, p_loss) × 1,000 runs (216,000 trials)',
         '• Structured export in aggregated matrices (CSV) and audit logs (JSON)'
     ],
     bg_col=colors['bg_rec'], border_col=colors['border_rec'], title_col=colors['title_rec']
