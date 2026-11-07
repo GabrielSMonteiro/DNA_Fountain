@@ -49,13 +49,11 @@ Independent variables comprise the pipeline parameters systematically varied acr
 Dependent variables correspond to output metrics collected by the simulator on each execution run. These metrics quantify pipeline performance and computational cost across configurations:
 
 \begin{itemize}
-    \item \textbf{Decoding Success Rate}: Proportion of trials in which all $K$ source blocks were successfully recovered by the peeling decoder, expressed as a percentage between $0\%$ and $100\%$.
+    \item \textbf{Decoding Success Rate ($P_{\text{succ}}$)}: Proportion of trials in which all $K$ source blocks were successfully recovered by the peeling decoder, expressed as a percentage between $0\%$ and $100\%$. In archival storage, where partial file reconstruction is generally unserviceable without an outer error-correcting layer, complete decoding success is the primary figure of merit.
 
-    \item \textbf{Mean Recovered Blocks}: Average count of resolved source blocks, useful for evaluating partial recovery in failure cases.
+    \item \textbf{Screening Rejection Rate ($R_{\text{screen}}$)}: Proportion of candidate droplets rejected by the biological screening module prior to transmission, quantifying the overhead penalty imposed by GC and homopolymer constraints on framed candidates.
 
-    \item \textbf{Screening Rejection Rate ($R_{\text{screen}}$)}: Proportion of candidate droplets rejected by the biological screening module prior to transmission, quantifying the overhead penalty imposed by GC and homopolymer constraints.
-
-    \item \textbf{Effective Received Droplet Count}: Number of oligonucleotides surviving both biological screening and channel erasures, representing the effective information available to the decoder.
+    \item \textbf{Effective Received Overhead ($\epsilon_{\text{rx}}$)}: Relative overhead reaching the decoder after biological screening and channel erasures, $\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$, formalizing the effective redundancy volume available for decoding.
 
     \item \textbf{Peeling Propagation XOR Operations}: Cumulative count of bitwise exclusive-OR operations executed between blocks during neighbor updates, providing a platform-agnostic metric of decoder algorithmic effort.
 
@@ -107,9 +105,8 @@ Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, an
             & Channel loss probability ($p_{\text{loss}}$) & $\{0.0, 0.10, 0.20\}$ (3 levels) \\
         \midrule
         \multirow{5}{*}{\parbox{2.5cm}{Dependent (216 Grid)}}
-            & Decoding success rate & $0\%$ to $100\%$ (with 95\% Clopper--Pearson CI) \\
-            & Recovered source blocks & $0$ to $K$ \\
-            & Effective received droplets & Post-screening and post-loss count \\
+            & Complete decoding success rate & $0\%$ to $100\%$ (with 95\% Clopper--Pearson CI) \\
+            & Effective received overhead ($\epsilon_{\text{rx}}$) & Post-screening and post-channel redundancy \\
             & Cumulative XOR operations & Total computed during peeling \\
             & Ripple queue size ($Q_{\max}$, $Q_{\min}$) & Instrumented queue dynamics \\
             & Total decoder runtime & Milliseconds (\texttt{time.perf\_counter}) \\
@@ -235,5 +232,5 @@ Experimental reproducibility is grounded in five key methodological measures:
 
     \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible under release tag \texttt{v1.0-tcc} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-tcc}.
 \end{enumerate}

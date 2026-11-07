@@ -68,10 +68,10 @@ Table~\ref{tab:rastreabilidade_requisitos} establishes the Software Engineering 
         \textbf{ID} & \textbf{Software Module} & \textbf{Core Entity / Method} & \textbf{Validation Procedure / Test Case} \\
         \midrule
         FR01 & \texttt{preprocessing.py} & \texttt{MessageProcessor.segmentar()} & \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} \\
-        FR02 & \texttt{soliton.py} & \texttt{RobustSoliton.sortear\_grau...()} & \texttt{test\_amostragem\_}\allowbreak\texttt{deterministica\_seed} \\
+        FR02 & \texttt{soliton.py} & \texttt{RobustSoliton.sortear\_}\allowbreak\texttt{grau\_e\_indices()} & \texttt{test\_amostragem\_deterministica\_}\allowbreak\texttt{seed}, \texttt{test\_somatoria\_drs} \\
         FR03 & \texttt{lt\_codec.py} & \texttt{DNAFountainEncoder.codificar()} & \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} \\
-        FR04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna...()} & \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} \\
-        FR05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc\_limits}, \texttt{homopolimeros} \\
+        FR04 & \texttt{dna\_conversion.py} & \texttt{bytes\_para\_dna()} / \texttt{dna\_para\_bytes()} & \texttt{test\_conversao\_bytes\_dna\_}\allowbreak\texttt{reversibilidade} \\
+        FR05 & \texttt{screening.py} & \texttt{BiologicalScreening.verificar()} & \texttt{test\_screening\_gc\_limits}, \texttt{test\_screening\_homopolimeros} \\
         FR06 & \texttt{channel.py} & \texttt{ErasureChannel.transmitir()} & \texttt{test\_canal\_apagamento\_extremos} \\
         FR07 & \texttt{lt\_codec.py} & \texttt{DNAFountainDecoder.decodificar()} & Canonical cases and \texttt{test\_peeling\_canal\_ideal} \\
         FR08 & \texttt{experiments.py} & \texttt{experimento()} / CSV export & \texttt{test\_exportacao\_metricas\_csv} \\
@@ -275,18 +275,22 @@ Crucially, CRC-8 does not serve as a packet recovery mechanism for the pure eras
 To ensure strict reproducibility and avoid statistical cross-contamination between components, the simulator segregates pseudorandom number generation into three independent domains:
 
 \begin{enumerate}
-    \item \textbf{Seed PRNG (Neighbor Index Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical graphs.
-
+    \item \textbf{Droplet Seed PRNG (Graph Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical bipartite graphs without exchanging connection metadata.
+    
     Interoperability between encoder and decoder strictly requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatched graphs and cause decoding to fail. While CPython~3.12 guarantees deterministic repeatability across the declared environments, long-term archival storage or migration to FPGA hardware warrants a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
 
-    \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random} instance initialized by the global experiment seed (\texttt{seed\_experimento}). This guarantees that channel loss draws never interfere with droplet encoding PRNG streams.
+    \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random(child\_seed\_channel)} instance. Its initialization incorporates the channel loss probability $p_{\text{loss}}$ into the master seed calculation, guaranteeing that loss realizations are statistically independent across erasure conditions and never perturb payload generation or droplet graph selection.
 
-    \item \textbf{Batch Experiment Master PRNG}: The \texttt{experimento()} routine accepts a \texttt{seed\_base} parameter governing synthetic instance generation and channel losses. With a fixed \texttt{seed\_base}, execution deterministically reproduces the exact same sequence of synthetic instances and stochastic events in the declared environment (CPython~3.12.7), ensuring algorithmic repeatability (though CPU runtimes naturally vary with operating system scheduling).
+    \item \textbf{Batch Experiment Master PRNG and Repetition Independence}: The \texttt{experimento()} routine accepts a base configuration seed and calculates a compound initialization key:
+    \begin{equation}
+        \text{seed\_base} = \text{seed\_experimento} + 1000K + 100c + 1000\delta + N_{\text{tx}} + 100p_{\text{loss}}
+    \end{equation}
+    A master PRNG initialized with this key generates three independent 31-bit child seeds: \texttt{child\_seed\_payload} (for the synthetic message generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for the starting seed generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for the erasure channel \texttt{rng\_channel}). At each repetition, a fresh starting seed is drawn from \texttt{rng\_seeds}, guaranteeing that each trial explores a distinct trajectory of the LT code ensemble rather than repeatedly traversing the same deterministic block of droplets.
 \end{enumerate}
 
 \subsection{Header Sizing, Framing, and Library Storage Density}
 
-In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65,536$ distinct seed values. Search proceeds sequentially from $0$ to $2^{16}-1 = 65,535$ (\texttt{seed = 0} with unit increment). Under biological screening constraints (which reject approximately $40.2\%$ of pseudo-random candidates), the extrapolated usable seed universe contains approximately $65,536 \times (1 - 0.402) \approx 39,000$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65,536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
+In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65{,}536$ distinct seed values. Search proceeds sequentially from $0$ to $2^{16}-1 = 65{,}535$ (\texttt{seed = 0} with unit increment). Under biological screening constraints (which reject approximately $42.6\%$ of framed candidates, compared to the $49.8\%$ analytical benchmark for unconstrained 28-mers), the extrapolated usable seed universe contains approximately $65{,}536 \times (1 - 0.426) \approx 37{,}600$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65{,}536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
 
 Each synthetic oligonucleotide in the prototype follows this binary framing:
 \begin{equation}
@@ -360,7 +364,7 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
     \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets (\texttt{test\_grafo\_canonico\_cascata\_triangular}) where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$);
     \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet (\texttt{test\_falha\_stopping\_set\_sem\_grau1}) verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) when unit equations are absent;
     \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets (\texttt{test\_descarte\_crc\_corrompido}) confirm that corrupted packets are rejected during framing parse;
-    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco_seeds}) validates explicit raising of \texttt{RuntimeError};
+    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco\_seeds}) validates explicit raising of \texttt{RuntimeError};
     \item \textbf{Cross-Validation via $GF(2)$ Gaussian Elimination}: Peeling decoding outcomes were systematically cross-validated against an exact Gauss--Jordan elimination solver over $GF(2)$ (\texttt{GaussianGF2Decoder}). Because Gaussian elimination determines the true linear rank of the incidence matrix, whenever peeling succeeds, the matrix is verified to have full rank $K$. Conversely, when peeling fails while the matrix possesses full rank $K$, the failure is rigorously certified as a structural stopping set.
 \end{enumerate}
 
@@ -375,23 +379,23 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
         \toprule
         \textbf{Implemented Test} & \textbf{Level} & \textbf{Case Description} & \textbf{Observed Outcome} \\
         \midrule
-        \texttt{test\_conversao\_bytes\_dna} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
+        \texttt{test\_conversao\_bytes\_dna\_}\allowbreak\texttt{reversibilidade} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
         \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across standard $K, c, \delta$. & Numerically confirmed \\
-        \texttt{test\_somatoria\_drs\_salvaguarda} & Unit & DRS with $c \ge 0.5$ triggering mode safeguard $m_{\text{raw}} < 1 \implies m = 1$. & Normalization $\sum \mu = 1.0$ and $\mu(1) > 0.5$ \\
+        \texttt{test\_somatoria\_drs\_salvaguarda\_}\allowbreak\texttt{m\_menor\_1} & Unit & DRS with $c \ge 0.5$ triggering mode safeguard $m_{\text{raw}} < 1 \implies m = 1$. & Normalization $\sum \mu = 1.0$ and $\mu(1) > 0.5$ \\
         \texttt{test\_screening\_gc\_limits} & Unit & Synthetic sequences with GC $< 40\%$ and GC $> 60\%$. & Successfully rejected \\
         \texttt{test\_screening\_homopolimeros} & Unit & Sequences containing homopolymers of length $\ge 4$. & Successfully rejected \\
-        \texttt{test\_segmentacao\_padding} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
-        \texttt{test\_amostragem\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
-        \texttt{test\_consistencia\_vizinhancas} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
-        \texttt{test\_canal\_extremos} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
-        \texttt{test\_exportacao\_metricas} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
+        \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
+        \texttt{test\_amostragem\_deterministica\_}\allowbreak\texttt{seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
+        \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
+        \texttt{test\_canal\_apagamento\_extremos} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
+        \texttt{test\_exportacao\_metricas\_csv} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
         \texttt{test\_peeling\_canal\_ideal} & Integration & Full pipeline ($K=32$, $\epsilon = 1.00$, lossless channel, fixed seed). & Complete recovery ($100\%$ of blocks) \\
-        \texttt{test\_grafo\_gotas\_unitarias} & Unit & Canonical graph composed strictly of $K$ degree-1 droplets. & Immediate resolution, $Q_{\max} = K$ \\
-        \texttt{test\_grafo\_cascata\_triangular} & Unit & Canonical triangular cascade ($d_i = \{i-1, i\}$). & Sequential peeling, $Q_{\max} = 1$ \\
-        \texttt{test\_falha\_stopping\_set} & Unit & Negative test: cyclic graph of degree $\ge 2$ without degree-1 droplets. & Immediate stall, $0$ recovered blocks \\
+        \texttt{test\_grafo\_canonico\_gotas\_}\allowbreak\texttt{unitarias} & Unit & Canonical graph composed strictly of $K$ degree-1 droplets. & Immediate resolution, $Q_{\max} = K$ \\
+        \texttt{test\_grafo\_canonico\_cascata\_}\allowbreak\texttt{triangular} & Unit & Canonical triangular cascade ($d_i = \{i-1, i\}$). & Sequential peeling, $Q_{\max} = 1$ \\
+        \texttt{test\_falha\_stopping\_set\_}\allowbreak\texttt{sem\_grau1} & Unit & Negative test: cyclic graph of degree $\ge 2$ without degree-1 droplets. & Immediate stall, $0$ recovered blocks \\
         \texttt{test\_descarte\_crc\_corrompido} & Unit & Negative test: single-base DNA mutation in received droplets. & $100\%$ rejected by CRC-8 \\
-        \texttt{test\_esgotamento\_seeds} & Unit & Negative test: requested quota exceeding available seed space. & Raises \texttt{RuntimeError} \\
-        \texttt{test\_validacao\_gaussiana} & Integration & Cross-validation of peeling decoder against $GF(2)$ Gaussian elimination. & Peeling success $\implies$ full rank $K$ \\
+        \texttt{test\_esgotamento\_espaco\_seeds} & Unit & Negative test: requested quota exceeding available seed space. & Raises \texttt{RuntimeError} \\
+        \texttt{test\_validacao\_cruzada\_peeling\_}\allowbreak\texttt{gaussiana} & Integration & Cross-validation of peeling decoder against $GF(2)$ Gaussian elimination. & Peeling success $\implies$ full rank $K$ \\
         \bottomrule
     \end{tabular}%
     }
