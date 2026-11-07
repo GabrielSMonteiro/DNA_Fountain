@@ -1,13 +1,7 @@
-\renewcommand{\backrefpagesname}{Cited on page(s):~}
+% Configuracoes do pacote backref (removido "Cited on page X" conforme recomendacao de revisao)
+\renewcommand{\backrefpagesname}{}
 \renewcommand{\backref}{}
-\renewcommand*{\backrefalt}[4]{
-	\ifcase #1 %
-		No citation in text.%
-	\or
-		Cited on page #2.%
-	\else
-		Cited #1 times on pages #2.%
-	\fi}%
+\renewcommand*{\backrefalt}[4]{}
 % ---
 
 % Adaptacao para ABNT NBR 10520:2023 (autor em caixa mista nas citacoes entre parenteses)

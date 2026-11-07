@@ -115,7 +115,7 @@ Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, an
             & Total decoder runtime & Milliseconds (\texttt{time.perf\_counter}) \\
         \midrule
         \multirow{2}{*}{\parbox{2.5cm}{Dedicated Screening Trial}}
-            & Rejection rate ($R_{\text{screen}}$) & Rejection across 2,000 candidate oligos ($K=32$) \\
+            & Rejection rate ($R_{\text{screen}}$) & Rejection across 100,000 candidate oligos ($K=32$) \\
             & Sampled mean degree ($\bar{d}$) & Accepted and rejected subsets vs. RSD \\
         \midrule
         \multirow{9}{*}{\parbox{2.5cm}{Controlled}}
@@ -127,7 +127,7 @@ Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, an
             & Padding policy & Deterministic zero-padding (\texttt{0x00}) \\
             & Binary payload & Pseudorandom synthetic stream governed by seed \\
             & CRC-8 checksum & Active with polynomial \texttt{0x07} \\
-            & Repetitions per factorial point & $n = 100$ independent trials \\
+            & Repetitions per factorial point & $n = 1{,}000$ independent trials \\
         \bottomrule
     \end{tabular}%
     }
@@ -157,13 +157,13 @@ This experiment captures the tradeoff between robustness and overhead: moderate 
 
 \subsection{Experiment 4: Impact of Biological Screening}
 
-The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 2,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring empirical rejection rate ($R_{\text{screen}}$) and comparing sampled mean degrees of accepted and rejected droplets against the theoretical RSD expectation. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
+The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 100,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring empirical rejection rate ($R_{\text{screen}}$) and comparing sampled degree distributions of accepted and rejected droplets against the theoretical RSD expectation via a direct $\chi^2$ test of homogeneity. In addition, low-entropy stress testing was performed to evaluate the role of the scrambler. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
 
 \subsection{Experiment 5: Impact of the Erasure Channel}
 
 The fifth scenario evaluates system resilience across erasure rates, varying $p_{\text{loss}}$ from $0\%$ to $20\%$ in 10\% increments. Across loss rates, the test battery runs under multiple overhead values to quantify performance degradation and compensatory redundancy requirements.
 
-The methodological distinction between scenarios and the experimental grid is explicit: Scenarios 1, 2, 3, and 5 constitute focused sub-analyses drawn directly from the primary 216-combination factorial grid ($3 \times 4 \times 2 \times 3 \times 3$), whose 100 repetitions total exactly $216 \times 100 = 21,600$ full simulator executions. Scenario 4, conversely, consists of a dedicated independent sampling trial designed specifically to evaluate physicochemical selectivity and degree distributions over an isolated cohort of 2,000 candidate oligonucleotides, separate from the 21,600 grid runs.
+The methodological distinction between scenarios and the experimental grid is explicit: Scenarios 1, 2, 3, and 5 constitute focused sub-analyses drawn directly from the primary 216-combination factorial grid ($3 \times 4 \times 2 \times 3 \times 3$), whose 1,000 repetitions total exactly $216 \times 1{,}000 = 216{,}000$ full simulator executions. Scenario 4, conversely, consists of a dedicated independent sampling trial designed specifically to evaluate physicochemical selectivity and degree distributions over an isolated cohort of 100,000 candidate oligonucleotides, separate from the 216,000 grid runs.
 
 Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
 
@@ -179,7 +179,7 @@ Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
         1 & Reference Baseline & Block count regime ($K$) & Success rate under $\epsilon = 1.00$ \\
         2 & Impact of Overhead & $\epsilon \in \{0.25, 0.50, 1.00\}$ & Success rate vs. $\epsilon$ \\
         3 & Impact of $c$ and $\delta$ & $c \in \{0.1, 0.3, 0.5, 0.8\}$, $\delta \in \{0.01, 0.10\}$ & XOR count, ripple, success \\
-        4 & Biological Screening & Sampling trial (2,000 oligos) & $R_{\text{screen}}$, degree comparison \\
+        4 & Biological Screening & Sampling trial (100,000 oligos) & $R_{\text{screen}}$, degree comparison \\
         5 & Erasure Channel & $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ & Resilience, minimum overhead \\
         \bottomrule
     \end{tabular}
@@ -189,7 +189,7 @@ Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
 \section{Repetitions and Statistical Procedures}
 \label{sec:repetitions_and_statistics}
 
-Each configuration was executed across 100 repetitions to estimate recovery frequency and sample uncertainty. The experimental suite supports three repetition tiers ($n \in \{10, 30, 100\}$), with the 100-repetition tier utilized for consolidated analyses, totaling 21,600 full executions.
+Each configuration was executed across 1,000 independent repetitions to estimate recovery frequency and sample uncertainty across the LT ensemble, totaling 216,000 full executions.
 
 For continuous metrics (decoding runtime and XOR operation counts), the following statistics are reported:
 \begin{itemize}
@@ -203,9 +203,9 @@ For decoding success rate (a binary variable associated with $n$ Bernoulli trial
     \label{eq:clopper_pearson}
     \text{CI}_{95\%} = \left[ Q_{\text{Beta}}\!\left(\frac{\alpha}{2}; k, n - k + 1\right), \; Q_{\text{Beta}}\!\left(1 - \frac{\alpha}{2}; k + 1, n - k\right) \right]
 \end{equation}
-with $\alpha = 0.05$ and $Q_{\text{Beta}}(p; a, b)$ denoting the order-$p$ quantile of the Beta distribution with shape parameters $a$ and $b$. For boundary cases, $L = 0$ when $k = 0$ (zero successes) and $U = 1$ when $k = n$ (full success). For $k = 100$ successes in $n = 100$ trials, the exact interval evaluates to $[96.4\%, 100.0\%]$, capturing sample uncertainty and avoiding unjustified claims of absolute certainty.
+with $\alpha = 0.05$ and $Q_{\text{Beta}}(p; a, b)$ denoting the order-$p$ quantile of the Beta distribution with shape parameters $a$ and $b$. For boundary cases, $L = 0$ when $k = 0$ (zero successes) and $U = 1$ when $k = n$ (full success). For $n = 1{,}000$ trials, $k = 920$ successes ($92.0\%$) yields the interval $[90.1\%, 93.6\%]$, and $k = 985$ ($98.5\%$) yields $[97.5\%, 99.2\%]$, providing high statistical precision.
 
-To compare success proportions between specific experimental configurations (e.g., between $c=0.1$ and $c=0.3$ for $K=16$), two-tailed Fisher's exact tests~\cite{fisher1922} were applied. Because each configuration's base seed (\texttt{seed\_base}) is derived deterministically from its own parameters ($K, c, \delta, N$), independent pseudorandom streams without deliberate pairwise matching were generated and treated as independent samples in statistical evaluations. The test was executed via a Python implementation evaluating the exact hypergeometric distribution sum, motivated post-hoc to assess the statistical significance of observed performance inversions in short regimes with constrained overhead.
+To compare success proportions between specific experimental configurations (e.g., between $c=0.1$ and $c=0.3$), two-tailed Fisher's exact tests~\cite{fisher1922} were applied. In the updated architecture, PRNG streams are decoupled: each repetition draws an independent initial seed from the batch master generator, and base seeds incorporate $p_{\text{loss}}$ explicitly, ensuring that channel erasure levels and distinct factorial configurations represent truly independent stochastic realizations across the ensemble.
 
 \section{Experimental Reproducibility and Traceability}
 \label{sec:reproducibility}
@@ -213,28 +213,27 @@ To compare success proportions between specific experimental configurations (e.g
 Experimental reproducibility is grounded in five key methodological measures:
 
 \begin{enumerate}
-    \item \textbf{Deterministic Seed Control}: Each batch execution receives a base seed (\texttt{seed\_base}) governing synthetic payload generation, droplet seeds, and stochastic channel losses. With a fixed base seed, execution deterministically reproduces the exact same sequence of instances and algorithmic transitions in the declared environment (CPython~3.12.7), given matching seeds and files. Bit-level equivalence across different Python runtime versions is not guaranteed due to potential variations in internal sampling routines within the \texttt{random} module~\cite{python_random}. CPU elapsed runtime measurements vary naturally under operating system scheduling.
+    \item \textbf{Deterministic Seed Control and PRNG Decoupling}: Each batch execution receives a base seed (\texttt{seed\_base}) incorporating grid parameters and channel loss probability. Three dedicated PRNG instances are decoupled: \texttt{rng\_payload} for synthetic data, \texttt{rng\_seeds} for random initial droplet seed selection per repetition, and \texttt{rng\_channel} for stochastic packet erasures. With this separation, executions deterministically reproduce the exact same ensemble statistics in the declared environment (CPython~3.12.7).
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
-        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_10.csv}, \texttt{resultados\_30.csv}, and \texttt{resultados\_100.csv}, each containing exactly 216 rows summarizing means, standard deviations, and rates across $n$ independent repetitions per point;
-        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 100 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation;
-        \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs the 10 individual failure repetitions observed in the $K=16$ baseline scenario;
-        \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed and expected bin counts across the 18 classes of the $\chi^2$ goodness-of-fit test for the 2,000 evaluated candidate oligos.
+        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_1000.csv} (and companion file \texttt{resultados\_100.csv}), containing exactly 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point;
+        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 1,000 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation;
+        \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs all 153 failure repetitions observed in the $K=16$ baseline scenario, cross-validated against $GF(2)$ Gaussian elimination;
+        \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed bin counts across the 18 classes of the direct $\chi^2$ homogeneity test for the 100,000 evaluated candidate oligos, along with scrambler stress tests.
     \end{itemize}
 
     \item \textbf{Automation and Artifact Regeneration}: Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
     \begin{itemize}
-        \item Factorial grid execution: \texttt{python run\_experiments.py};
-        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py} (processes measurements from archived JSON, supporting the optional \texttt{-\relax-novo-benchmark} flag for live runs);
+        \item Factorial grid execution: \texttt{python run\_experiments.py} (or multi-threaded \texttt{reexecutar\_grade.py});
+        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py};
         \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py};
         \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py};
-        \item Vector plot regeneration: \texttt{python gerar\_graficos.py};
-        \item Architecture diagram generation: \texttt{python gerar\_diagrama\_arquitetura.py};
+        \item Vector plot regeneration: \texttt{python gerar\_graficos\_artigo.py};
         \item Test suite execution: \texttt{python -m pytest tests/}.
     \end{itemize}
 
     \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. The results reported herein correspond to the commit identified by hash \texttt{bb2f0ab}, as documented in the repository's \texttt{README.md}.
+    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
 \end{enumerate}

@@ -27,12 +27,13 @@ os.makedirs(output_dir, exist_ok=True)
 comma_fmt = FuncFormatter(lambda x, pos: f"{x:g}".replace('.', ','))
 
 # 1. Load CSV data
+csv_path = 'resultados_1000.csv' if os.path.exists('resultados_1000.csv') else 'resultados_100.csv'
 rows = []
-with open('resultados_100.csv', 'r', encoding='utf-8-sig') as f:
+with open(csv_path, 'r', encoding='utf-8-sig') as f:
     for r in csv.DictReader(f, delimiter=','):
         rows.append(r)
 
-print(f'Total records loaded: {len(rows)}')
+print(f'Total records loaded from {csv_path}: {len(rows)}')
 
 # -------------------------------------------------------------
 # FIGURE 1: Ripple Dynamics (Step-by-Step)
@@ -208,14 +209,22 @@ print('Figure 4 (grafico_resiliencia) generated with decimal comma.')
 # -------------------------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 3.8))
 
-ks_num = [16, 32, 64]
-tempos_med = [0.84, 1.79, 3.60]
-tempos_std = [0.04, 0.12, 0.19]
-tempos_min = [0.71, 1.65, 3.35]
-tempos_max = [0.99, 2.48, 4.51]
-
-xors_totais = [107.6, 270.8, 688.4]
-xors_por_bloco = [107.6 / 16, 270.8 / 32, 688.4 / 64]
+import json
+json_path = 'tempos_brutos_decodificacao.json'
+if os.path.exists(json_path):
+    with open(json_path, 'r', encoding='utf-8') as f:
+        bench_data = json.load(f)
+    ks_num = [16, 32, 64]
+    tempos_med = [bench_data[str(k)]['mean_t'] for k in ks_num]
+    tempos_std = [bench_data[str(k)]['std_t'] for k in ks_num]
+    xors_totais = [bench_data[str(k)]['mean_xor'] for k in ks_num]
+    xors_por_bloco = [bench_data[str(k)]['xor_per_block'] for k in ks_num]
+else:
+    ks_num = [16, 32, 64]
+    tempos_med = [1.21, 2.24, 4.95]
+    tempos_std = [0.27, 0.25, 0.65]
+    xors_totais = [112.7, 296.8, 760.4]
+    xors_por_bloco = [7.04, 9.28, 11.88]
 
 # Panel 1: Runtime
 ax1.errorbar(ks_num, tempos_med, yerr=tempos_std, fmt='-o', color='#1f77b4', ecolor='#aec7e8', elinewidth=2, capsize=5, label='Mean Runtime (±1 std. dev.)')

@@ -135,3 +135,4 @@ class GaussianGF2Decoder:
         }
 
         return descobertos, metricas
+

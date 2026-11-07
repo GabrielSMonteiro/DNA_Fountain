@@ -110,30 +110,30 @@ The gap addressed by this work lies in the integrated, instrumented characteriza
     \item \textbf{Batch Experimental Infrastructure}: Provide standardized execution scripts for multidimensional parameter grids with deterministic pseudorandom seed control and structured CSV metrics export.
 \end{enumerate}
 
-Table~\ref{tab:comparacao_especificacao} compares the technical specifications of the original DNA Fountain by \citeonline{erlich2017} with the simulator developed in this work.
+Table~\ref{tab:comparacao_especificacao} compares the technical specifications of the original DNA Fountain by \citeonline{erlich2017} and the NOREC4DNA framework by \citeonline{schwarz2021} with the simulator developed in this work.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Technical comparison between the original DNA Fountain and the simulator developed in this work.}
+    \caption{Technical comparison among the original DNA Fountain, NOREC4DNA, and the simulator developed in this work.}
     \label{tab:comparacao_especificacao}
     \resizebox{\textwidth}{!}{%
-    \begin{tabular}{lp{5.5cm}p{5.5cm}}
+    \begin{tabular}{lp{4.2cm}p{4.2cm}p{4.2cm}}
         \toprule
-        \textbf{Feature} & \textbf{Original DNA Fountain~\cite{erlich2017}} & \textbf{This Work's Simulator} \\
+        \textbf{Feature} & \textbf{Original DNA Fountain~\cite{erlich2017}} & \textbf{NOREC4DNA~\cite{schwarz2021}} & \textbf{This Work's Simulator} \\
         \midrule
-        Language & Python 2.7 and Cython (C extensions) & Pure Python 3.12 (standard library only) \\
-        License & GPL-3.0 & Open Source (MIT License) \\
-        Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Complementary CRC-8 validation \\
-        Outer code (across blocks) & LT Code (RSD) & LT Code (RSD) \\
-        Seed header size & 32 bits (4 bytes) in header & 16 bits (2 bytes) with XOR mask \\
-        Target regime ($K$) & Large scale ($K = 67,088$, 72,000 oligos) & Short blocks ($K \in \{16, 32, 64\}$) \\
-        GC content range & 45\% to 55\% & 40\% to 60\% \\
-        Payload handling & LFSR scrambler and PCR primers & Additive scrambler (XOR mask) and direct mapping \\
-        Core purpose & Real-world wet-lab synthesis pipeline & Analytical and didactic instrumentation \\
-        Collected metrics & File reconstruction success & XOR operations, ripple queue, runtimes, and erasures \\
+        Language & Python 2.7 and Cython (C extensions) & Python 3 (requires NumPy, SciPy) & Pure Python 3.12 (standard library only) \\
+        License & GPL-3.0 & Open Source (MIT License) & Open Source (MIT License) \\
+        Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Configurable (none, CRC, or RS) & Complementary CRC-8 validation \\
+        Outer code (across blocks) & LT Code (RSD) & LT, Raptor, and Online codes & LT Code (RSD) and $GF(2)$ Gaussian validator \\
+        Seed header size & 32 bits (4 bytes) in header & Configurable (16 or 32 bits) & 16 bits (2 bytes) with XOR mask \\
+        Target regime ($K$) & Large scale ($K = 67,088$) & Broad range (small to large) & Short blocks ($K \in \{16, 32, 64\}$) \\
+        GC content range & 45\% to 55\% & Configurable biochemical filter & 40\% to 60\% ($H_{\max} \le 3$) \\
+        Payload handling & LFSR scrambler and PCR primers & Scrambler and adaptable mapping & Additive scrambler (XOR mask) and direct mapping \\
+        Core purpose & Real-world wet-lab synthesis pipeline & Comparative benchmarking framework & Analytical and didactic instrumentation \\
+        Collected metrics & File reconstruction success & Throughput, code rate, recovery & XOR operations, ripple queue, runtimes, erasures \\
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Prepared by the author based on \citeonline{erlich2017} (2026).}
+    \fonte{Prepared by the author based on \citeonline{erlich2017} and \citeonline{schwarz2021} (2026).}
 \end{table}
