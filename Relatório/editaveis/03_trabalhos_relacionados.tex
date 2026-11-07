@@ -68,7 +68,7 @@ Regarding coding strategy, \citeonline{organick2018} employed a hierarchical app
 
 In parallel with experimental breakthroughs, theoretical studies formalized fundamental limits for DNA data storage, establishing tradeoffs among capacity, redundancy, and reliability.
 
-\citeonline{heckel2017} derived fundamental capacity limits for the DNA storage channel under a model where sequences are stored unordered in a molecular pool and subjected to random sampling and mutation errors. The authors proved that, for capacity to remain positive, oligonucleotide length must scale at least logarithmically with the number of stored molecules, mathematically formalizing the penalty imposed by unordered pooling. It is important to clarify that this result provides motivating theoretical context for unordered molecular channels, rather than serving as physical validation of the simplified memoryless Binary Erasure Channel (BEC) adopted in this work's simulations.
+\citeonline{heckel2017} derived fundamental capacity limits for the DNA storage channel under a model where sequences are stored unordered in a molecular pool and subjected to random sampling and mutation errors. The authors proved that, for capacity to remain positive, oligonucleotide length must scale at least logarithmically with the number of stored molecules, mathematically formalizing the penalty imposed by unordered pooling. This result provides motivating theoretical context for unordered molecular channels, rather than physical validation of the simplified memoryless Binary Erasure Channel (BEC) adopted in this work's simulations.
 
 More recently, \citeonline{shomorony2022} published an extensive review of DNA data storage foundations in \emph{Foundations and Trends in Communications and Information Theory}, consolidating information-theoretic principles applicable to the domain. That work formalized the distinction between the \emph{sequencing channel} (where ordering information is lost) and the \emph{storage channel} (involving physical molecular errors), establishing asymptotic capacity bounds and the conditions under which indexing and erasure coding approach channel capacity in abstract molecular storage models.
 
@@ -79,7 +79,7 @@ These theoretical erasure channel models provide reference bounds for evaluating
 
 Although DNA data storage has garnered growing interest within the scientific community, the availability of open, modular, and didactic software tools geared toward academic experimentation remains limited. The primary tools documented in the literature are reviewed below.
 
-In the realm of rateless codes, degree distribution optimization for short message regimes was pioneered by \citeonline{hyytia2007}. The authors analyzed LT codes for small block counts in telecommunication erasure channels, analytically and heuristically demonstrating that Luby's standard RSD suffers efficiency degradation in finite regimes, and proposed alternative distributions via absorbing Markov chains and recursive combinatorial optimization. That study focused strictly on classical network channels, without addressing biochemical sequence constraints or DNA screening dynamics.
+In rateless coding literature, degree distribution optimization for short message regimes was investigated by \citeonline{hyytia2007}. The authors analyzed LT codes for small block counts in telecommunication erasure channels, analytically and heuristically demonstrating that Luby's standard RSD suffers efficiency degradation in finite regimes, and proposed alternative distributions via absorbing Markov chains and recursive combinatorial optimization. That study focused strictly on classical network channels, without addressing biochemical sequence constraints or DNA screening dynamics.
 
 The storage architecture proposed by \citeonline{bornholt2016} included a software pipeline for encoding and decoding geared toward end-to-end wet-lab validation (synthesis, storage, sequencing), with software closely coupled to their specific experimental setup.
 
@@ -135,5 +135,5 @@ Table~\ref{tab:comparacao_especificacao} compares the technical specifications o
         \bottomrule
     \end{tabular}%
     }
-    \fonte{Prepared by the author based on \citeonline{erlich2017} and \citeonline{schwarz2021} (2026).}
+    \fonte{Gabriel Monteiro based on \citeonline{erlich2017} and \citeonline{schwarz2021} (2026).}
 \end{table}
