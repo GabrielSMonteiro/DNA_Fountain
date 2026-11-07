@@ -13,11 +13,11 @@ class DNAFountainEncoder:
         self.config = config
         self.screening = BiologicalScreening(config)
 
-    def codificar(self, blocos: list[bytes], soliton: RobustSoliton) -> tuple[list[dict], int, list[dict]]:
+    def codificar(self, blocos: list[bytes], soliton: RobustSoliton, seed_inicial: int = 0) -> tuple[list[dict], int, list[dict]]:
         oligos = []
         log_rejeicoes = []
         rejeitados = 0
-        seed = 0
+        seed = seed_inicial
 
         while len(oligos) < self.config.num_droplets:
             if seed >= 2 ** self.config.bits_seed:
