@@ -279,7 +279,7 @@ To ensure strict reproducibility and avoid statistical cross-contamination betwe
     
     Interoperability between encoder and decoder strictly requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatched graphs and cause decoding to fail. While CPython~3.12 guarantees deterministic repeatability across the declared environments, long-term archival storage or migration to FPGA hardware warrants a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
 
-    \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random(child\_seed\_channel)} instance. Its initialization incorporates the channel loss probability $p_{\text{loss}}$ into the master seed calculation, guaranteeing that loss realizations are statistically independent across erasure conditions and never perturb payload generation or droplet graph selection.
+    \item \textbf{Channel PRNG (Erasure Events)}: The erasure channel utilizes an isolated \texttt{random.Random} instance initialized with \texttt{child\_seed\_channel}. Its initialization incorporates the channel loss probability $p_{\text{loss}}$ into the master seed calculation, guaranteeing that loss realizations are statistically independent across erasure conditions and never perturb payload generation or droplet graph selection.
 
     \item \textbf{Batch Experiment Master PRNG and Repetition Independence}: The \texttt{experimento()} routine accepts a base configuration seed and calculates a compound initialization key:
     \begin{equation}
@@ -296,7 +296,6 @@ Each synthetic oligonucleotide in the prototype follows this binary framing:
 \begin{equation}
     \text{Droplet} = \underbrace{\text{Seed}}_{\text{2 bytes (16 bits)}} \;\Vert\; \underbrace{\text{Payload}}_{\text{$L = 4$ bytes (32 bits)}} \;\Vert\; \underbrace{\text{CRC-8}}_{\text{1 byte (8 bits)}}
 \end{equation}
-totaling 7 bytes (56 bits). Under direct 2-bit-per-base conversion, each droplet generates an oligonucleotide of exactly 28 nucleotides.
 
 We formally distinguish individual oligonucleotide payload density from global library net density:
 \begin{enumerate}
