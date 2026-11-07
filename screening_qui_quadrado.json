@@ -1,106 +1,164 @@
 {
-  "ensaio": "Screening Biológico - Aderência Qui-Quadrado",
+  "ensaio": "Screening Biológico - Teste Direto de Homogeneidade Aceitos vs. Rejeitados",
   "parametros": {
     "K": 32,
     "c": 0.1,
     "delta": 0.1,
-    "candidatos": 2000,
-    "seed_ensaio": 41
+    "amostras": 100000,
+    "seed_rng": 42
   },
-  "aceitos": 1195,
-  "rejeitados": 805,
-  "graus_de_liberdade": 17,
-  "chi2_calculado": 25.6678,
+  "taxas_amostrais_enquadradas": {
+    "aceitos": 57395,
+    "rejeitados": 42605,
+    "taxa_rejeicao_percentual": 42.6,
+    "grau_medio_aceitos": 4.9346,
+    "grau_medio_rejeitados": 4.9242,
+    "grau_medio_teorico_drs": 4.9449
+  },
+  "teste_qui_quadrado_homogeneidade": {
+    "chi2_estatistica": 23.661,
+    "graus_de_liberdade": 17,
+    "p_valor": 0.1289,
+    "hipotese_nula_rejeitada": false,
+    "conclusao": "Não há evidência estatística de distorção na distribuição de graus pelo screening (p > 0.05)."
+  },
+  "referencia_analitica_28meros_uniformes": {
+    "p_rejeicao_analitica_exata": 49.7668,
+    "p_aceitacao_analitica_exata": 50.2332,
+    "explicacao_enquadramento": "A máscara 0x1B1B aplicada a sementes de 16 bits produz cabeçalhos com teor GC de exatamente 50% e homopolímero máximo de 1 base nas sementes baixas (ACGTACGT), reduzindo a taxa de descarte dos candidatos enquadrados em relação ao limite estocástico puro de 49,77%."
+  },
+  "estresse_scrambler_baixa_entropia": {
+    "amostras": 1000,
+    "rejeicao_sem_scrambler_percentual": 100.0,
+    "rejeicao_com_scrambler_percentual": 38.5,
+    "impacto": "Sem scrambler, cargas úteis uniformes ou de baixa entropia (como bytes nulos) sofrem 100% de rejeição por homopolímeros excessivos, inviabilizando a síntese."
+  },
   "tabela_classes": [
     {
       "classe": "d=1",
-      "observado": 117,
-      "esperado": 97.52
+      "obs_aceitos": 4719,
+      "esp_aceitos": 4674.25,
+      "obs_rejeitados": 3425,
+      "esp_rejeitados": 3469.75
     },
     {
       "classe": "d=2",
-      "observado": 412,
-      "esperado": 403.32
+      "obs_aceitos": 19121,
+      "esp_aceitos": 19242.82,
+      "obs_rejeitados": 14406,
+      "esp_rejeitados": 14284.18
     },
     {
       "classe": "d=3",
-      "observado": 162,
-      "esperado": 146.88
+      "obs_aceitos": 7364,
+      "esp_aceitos": 7300.64,
+      "obs_rejeitados": 5356,
+      "esp_rejeitados": 5419.36
     },
     {
       "classe": "d=4",
-      "observado": 74,
-      "esperado": 79.66
+      "obs_aceitos": 3825,
+      "esp_aceitos": 3798.4,
+      "obs_rejeitados": 2793,
+      "esp_rejeitados": 2819.6
     },
     {
       "classe": "d=5",
-      "observado": 50,
-      "esperado": 51.53
+      "obs_aceitos": 2585,
+      "esp_aceitos": 2598.27,
+      "obs_rejeitados": 1942,
+      "esp_rejeitados": 1928.73
     },
     {
       "classe": "d=6",
-      "observado": 32,
-      "esperado": 36.84
+      "obs_aceitos": 1807,
+      "esp_aceitos": 1753.42,
+      "obs_rejeitados": 1248,
+      "esp_rejeitados": 1301.58
     },
     {
       "classe": "d=7",
-      "observado": 20,
-      "esperado": 28.09
+      "obs_aceitos": 1323,
+      "esp_aceitos": 1305.16,
+      "obs_rejeitados": 951,
+      "esp_rejeitados": 968.84
     },
     {
       "classe": "d=8",
-      "observado": 23,
-      "esperado": 22.4
+      "obs_aceitos": 1088,
+      "esp_aceitos": 1062.38,
+      "obs_rejeitados": 763,
+      "esp_rejeitados": 788.62
     },
     {
       "classe": "d=9",
-      "observado": 242,
-      "esperado": 270.31
+      "obs_aceitos": 12788,
+      "esp_aceitos": 12917.89,
+      "obs_rejeitados": 9719,
+      "esp_rejeitados": 9589.11
     },
     {
       "classe": "d=10",
-      "observado": 7,
-      "esperado": 8.13
+      "obs_aceitos": 361,
+      "esp_aceitos": 375.94,
+      "obs_rejeitados": 294,
+      "esp_rejeitados": 279.06
     },
     {
       "classe": "d=11",
-      "observado": 6,
-      "esperado": 6.65
+      "obs_aceitos": 307,
+      "esp_aceitos": 320.84,
+      "obs_rejeitados": 252,
+      "esp_rejeitados": 238.16
     },
     {
       "classe": "d=12",
-      "observado": 8,
-      "esperado": 5.55
+      "obs_aceitos": 255,
+      "esp_aceitos": 249.09,
+      "obs_rejeitados": 179,
+      "esp_rejeitados": 184.91
     },
     {
       "classe": "d in {13,14}",
-      "observado": 7,
-      "esperado": 8.71
+      "obs_aceitos": 405,
+      "esp_aceitos": 397.17,
+      "obs_rejeitados": 287,
+      "esp_rejeitados": 294.83
     },
     {
       "classe": "d in {15,16}",
-      "observado": 9,
-      "esperado": 6.54
+      "obs_aceitos": 313,
+      "esp_aceitos": 294.44,
+      "obs_rejeitados": 200,
+      "esp_rejeitados": 218.56
     },
     {
       "classe": "d in {17,18}",
-      "observado": 3,
-      "esperado": 5.08
+      "obs_aceitos": 256,
+      "esp_aceitos": 249.09,
+      "obs_rejeitados": 178,
+      "esp_rejeitados": 184.91
     },
     {
       "classe": "d in {19-21}",
-      "observado": 6,
-      "esperado": 5.81
+      "obs_aceitos": 289,
+      "esp_aceitos": 272.63,
+      "obs_rejeitados": 186,
+      "esp_rejeitados": 202.37
     },
     {
       "classe": "d in {22-25}",
-      "observado": 3,
-      "esperado": 5.58
+      "obs_aceitos": 276,
+      "esp_aceitos": 265.74,
+      "obs_rejeitados": 187,
+      "esp_rejeitados": 197.26
     },
     {
       "classe": "d in {26-32}",
-      "observado": 14,
-      "esperado": 6.4
+      "obs_aceitos": 313,
+      "esp_aceitos": 316.82,
+      "obs_rejeitados": 239,
+      "esp_rejeitados": 235.18
     }
   ]
 }

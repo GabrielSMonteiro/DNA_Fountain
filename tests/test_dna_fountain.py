@@ -11,6 +11,7 @@ from dna_fountain.preprocessing import MessageProcessor
 from dna_fountain.lt_codec import DNAFountainEncoder, DNAFountainDecoder
 from dna_fountain.channel import ErasureChannel
 from dna_fountain.experiments import experimento
+from dna_fountain.utils import crc8
 
 def test_conversao_bytes_dna_reversibilidade():
     """Valida reversibilidade exata da conversao bytes -> DNA -> bytes para todos os 256 bytes e payload arbitrario."""
@@ -199,4 +200,208 @@ def test_exportacao_metricas_csv():
     assert len(linhas) == 1
     assert int(linhas[0]["K"]) == 16
     assert float(linhas[0]["overhead_enviado"]) == 1.0
+
+def test_somatoria_drs_salvaguarda_m_menor_1():
+    """RF02: Valida que a DRS com valores elevados de c (c >= 0.5) ativa a salvaguarda m_raw < 1 -> m = 1 e mantem sum(mu) == 1.0."""
+    config = DNAFountainConfig()
+    casos = [
+        (16, 0.8, 0.10),  # R ~ 16.24 > 16 -> m_raw = 0 -> m = 1
+        (16, 0.8, 0.01),  # R ~ 22.75 > 16 -> m_raw = 0 -> m = 1
+        (32, 0.8, 0.01),  # R ~ 36.52 > 32 -> m_raw = 0 -> m = 1
+        (32, 0.5, 0.10),  # R ~ 16.32 > 16 -> m = 1
+    ]
+    for K, c, delta in casos:
+        config.soliton_c = c
+        config.soliton_delta = delta
+        soliton = RobustSoliton(config, K)
+        assert math.isclose(sum(soliton.mu[1:]), 1.0, rel_tol=1e-5)
+        # No regime c >= 0.5 com m=1, a massa corretiva concentra no grau 1
+        assert soliton.mu[1] > 0.50
+
+def test_grafo_canonico_gotas_unitarias():
+    """RF07: Valida o peeling decoder sobre grafo canonico composto estritamente por K gotas de grau 1."""
+    config = DNAFountainConfig()
+    config.crc_ativo = True
+    config.scrambler_ativo = False
+    K = 8
+    L = 4
+    config.tamanho_bloco_l = L
+    
+    blocos_esperados = [bytes([i + 1] * L) for i in range(K)]
+    dnas = []
+    mapping = {}
+    for i in range(K):
+        seed = i
+        cabecalho = (seed ^ config.seed_xor_mask).to_bytes(2, "big")
+        dados = cabecalho + blocos_esperados[i]
+        dados += bytes([crc8(dados)])
+        dnas.append(bytes_para_dna(dados))
+        mapping[seed] = (1, [i])
+
+    class MockSoliton:
+        def __init__(self, K, mapping):
+            self.K = K
+            self.mapping = mapping
+        def sortear_grau_e_indices(self, seed):
+            return self.mapping[seed]
+
+    sol = MockSoliton(K, mapping)
+    dec = DNAFountainDecoder(config)
+    desc, met = dec.decodificar(dnas, sol)
+
+    assert len(desc) == K
+    assert met["decodificacao_completa"] is True
+    assert met["ripple_max"] == K
+    assert all(desc[i] == blocos_esperados[i] for i in range(K))
+
+def test_grafo_canonico_cascata_triangular():
+    """RF07: Valida o peeling decoder sobre grafo canonico em cascata triangular (gotas encadeadas d_i = {i-1, i})."""
+    config = DNAFountainConfig()
+    config.crc_ativo = True
+    config.scrambler_ativo = False
+    K = 6
+    L = 4
+    config.tamanho_bloco_l = L
+
+    blocos = [bytes([i + 1] * L) for i in range(K)]
+    dnas = []
+    mapping = {}
+    for i in range(K):
+        seed = i
+        if i == 0:
+            indices = [0]
+            payload = blocos[0]
+        else:
+            indices = [i - 1, i]
+            payload = bytes(a ^ b for a, b in zip(blocos[i - 1], blocos[i]))
+
+        cabecalho = (seed ^ config.seed_xor_mask).to_bytes(2, "big")
+        dados = cabecalho + payload
+        dados += bytes([crc8(dados)])
+        dnas.append(bytes_para_dna(dados))
+        mapping[seed] = (len(indices), indices)
+
+    class MockSoliton:
+        def __init__(self, K, mapping):
+            self.K = K
+            self.mapping = mapping
+        def sortear_grau_e_indices(self, seed):
+            return self.mapping[seed]
+
+    sol = MockSoliton(K, mapping)
+    dec = DNAFountainDecoder(config)
+    desc, met = dec.decodificar(dnas, sol)
+
+    assert len(desc) == K
+    assert met["decodificacao_completa"] is True
+    assert met["ripple_max"] == 1
+    assert met["ripple_min"] == 1
+    assert all(desc[i] == blocos[i] for i in range(K))
+
+def test_falha_stopping_set_sem_grau1():
+    """RNF: Valida parada imediata do peeling decoder na presenca de um stopping set sem gotas de grau 1."""
+    config = DNAFountainConfig()
+    config.crc_ativo = True
+    config.scrambler_ativo = False
+    K = 3
+    L = 4
+    config.tamanho_bloco_l = L
+    blocos = [bytes([i + 1] * L) for i in range(K)]
+
+    arestas = [[0, 1], [1, 2], [2, 0]]
+    dnas = []
+    mapping = {}
+    for seed, ind in enumerate(arestas):
+        payload = bytes(a ^ b for a, b in zip(blocos[ind[0]], blocos[ind[1]]))
+        cabecalho = (seed ^ config.seed_xor_mask).to_bytes(2, "big")
+        dados = cabecalho + payload
+        dados += bytes([crc8(dados)])
+        dnas.append(bytes_para_dna(dados))
+        mapping[seed] = (2, ind)
+
+    class MockSoliton:
+        def __init__(self, K, mapping):
+            self.K = K
+            self.mapping = mapping
+        def sortear_grau_e_indices(self, seed):
+            return self.mapping[seed]
+
+    sol = MockSoliton(K, mapping)
+    dec = DNAFountainDecoder(config)
+    desc, met = dec.decodificar(dnas, sol)
+
+    assert len(desc) == 0
+    assert met["decodificacao_completa"] is False
+    assert met["ripple_max"] == 0
+    assert met["passos"] == 0
+
+def test_descarte_crc_corrompido():
+    """RF03/RF07: Valida descarte obrigatorio de oligonucleotideos com CRC invalido por erro de sequenciamento simulado."""
+    config = DNAFountainConfig()
+    config.tamanho_bloco_l = 4
+    K = 4
+    config.num_droplets = 8
+    soliton = RobustSoliton(config, K)
+    encoder = DNAFountainEncoder(config)
+    decoder = DNAFountainDecoder(config)
+
+    blocos = [bytes([i] * 4) for i in range(K)]
+    oligos, _, _ = encoder.codificar(blocos, soliton)
+
+    dnas_corrompidos = []
+    for o in oligos:
+        mutado = o["dna"][:-1] + ("A" if o["dna"][-1] != "A" else "C")
+        dnas_corrompidos.append(mutado)
+
+    desc, met = decoder.decodificar(dnas_corrompidos, soliton)
+    assert met["crc_falhas"] == len(oligos)
+    assert len(desc) == 0
+    assert met["decodificacao_completa"] is False
+
+def test_esgotamento_espaco_seeds():
+    """RNF: Valida lancamento de excecao quando o espaco de enderecamento de seeds de 16 bits e esgotado."""
+    config = DNAFountainConfig()
+    config.num_droplets = 10
+    soliton = RobustSoliton(config, K=4)
+    encoder = DNAFountainEncoder(config)
+    blocos = [bytes([i] * 4) for i in range(4)]
+
+    # Inicia a 3 passos do limite do espaco de 16 bits (65536)
+    with pytest.raises(RuntimeError, match="Espaço de seeds esgotado"):
+        encoder.codificar(blocos, soliton, seed_inicial=65533)
+
+def test_validacao_cruzada_peeling_gaussiana():
+    """Validacao cruzada: o algoritmo de peeling e verificado contra a Eliminacao Gaussiana em GF(2)."""
+    from dna_fountain.gaussian_decoder import GaussianGF2Decoder
+
+    config = DNAFountainConfig()
+    config.tamanho_bloco_l = 4
+    config.soliton_c = 0.1
+    config.soliton_delta = 0.1
+    K = 16
+    config.num_droplets = 32
+
+    soliton = RobustSoliton(config, K)
+    encoder = DNAFountainEncoder(config)
+    decoder_peeling = DNAFountainDecoder(config)
+    decoder_gauss = GaussianGF2Decoder(config)
+
+    rng = random.Random(999)
+    for seed_exp in [42, 100, 2024]:
+        blocos = [bytes(rng.getrandbits(8) for _ in range(4)) for _ in range(K)]
+        oligos, _, _ = encoder.codificar(blocos, soliton, seed_inicial=seed_exp * 10)
+        dnas = [o["dna"] for o in oligos]
+
+        desc_p, met_p = decoder_peeling.decodificar(dnas, soliton)
+        desc_g, met_g = decoder_gauss.decodificar(dnas, soliton)
+
+        # Propriedade 1: Posto completo e condicao necessaria para decodificacao completa
+        if met_p["decodificacao_completa"]:
+            assert met_g["posto_completo"] is True
+            assert met_g["decodificacao_completa"] is True
+            assert all(desc_p[i] == desc_g[i] == blocos[i] for i in range(K))
+
+        # Propriedade 2: Posto da Gaussiana limita superiormente os blocos recuperados
+        assert met_p["blocos_recuperados"] <= met_g["posto"]
+
 

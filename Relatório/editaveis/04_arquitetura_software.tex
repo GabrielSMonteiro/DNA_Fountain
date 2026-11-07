@@ -333,25 +333,36 @@ Byte-to-nucleotide mapping integrity was evaluated across all 256 possible singl
 \end{equation}
 Testing confirmed a zero error rate ($0.00\%$) across all individual byte values and random byte streams up to 1 megabyte, verifying that the mapping is strictly bijective.
 
-\subsection{RSD Summation Validation}
+\subsection{RSD Summation and Mode Safeguard Validation}
 
 Robust Soliton Distribution logic was verified analytically, confirming:
 \begin{equation}
     \sum_{d=1}^{K} \mu(d) = 1.0
 \end{equation}
-across multiple configurations of $K$, $c$, and $\delta$, incorporating boundary safeguards for $m$ and $\tau(m)$. Furthermore, empirical CDF sampling was verified across $10^5$ samples for $K = 50$, $c = 0.1$, and $\delta = 0.05$, confirming maximum absolute error $\max_d |\hat{\mu}(d) - \mu(d)| < 0.003$ and relative error below $0.4\%$ for all degrees with $\mu(d) \ge 0.01$.
+across multiple configurations of $K$, $c$, and $\delta$. In particular, unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
 
-\subsection{Biological Screening Boundary Tests}
+Furthermore, empirical distribution sampling was validated across $10^5$ pseudo-random draws for $K = 32$, $c = 0.1$, and $\delta = 0.10$. In accordance with multinomial sampling theory, individual degree frequencies exhibited sample standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0015$, confirming that empirical frequencies match theoretical probabilities within standard statistical sampling dispersion, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.003$.
+
+\subsection{Biological Screening Boundary and Homogeneity Tests}
 
 The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequences designed to test acceptability boundaries:
 \begin{itemize}
     \item Sequences with synthetic GC ratios ranging from $20\%$ to $80\%$ were correctly classified, accepting only the $[40\%, 60\%]$ interval;
-    \item Sequences containing homopolymers of length 2 and 3 were accepted, while runs of length $\ge 4$ were rejected, confirming the $H_{\max} = 3$ threshold.
+    \item Sequences containing homopolymers of length 2 and 3 were accepted, while runs of length $\ge 4$ were rejected, confirming the $H_{\max} = 3$ threshold;
+    \item Low-entropy payloads (such as all-zero byte sequences) were evaluated with and without scrambling: without scrambling, $100.0\%$ of candidates were rejected due to the immediate formation of 16-base poly-A homopolymers; with scrambling active, the rejection rate normalized to $38.5\%$.
 \end{itemize}
 
-\subsection{Deterministic Functional Testing of the Peeling Decoder}
+\subsection{Canonical, Negative, and Cross-Validation Testing of Decoders}
 
-To verify the algorithmic correctness of the peeling decoder engine, canonical graph instances with guaranteed solutions were evaluated: a deterministic set of $K$ degree-1 droplets covering every source block from $0$ to $K-1$, as well as direct triangular graph cascades. Across canonical fixtures, all blocks were reconstructed without error. This structural verification complements end-to-end integration tests (\texttt{test\_peeling\_canal\_ideal}), which evaluate the pipeline under a fixed seed, distinct from the 100-repetition stochastic factorial suites described in Chapter~\ref{chap:experimental_methodology}.
+To verify the algorithmic correctness of the decoding engines and decouple implementation correctness from stochastic graph connectivity, six complementary testing procedures were established:
+\begin{enumerate}
+    \item \textbf{Canonical Unit Graph}: A deterministic fixture of $K$ degree-1 droplets (\texttt{test\_grafo\_canonico\_gotas\_unitarias}) verifies immediate single-step peeling with peak ripple queue $Q_{\max} = K$ and complete recovery;
+    \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets (\texttt{test\_grafo\_canonico\_cascata\_triangular}) where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$);
+    \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet (\texttt{test\_falha\_stopping\_set\_sem\_grau1}) verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) when unit equations are absent;
+    \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets (\texttt{test\_descarte\_crc\_corrompido}) confirm that corrupted packets are rejected during framing parse;
+    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco_seeds}) validates explicit raising of \texttt{RuntimeError};
+    \item \textbf{Cross-Validation via $GF(2)$ Gaussian Elimination}: Peeling decoding outcomes were systematically cross-validated against an exact Gauss--Jordan elimination solver over $GF(2)$ (\texttt{GaussianGF2Decoder}). Because Gaussian elimination determines the true linear rank of the incidence matrix, whenever peeling succeeds, the matrix is verified to have full rank $K$. Conversely, when peeling fails while the matrix possesses full rank $K$, the failure is rigorously certified as a structural stopping set.
+\end{enumerate}
 
 \begin{table}[htbp]
     \centering
@@ -364,20 +375,27 @@ To verify the algorithmic correctness of the peeling decoder engine, canonical g
         \toprule
         \textbf{Implemented Test} & \textbf{Level} & \textbf{Case Description} & \textbf{Observed Outcome} \\
         \midrule
-        \texttt{test\_conversao\_bytes\_}\allowbreak\texttt{dna\_reversibilidade} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
-        \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across diverse $K$, $c$, $\delta$. & Numerically confirmed \\
+        \texttt{test\_conversao\_bytes\_dna} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
+        \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across standard $K, c, \delta$. & Numerically confirmed \\
+        \texttt{test\_somatoria\_drs\_salvaguarda} & Unit & DRS with $c \ge 0.5$ triggering mode safeguard $m_{\text{raw}} < 1 \implies m = 1$. & Normalization $\sum \mu = 1.0$ and $\mu(1) > 0.5$ \\
         \texttt{test\_screening\_gc\_limits} & Unit & Synthetic sequences with GC $< 40\%$ and GC $> 60\%$. & Successfully rejected \\
         \texttt{test\_screening\_homopolimeros} & Unit & Sequences containing homopolymers of length $\ge 4$. & Successfully rejected \\
+        \texttt{test\_segmentacao\_padding} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
+        \texttt{test\_amostragem\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
+        \texttt{test\_consistencia\_vizinhancas} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
+        \texttt{test\_canal\_extremos} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
+        \texttt{test\_exportacao\_metricas} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
         \texttt{test\_peeling\_canal\_ideal} & Integration & Full pipeline ($K=32$, $\epsilon = 1.00$, lossless channel, fixed seed). & Complete recovery ($100\%$ of blocks) \\
-        \texttt{test\_segmentacao\_padding\_}\allowbreak\texttt{truncamento} & Unit & Non-multiple message length with exact padding reversal. & Exact recovery without noise \\
-        \texttt{test\_amostragem\_}\allowbreak\texttt{deterministica\_seed} & Unit & Identical seed yields identical degree and neighbor set without duplicates. & Strict determinism verified \\
-        \texttt{test\_consistencia\_vizinhancas\_}\allowbreak\texttt{encoder\_decoder} & Integration & Direct comparison of sampled neighbor sets between encoder and decoder. & Exact index agreement \\
-        \texttt{test\_canal\_apagamento\_}\allowbreak\texttt{extremos} & Unit & Deterministic edge cases ($p_{\text{loss}} = 0.0$ and $p_{\text{loss}} = 1.0$). & Complete preservation at $p=0$, total loss at $p=1$ \\
-        \texttt{test\_exportacao\_}\allowbreak\texttt{metricas\_csv} & Integration & Experimental execution and CSV format metric serialization/deserialization. & Structure and types validated \\
+        \texttt{test\_grafo\_gotas\_unitarias} & Unit & Canonical graph composed strictly of $K$ degree-1 droplets. & Immediate resolution, $Q_{\max} = K$ \\
+        \texttt{test\_grafo\_cascata\_triangular} & Unit & Canonical triangular cascade ($d_i = \{i-1, i\}$). & Sequential peeling, $Q_{\max} = 1$ \\
+        \texttt{test\_falha\_stopping\_set} & Unit & Negative test: cyclic graph of degree $\ge 2$ without degree-1 droplets. & Immediate stall, $0$ recovered blocks \\
+        \texttt{test\_descarte\_crc\_corrompido} & Unit & Negative test: single-base DNA mutation in received droplets. & $100\%$ rejected by CRC-8 \\
+        \texttt{test\_esgotamento\_seeds} & Unit & Negative test: requested quota exceeding available seed space. & Raises \texttt{RuntimeError} \\
+        \texttt{test\_validacao\_gaussiana} & Integration & Cross-validation of peeling decoder against $GF(2)$ Gaussian elimination. & Peeling success $\implies$ full rank $K$ \\
         \bottomrule
     \end{tabular}%
     }
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-With these unit and functional tests validated, no failures occurred across the test suite. Executing the complete suite of 10 tests via \texttt{python -m pytest tests/} yields a 100\% pass rate in approximately 0.05 seconds under commit \texttt{bb2f0ab}, confirming simulator readiness for the experimental batteries detailed in the following chapter.
+With these 17 unit, functional, and integration tests validated, no failures occurred across the test suite. Executing the complete suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in approximately 0.10 seconds, confirming simulator readiness for the experimental batteries detailed in the following chapter.
