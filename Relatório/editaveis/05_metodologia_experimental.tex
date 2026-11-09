@@ -215,7 +215,7 @@ Experimental reproducibility is grounded in five key methodological measures:
         \label{eq:master_seed}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    which initializes a master generator (\texttt{rng\_master}). From this generator, three dedicated PRNG seeds are drawn to initialize isolated streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing an independent initial encoder seed ($s_0 \in [0, 65535]$) on each repetition, and \texttt{rng\_channel} for stochastic packet erasures. With this separation, the 1,000 repetitions explore distinct bipartite graph realizations across the ensemble while remaining strictly, deterministically reproducible in the declared environment (CPython~3.12.7).
+    This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a unique integer key, preventing seed collisions across grid configurations. The key initializes a master generator (\texttt{rng\_master}), which derives three isolated PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing an independent starting seed ($s_0 \in [0, 65535]$) per repetition, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility in the declared environment (CPython~3.12.7).
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
@@ -237,5 +237,5 @@ Experimental reproducibility is grounded in five key methodological measures:
 
     \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Immutable Versioned Code Release}: All simulator modules, instrumentation scripts, and experimental datasets are version-controlled and publicly accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
+    \item \textbf{Version-Controlled Release}: All simulator modules, experiment scripts, and dataset matrices are versioned and accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
 \end{enumerate}
