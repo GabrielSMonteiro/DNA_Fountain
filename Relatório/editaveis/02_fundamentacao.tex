@@ -178,7 +178,7 @@ In computational practice, particularly in finite regimes with small block count
         \end{cases}
         \qquad (\text{for } m_{\text{raw}} < 1)
     \end{equation}
-    This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes an operational finite-domain variant adopted by the simulator to maintain numerical consistency, rather than the strict asymptotic classical RSD.
+    This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes an operational finite-domain variant adopted by the simulator to maintain numerical consistency, rather than the theoretical asymptotic RSD.
     
     Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
     
@@ -303,4 +303,4 @@ To quantitatively evaluate simulator performance across configurations, this wor
     \item \textbf{Processing Runtime}: Measured for the iterative decoding stage in milliseconds (the primary computational bottleneck of belief propagation on the bipartite graph), enabling scalability assessment as a function of block count $K$.
 \end{itemize}
 
-These metrics are automatically gathered by the simulator on each trial and consolidated into structured CSV files for statistical analysis, as detailed in Chapter~\ref{chap:experimental_methodology}.
+These metrics are automatically gathered by the simulator on each trial and consolidated into CSV files for statistical analysis, as detailed in Chapter~\ref{chap:experimental_methodology}.

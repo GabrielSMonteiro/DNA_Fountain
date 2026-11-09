@@ -346,7 +346,7 @@ These results characterize short study instances ($K \le 64$), tailored for cont
 \section{Limitations of the Results}
 \label{sec:results_limitations}
 
-To uphold academic rigor, the scope and limitations of the presented findings must be explicitly delimited:
+To contextualize the findings, the scope and limitations of the presented results must be explicitly delimited:
 
 \begin{enumerate}
     \item \textbf{Simplified Communication Channel}: The simulator models DNA storage as an abstract memoryless Binary Erasure Channel (BEC), where droplets arrive intact or are entirely erased. In physical wet-lab practice, synthesis, storage, and sequencing suffer from substitution errors, insertions, deletions (indels), and non-uniform sequence-dependent coverage bias~\cite{heckel2019, shomorony2022}. Resilience results reported herein reflect performance under idealized packet erasures without phase noise or point mutations. Moreover, evaluated erasure probabilities represent controlled simulation scenarios rather than calibrated estimates for a specific laboratory protocol;
@@ -357,7 +357,7 @@ To uphold academic rigor, the scope and limitations of the presented findings mu
     
     \item \textbf{Seed Search Space and Net Storage Density}: A 16-bit seed header limits addressing capacity to $2^{16} = 65{,}536$ unique seed values. Under biological screening (rejecting $\approx 42.6\%$ of framed candidates), the usable oligonucleotide universe is approximately $37{,}600$ sequences. Furthermore, the prototype's framing structure (2 bytes seed, $L=4$ bytes payload, 1 byte CRC-8, totaling 7 bytes or 28 nucleotides) yields a payload density of $\approx 1.14$ bits per nucleotide ($32\text{ bits} / 28\text{ nt}$) per transmitted strand prior to accounting for LT redundancy ($1+\epsilon$), screening rejections, or PCR primers, illustrating the relative weight of headers in short oligonucleotides;
     
-    \item \textbf{Stochastic Portability across Runtimes}: Reliance on Python's standard \texttt{random} module ensures strict reproducibility when runtime version is held fixed (Python~3.12). However, CPython specifications guarantee long-term repeatability only for the core floating-point generator \texttt{random()}, while sampling routines may undergo subtle implementation refinements across minor versions. For decadal digital preservation or FPGA migration, an autonomous PRNG specification (such as an arithmetic LFSR or PCG/xoshiro generator) is recommended;
+    \item \textbf{Stochastic Portability across Runtimes}: Reliance on Python's standard \texttt{random} module ensures deterministic reproducibility when runtime version is held fixed (Python~3.12). However, CPython specifications guarantee long-term repeatability only for the core floating-point generator \texttt{random()}, while sampling routines may undergo subtle implementation refinements across minor versions. For decadal digital preservation or FPGA migration, an autonomous PRNG specification (such as an arithmetic LFSR or PCG/xoshiro generator) is recommended;
     
     \item \textbf{Evaluation of Screened Pipeline}: The biological screening module remained uniformly active across all configurations in the main factorial grid, reflecting physical synthesis constraints. The study evaluated the screened pipeline and characterized accepted candidate distributions in a dedicated trial, without isolating the direct causal performance delta between transmission with screening versus an unconstrained transmission without screening;
     

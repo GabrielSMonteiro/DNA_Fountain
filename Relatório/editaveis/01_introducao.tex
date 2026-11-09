@@ -63,7 +63,7 @@ The specific objectives are:
 The primary contributions of this work are summarized as follows:
 
 \begin{enumerate}
-    \item \textbf{Modular Python Simulator}: Development of an open-source simulator implementing all ten logical stages of the DNA Fountain pipeline using exclusively the Python standard library for core execution, with decoupled PRNG streams for payload, seed, and channel generation to ensure statistical independence across runs;
+    \item \textbf{Modular Python Simulator}: A modular Python simulator that separates encoding, screening, channel simulation, decoding, and metric collection;
     
     \item \textbf{Verification Suite with Algebraic Cross-Validation}: Construction of an 18-test automated validation suite, incorporating canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), Chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination;
     
