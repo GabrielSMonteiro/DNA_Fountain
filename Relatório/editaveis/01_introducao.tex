@@ -8,17 +8,17 @@ The growing volume of digital data has increased interest in archival storage me
 Pioneering demonstrations~\cite{davis1996, church2012} established the technical feasibility of encoding digital files into synthetic oligonucleotides. However, DNA storage channels exhibit biological constraints: chemical synthesis and sequencing suffer from oligonucleotide dropouts (packet erasures), sequence-dependent substitution errors, and failure when strands violate biochemical boundaries such as extreme GC content or long homopolymer runs (repeats of identical nucleotides). To address these constraints, \citeonline{erlich2017} introduced the DNA Fountain architecture, which couples rateless fountain codes (specifically Luby Transform or LT codes) with biochemical screening filters and error-correcting codes, enabling data reconstruction without requiring physical retransmission feedback.
 
 \section{Motivation}
-Evaluating the DNA Fountain pipeline in wet-lab environments is expensive, time-consuming, and difficult to parameterize systematically. Each synthesis and sequencing cycle incurs substantial financial costs and introduces uncontrollable biological noise that complicates isolating the effects of algorithmic choices.
+Evaluating the DNA Fountain pipeline in wet-lab environments is expensive, time-consuming, and difficult to parameterize systematically. Each synthesis and sequencing cycle incurs high financial costs and introduces biological noise that complicates isolating the effects of algorithmic choices.
 
-A modular software simulator enables controlled, systematic analysis of fountain code dynamics, degree distributions, ripple behavior, and screening constraints without requiring DNA synthesis or sequencing experiments. While asymptotic fountain code properties are well documented for large file sizes ($K > 10{,}000$ source blocks), practical didactic implementations and exploratory research often operate with small block counts ($K \le 64$). In this finite-block regime, border effects and discrete degree distributions alter peeling decoding dynamics significantly. Software engineering principles—such as modular component separation, isolated pseudorandom number generators, and deterministic unit testing—are essential to ensure that such simulations yield reproducible, statistically independent observations.
+A modular software simulator enables controlled, systematic analysis of fountain code dynamics, degree distributions, ripple behavior, and screening constraints without requiring DNA synthesis or sequencing experiments. While asymptotic fountain code properties are well documented for large file sizes ($K > 10{,}000$ source blocks), practical didactic implementations and exploratory research often operate with small block counts ($K \le 64$). In this finite-block regime, border effects and discrete degree distributions alter peeling decoding dynamics significantly. Software engineering principles---such as modular component separation, isolated pseudorandom number generators, and deterministic unit testing---are essential to ensure that such simulations yield reproducible, statistically independent observations.
 
 \section{Research Problem}
 
 Accessible, didactic, and extensible open-source software tools specifically designed to analyze DNA Fountain pipeline parameters remain limited in the literature. There is a need for a reproducible software environment that allows researchers to systematically investigate the internal mechanics of Luby Transform codes, biological screening filters, and peeling decoders in finite message regimes.
 
-In this context, several specialized concepts govern pipeline performance: a \textbf{droplet} represents an encoded packet synthesized by combining source blocks; \textbf{biological screening} denotes the physicochemical filtering of droplets based on GC content and homopolymer run limits; the \textbf{ripple} refers to the operational queue of resolved degree-1 droplets available to drive peeling propagation; and a \textbf{stopping set} designates a cyclic subgraph in which all remaining droplets have degree $\ge 2$, halting peeling progress before full message reconstruction.
+Several specialized concepts govern pipeline performance: a \textbf{droplet} represents an encoded packet synthesized by combining source blocks; \textbf{biological screening} denotes the physicochemical filtering of droplets based on GC content and homopolymer run limits; the \textbf{ripple} refers to the operational queue of resolved degree-1 droplets available to drive peeling propagation; and a \textbf{stopping set} designates a cyclic subgraph in which all remaining droplets have degree $\ge 2$, halting peeling progress before full message reconstruction.
 
-Accordingly, the central research problem addressed in this work is formulated as follows: \emph{How can a modular simulator of the DNA Fountain pipeline be designed, verified, and experimentally evaluated to accurately represent LT encoding, biological framing constraints, erasure channel losses, and peeling decoding, thereby revealing the quantitative impact of parameters $c$, $\delta$, source block count $K$, erasure rate $p_{\text{loss}}$, and overhead $\epsilon$ on recovery rate and computational cost?}
+The central research problem addressed in this work is formulated as follows: \emph{How can a modular simulator of the DNA Fountain pipeline be designed, verified, and experimentally evaluated to accurately represent LT encoding, biological framing constraints, erasure channel losses, and peeling decoding, thereby revealing the quantitative impact of parameters $c$, $\delta$, source block count $K$, erasure rate $p_{\text{loss}}$, and overhead $\epsilon$ on recovery rate and computational cost?}
 
 \section{Research Hypotheses}
 \label{sec:hypotheses}
@@ -35,7 +35,7 @@ To guide the experimental investigation, three research hypotheses are formulate
 
 \section{Objectives}
 
-The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, capable of representing the segmentation, droplet generation, biological screening, erasure channel simulation, and peeling decoding stages, in order to experimentally analyze the influence of its key parameters.
+The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, capable of representing the segmentation, droplet generation, biological screening, erasure channel simulation, and peeling decoding stages, in order to experimentally analyze the influence of its operational parameters.
 
 The specific objectives are:
 
@@ -67,7 +67,7 @@ The primary contributions of this work are summarized as follows:
     
     \item \textbf{Verification Suite with Algebraic Cross-Validation}: Construction of an 18-test automated validation suite, incorporating canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), Chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination;
     
-    \item \textbf{Systematic Characterization in Finite Block Regimes}: An extensive factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations), demonstrating how scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and establishing that $c = 0.3$ offers superior or comparable performance across 8 of 9 finite-length parameter cells ($K \le 64$) relative to the historical reference baseline ($c = 0.1$);
+    \item \textbf{Systematic Characterization in Finite Block Regimes}: A factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations), demonstrating how scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and establishing that $c = 0.3$ offers superior or comparable performance across 8 of 9 finite-length parameter cells ($K \le 64$) relative to the historical reference baseline ($c = 0.1$);
     
     \item \textbf{Framing and Screening Mechanics Elucidation}: Quantitative and analytical clarification of how deterministic CRC-8 checksum calculation constrains GC content variance across framed candidate oligonucleotides (reducing candidate rejection to 42.6\% compared to the 49.8\% theoretical benchmark for unconstrained uniform sequences), while the XOR mask \texttt{0x1B1B} acts as an involution protecting low-index seed prefixes;
     
@@ -77,7 +77,7 @@ The primary contributions of this work are summarized as follows:
 \section{Scope Delimitation}
 \label{sec:scope_delimitation}
 
-This work is scoped as a Software Engineering investigation applied to the computational study of fountain codes for DNA data storage. Accordingly, it does not intend to re-derive the complete asymptotic theory of LT codes or replicate physical synthesis and sequencing processes in the wet lab, thereby maintaining a scope appropriate for an undergraduate thesis.
+This work is scoped as a Software Engineering investigation applied to the computational study of fountain codes for DNA data storage. It does not intend to re-derive the complete asymptotic theory of LT codes or replicate physical synthesis and sequencing processes in the wet lab, thereby maintaining a scope appropriate for an undergraduate thesis.
 
 Specifically, the following boundaries are explicitly declared:
 
@@ -91,7 +91,7 @@ Specifically, the following boundaries are explicitly declared:
 
 As a potential continuation of the project, the implementation of a constrained \emph{peeling decoder} core on a Digilent Basys 3 FPGA may be investigated. That future stage would aim to evaluate hardware acceleration of decoding operations using reconfigurable logic, based on instances generated by the software simulator developed herein. However, this potential continuation does not alter the scope of the present work, which remains focused on modeling, simulator implementation, and software experimental analysis.
 
-In accordance with Software Engineering best practices and the policy of scientific transparency and reproducibility, the complete simulator source code, experimental execution scripts, and raw data matrices are publicly available under an open-source license in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+The simulator source code, experiment scripts, and result matrices are publicly available in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}. The repository supports reproduction of the reported experiments.
 
 \section{Work Organization}
 \label{sec:organization}
@@ -102,7 +102,7 @@ This thesis is structured into eight chapters, including this introduction. A br
 
 \textbf{Chapter~\ref{chap:related_work} --- Related Work} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
 
-\textbf{Chapter~\ref{chap:software_architecture} --- Software Architecture and Engineering} details the core Software Engineering contribution of this work, formalizing functional and non-functional requirements, architectural decisions, modular codebase organization, data models, the complete ten-step pipeline flow, relevant implementation choices, and the internal test suite and validation.
+\textbf{Chapter~\ref{chap:software_architecture} --- Software Architecture and Engineering} details the Software Engineering implementation of this work, formalizing functional and non-functional requirements, architectural decisions, modular codebase organization, data models, the complete ten-step pipeline flow, relevant implementation choices, and the internal test suite and validation.
 
 \textbf{Chapter~\ref{chap:experimental_methodology} --- Experimental Methodology} defines the experimental protocol, describing the execution environment, independent, dependent, and controlled variables, the five proposed experimental scenarios, the number of repetitions with statistical procedures, and reproducibility measures.
 

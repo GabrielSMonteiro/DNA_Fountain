@@ -17,7 +17,7 @@ All experiments were executed on a dedicated host with the following hardware an
     \item \textbf{Dependencies}: Pure Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), with zero external dependencies for the simulator core.
 \end{itemize}
 
-The core simulator relies strictly on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements-dev.txt}).
+The core simulator relies on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements-dev.txt}).
 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
@@ -65,7 +65,7 @@ Dependent variables correspond to output metrics collected by the simulator on e
 \section{Controlled Variables}
 \label{sec:controlled_variables}
 
-To maintain internal experimental validity, the following parameters remained strictly fixed across all trials in the 216-combination factorial grid:
+To maintain internal experimental validity, the following parameters remained fixed across all trials in the 216-combination factorial grid:
 
 \begin{itemize}
     \item \textbf{Block Length ($L$)}: Fixed at $L = 4$ bytes (32 payload bits, producing 16 payload nucleotides per droplet), maintaining uniform short oligonucleotides across the grid.
@@ -207,7 +207,7 @@ To compare success proportions between specific experimental configurations (e.g
 \section{Experimental Reproducibility and Traceability}
 \label{sec:reproducibility}
 
-Experimental reproducibility is grounded in five key methodological measures:
+Experimental reproducibility is grounded in five methodological measures:
 
 \begin{enumerate}
     \item \textbf{Deterministic Master Seed Control and PRNG Decoupling}: Each batch execution calculates a deterministic master seed:

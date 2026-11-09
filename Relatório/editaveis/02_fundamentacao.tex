@@ -9,11 +9,11 @@ This chapter presents the theoretical foundations necessary to understand this w
 
 The deoxyribonucleic acid (DNA) molecule is the biopolymer responsible for storing genetic information in living organisms. Each DNA strand consists of a linear sequence of nucleotides, which are units composed of a phosphate group, a 2-deoxyribose sugar, and a nitrogenous base. The four nitrogenous bases present in DNA are adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
 
-From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This fundamental characteristic endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
+From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This property endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
 
 Beyond its high physical density, DNA exhibits high physicochemical stability. When encapsulated under appropriate conditions of low temperature and dehydration (or shielded within synthetic silica microcapsules), genetic material can preserve molecular strands for millennia with viable retrieval. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
 
-However, DNA data storage also faces substantial technological challenges. The chemical synthesis of oligonucleotides—the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)—remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, laboratory proofs of concept—widely demonstrated in academic literature—must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
+However, DNA data storage also faces technological challenges. The chemical synthesis of oligonucleotides---the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)---remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, laboratory proofs of concept---widely reported in academic literature---must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
 The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized \emph{in vitro}; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
 
@@ -41,13 +41,13 @@ Once source blocks are partitioned, each byte is converted into a sequence of fo
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three rigorous tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
+Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
 \begin{enumerate}
     \item \textbf{Unconstrained capacity} ($2.0$ bits/nt): Shannon's theoretical informational upper bound for an ideal memoryless channel with four equiprobable symbols without sequence constraints;
-    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences strictly complying with GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases);
+    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences complying with GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases);
     \item \textbf{Estimated capacity under the Erlich and Zielinski storage model} ($\approx 1.83$ bits/nt): operational Shannon limit after deducting the required overhead for addressing/indexing unordered sequences in the molecular pool and tolerance to molecular dropout under their model assumptions.
 \end{enumerate}
-In this context, the pioneering net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
+The net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
 
 The simplicity of this direct mapping scheme represents a deliberate architectural choice in DNA Fountain. As discussed in subsequent sections, robustness against errors and physical losses is not delegated to the base-mapping layer itself, but rather to the rateless fountain coding layer, which operates over blocks prior to nucleotide conversion.
 
@@ -74,12 +74,12 @@ In this work, the DNA storage channel is modeled in a simplified manner as a \te
 
 \subsection{Biological Acceptability Constraints}
 
-Independently of channel noise, not all arbitrary DNA sequences can be synthesized and sequenced with uniform reliability. Certain sequence properties directly govern biochemical efficiency, and sequences violating these rules must be screened out prior to synthesis. The two most critical constraints in DNA Fountain are:
+Independently of channel noise, not all arbitrary DNA sequences can be synthesized and sequenced with uniform reliability. Certain sequence properties directly govern biochemical efficiency, and sequences violating these rules must be screened out prior to synthesis. The two primary constraints in DNA Fountain are:
 
 \begin{itemize}
-    \item \textbf{GC Content}: The proportion of guanine (G) and cytosine (C) bases relative to total sequence length must lie within an acceptable window, typically between 40\% and 60\%. Sequences with extreme GC content exhibit anomalous melting temperatures ($T_m$), hindering Polymerase Chain Reaction (PCR) amplification and introducing substantial sequencing bias~\cite{erlich2017}. In this work, an operational GC window of 40\% to 60\% was adopted as the prototype configuration, slightly wider than the 45--55\% window utilized in the original wet-lab experiment.
+    \item \textbf{GC Content}: The proportion of guanine (G) and cytosine (C) bases relative to total sequence length must lie within an acceptable window, typically between 40\% and 60\%. Sequences with extreme GC content exhibit anomalous melting temperatures ($T_m$), hindering Polymerase Chain Reaction (PCR) amplification and introducing sequencing bias~\cite{erlich2017}. In this work, an operational GC window of 40\% to 60\% was adopted as the prototype configuration, slightly wider than the 45--55\% window utilized in the original wet-lab experiment.
     
-    \item \textbf{Homopolymers}: Sequences containing consecutive runs of identical bases (e.g., AAAA or GGGG) are highly vulnerable to synthesis and sequencing errors, particularly in flow-based or optical sequencing platforms. In this work, the maximum permitted homopolymer run length is 3 consecutive bases ($\le 3$), adhering to the threshold established by \citeonline{erlich2017}.
+    \item \textbf{Homopolymers}: Sequences containing consecutive runs of identical bases (e.g., AAAA or GGGG) are vulnerable to synthesis and sequencing errors, particularly in flow-based or optical sequencing platforms. In this work, the maximum permitted homopolymer run length is 3 consecutive bases ($\le 3$), adhering to the threshold established by \citeonline{erlich2017}.
 \end{itemize}
 
 These biological constraints \textbf{do not constitute stochastic channel errors}; rather, they represent deterministic acceptability filters applied at the encoding stage. When a candidate droplet generated by the encoder violates GC or homopolymer bounds during screening, it is rejected before transmission, and a new droplet is generated in its place. This distinction separates deterministic biochemical screening from stochastic channel erasures.
@@ -91,7 +91,7 @@ Given that the DNA storage channel is prone to oligonucleotide erasures, redunda
 
 Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate codes}. In a fixed-rate Maximum Distance Separable (MDS) code with rate $R_c = K/N$, any $K$ received symbols are sufficient to recover the message, guaranteeing correction of up to $N - K$ erasures. Below this threshold, recovery is no longer guaranteed and depends on the code's algebraic structure and the specific loss pattern~\cite{mackay2003}. The existence of retransmission depends on the adopted communication protocol, not solely on the code itself. In molecular pool storage channels where no real-time feedback channel exists to negotiate retransmissions during synthesis, this rigidity imposes an acute dilemma between excessive synthesis over-provisioning (if channel losses are overestimated) or irreversible data loss (if losses are underestimated).
 
-\textbf{Fountain codes} (or rateless codes), conversely, belong to the class of channel erasure codes without a fixed rate, and should not be confused with source coding (data compression). The encoder operates continuously, generating encoded packets (\textbf{droplets}) on demand until the receiver collects sufficient information to reconstruct the $K$ original source blocks. The key properties of this approach are:
+\textbf{Fountain codes} (or rateless codes), conversely, belong to the class of channel erasure codes without a fixed rate, and should not be confused with source coding (data compression). The encoder operates continuously, generating encoded packets (\textbf{droplets}) on demand until the receiver collects sufficient information to reconstruct the $K$ original source blocks. The primary properties of this approach are:
 
 \begin{itemize}
     \item The transmitter can generate a potentially inexhaustible stream of encoded droplets from the $K$ original blocks, providing complete flexibility in sequence generation and redundancy budgeting prior to chemical synthesis.
@@ -101,7 +101,7 @@ Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate c
     \item No real-time feedback channel is required between receiver and transmitter during transmission.
 \end{itemize}
 
-Fountain codes are particularly suitable for DNA data storage because the number of oligonucleotides that survive synthesis, storage, and sequencing cannot be determined precisely before encoding. This rateless flexibility operates during digital \emph{in silico} generation before synthesis; once a fixed physical oligonucleotide library is produced \emph{in vitro}, no new molecules are autonomously generated during readout, and recovery remains strictly conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
+Fountain codes are particularly suitable for DNA data storage because the number of oligonucleotides that survive synthesis, storage, and sequencing cannot be determined precisely before encoding. This rateless flexibility operates during digital \emph{in silico} generation before synthesis; once a fixed physical oligonucleotide library is produced \emph{in vitro}, no new molecules are autonomously generated during readout, and recovery remains conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
 
 \section{LT Codes}
 \label{sec:lt_codes}
@@ -132,7 +132,7 @@ The degree distribution chosen for $d$ strongly influences LT code recovery perf
 \section{Robust Soliton Distribution}
 \label{sec:robust_soliton_distribution}
 
-The probability distribution used to sample droplet degrees constitutes the core theoretical foundation of LT codes. \citeonline{luby2002} initially formulated the \textbf{Ideal Soliton Distribution} $\rho(d)$, defined as:
+The probability distribution used to sample droplet degrees constitutes the theoretical foundation of LT codes. \citeonline{luby2002} initially formulated the \textbf{Ideal Soliton Distribution} $\rho(d)$, defined as:
 
 \begin{equation}
     \label{eq:ideal_soliton}
@@ -214,7 +214,7 @@ The resulting distribution satisfies $\sum_{d=1}^{K} \mu(d) = 1$ and is used to 
     \mathbb{E}_\mu[D] = \sum_{d=1}^{K} d \cdot \mu(d)
 \end{equation}
 
-In the simulator implementation, degree sampling is executed via the Cumulative Distribution Function (CDF) of $\mu(d)$: a uniform variate $u \sim \mathcal{U}(0,1)$ is drawn, and degree $d$ is determined as the smallest integer such that $\text{CDF}(d) \ge u$. This technique guarantees that the empirical sampling frequencies converge to $\mu(d)$ as sample size increases.
+In the simulator implementation, degree sampling is executed via the Cumulative Distribution Function (CDF) of $\mu(d)$: a uniform variate $u \sim \mathcal{U}(0,1)$ is drawn, and degree $d$ is determined as the smallest integer such that $\text{CDF}(d) \ge u$. This inverse transform sampling ensures that empirical sampling frequencies converge to $\mu(d)$ as sample size increases.
 
 \section{Peeling Decoder and Ripple Dynamics}
 \label{sec:peeling_decoder_and_ripple}
@@ -247,7 +247,7 @@ The algorithm is formalized in three phases:
 \subsection{Ripple Concept and Operational Queue}
 \label{sec:ripple_concept}
 
-The concept of the \textbf{ripple} characterizes the internal dynamics of the algorithm across iterations. In Luby's original definition~\cite{luby2002}, the ripple is formalized as the set of source symbols (input variables) that are covered by released encoded symbols but have not yet been processed by the decoder. In this simulator, the instrumented metric corresponds to the length of the degree-1 droplet queue maintained in memory (\texttt{collections.deque}), which operationally stores packets reaching degree 1 during decoding, and may include redundant droplets associated with previously resolved source blocks. This operational queue serves as a practical indicator of decoding momentum, though its cardinality does not strictly coincide with Luby's theoretical ripple.
+The concept of the \textbf{ripple} characterizes the internal dynamics of the algorithm across iterations. In Luby's original definition~\cite{luby2002}, the ripple is formalized as the set of source symbols (input variables) that are covered by released encoded symbols but have not yet been processed by the decoder. In this simulator, the instrumented metric corresponds to the length of the degree-1 droplet queue maintained in memory (\texttt{collections.deque}), which operationally stores packets reaching degree 1 during decoding, and may include redundant droplets associated with previously resolved source blocks. This operational queue serves as a practical indicator of decoding momentum, though its cardinality does not coincide with Luby's theoretical ripple.
 
 Decoding succeeds when all $K$ source blocks are resolved before the queue empties. If the queue reaches zero before all blocks are recovered, premature cessation occurs (\emph{ripple die-out}). In execution logs, minimum ripple is recorded as $1.0$ because sampling occurs at the beginning of each active loop iteration (\texttt{while ripple:}), meaning that final emptying (size zero) represents the algorithm termination condition.
 
