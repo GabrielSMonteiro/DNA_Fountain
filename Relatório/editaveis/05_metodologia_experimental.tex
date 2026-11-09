@@ -36,7 +36,7 @@ Independent variables comprise the pipeline parameters systematically varied acr
 
     \item \textbf{RSD Parameter $c$}: Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1, 0.3, 0.5, 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
 
-    \item \textbf{RSD Parameter $\delta$}: Formal design parameter governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels).
+    \item \textbf{RSD Parameter $\delta$}: Asymptotic failure probability bound governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels), capturing tight ($1\%$) and moderate ($10\%$) theoretical failure bounds.
 
     \item \textbf{Relative Overhead ($\epsilon$)}: Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
 
@@ -78,11 +78,11 @@ To maintain internal experimental validity, the following parameters remained fi
 
     \item \textbf{Seed Header}: Encoded in 16 bits (2 bytes) obfuscated by static XOR mask \texttt{0x1B1B}.
 
-    \item \textbf{Padding Policy}: Deterministic zero-byte padding (\texttt{0x00}).
+    \item \textbf{Padding Policy}: Deterministic zero-byte padding (\texttt{0x00}) applied to align the final block to length $L$.
 
-    \item \textbf{CRC-8}: Active by default with generator polynomial \texttt{0x07}.
+    \item \textbf{CRC-8 Checksum}: Active by default with generator polynomial \texttt{0x07} ($x^8 + x^2 + x + 1$) for strand integrity verification.
 
-    \item \textbf{Scrambler}: Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A}.
+    \item \textbf{Payload Scrambler}: Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A} to break low-entropy patterns.
 \end{itemize}
 
 Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, and controlled variables within the experimental protocol.

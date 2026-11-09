@@ -218,7 +218,7 @@ The simulator operates across ten sequential stages, described below:
 
     \item \textbf{DNA Conversion}: The concatenated header + payload (+ CRC) bytes are mapped into a nucleotide sequence at 2 bits per base.
 
-    \item \textbf{Biological Screening}: The DNA sequence is inspected for GC content and homopolymer run length. If constraints are violated, the droplet is rejected, and the seed counter advances to generate a new candidate. This process is transparent to the decoder.
+    \item \textbf{Biological Screening}: The DNA sequence is inspected for GC content and homopolymer run length. If constraints are violated, the droplet is rejected and the seed counter advances to evaluate a new candidate, making rejection transparent to the decoder, which only processes approved droplets.
 
     \item \textbf{Erasure Channel}: Screened oligonucleotides pass through the channel, which independently discards packets with probability $p_{\text{loss}}$ using a separate PRNG.
 
