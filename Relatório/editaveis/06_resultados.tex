@@ -182,10 +182,13 @@ The curves in Figure~\ref{fig:overhead_sucesso} show that, across evaluated over
     \item For $K = 16$, the transition is gradual, peaking at 89.3\% ($c = 0.3$) and 84.7\% ($c = 0.1$) under $\epsilon = 1.00$, illustrating heightened vulnerability to stochastic variance and stopping sets in small block counts;
     \item For $K = 32$ and $K = 64$, the $c = 0.1$ curve climbs steadily from $\epsilon = 0.25$, reaching 49.2\% ($K = 32$) and 61.6\% ($K = 64$) at $\epsilon = 0.50$, and reaching 92.0\% ($K = 32$, 95\% CI: $[90.1\%, 93.6\%]$) and 98.5\% ($K = 64$, 95\% CI: $[97.5\%, 99.2\%]$) under $\epsilon = 1.00$;
     \item Curves for $c = 0.8$ remain low across all overhead levels, reaching at most 31.2\% ($K = 16$), 15.4\% ($K = 32$), and 7.1\% ($K = 64$) under $\epsilon = 1.00$.
+\end{itemize}
 
 \subsection{Structural Performance Discrepancy with $c = 0.5$ between $K = 32$ and $K = 64$}
 
-One of the most revealing behaviors documented in Table~\ref{tab:overhead_sucesso} occurs with $c = 0.5$ under overhead $\epsilon = 1.00$: while for $K = 32$ the recovery rate is 38.5\% (95\% CI: $[35.5\%, 41.6\%]$), for $K 
+One of the most revealing behaviors documented in Table~\ref{tab:overhead_sucesso} occurs with $c = 0.5$ under overhead $\epsilon = 1.00$: while for $K = 32$ the recovery rate is 38.5\% (95\% CI: $[35.5\%, 41.6\%]$), for $K = 64$ the system achieves 69.2\% success (95\% CI: $[66.2\%, 72.0\%]$). Under intermediate overhead $\epsilon = 0.50$, this divergence is even more pronounced: 3.7\% for $K = 32$ versus 20.2\% for $K = 64$.
+
+This contrast stems directly from how mode index $m = \lfloor K/R \rfloor$ scales with $K$:
 \begin{itemize}
     \item For $K = 32$, we have $R = 0.5 \ln(32/0.10)\sqrt{32} \approx 16.32$. Because $R > K/2 = 16$, the mode index collapses to $m = \lfloor 32 / 16.32 \rfloor = 1$. The entire corrective term $\tau(d)$ collapses onto degree 1. The RSD generates approximately 73\% unit-degree droplets, depleting degree-2 and higher combinatoric droplets needed to interlink remaining blocks. Under tight overhead ($\epsilon \le 0.50$), peeling stalls almost completely (3.7\% success);
     \item For $K = 64$, we obtain $R \approx 25.85 < K/2 = 32$, yielding $m = \lfloor 64 / 25.85 \rfloor = 2$. Corrective values evaluate to $\tau(1) \approx 0.404$ and $\tau(2) \approx 2.243$, with $\tau(d) = 0$ for all $d > 2$. Normalizing $\rho(d) + \tau(d)$ produces $\mu(1) \approx 0.115$ and $\mu(2) \approx 0.752$, with mean degree $\bar{d} \approx 2.64$. This distribution avoids collapsing onto degree 1: because three-quarters of the probability mass concentrates on degree-2 droplets, they act as primary catalytic drivers for peeling (reducing to degree 1 once one neighbor is resolved), sustaining peeling progress and achieving 69.2\% success under $\epsilon = 1.00$.
