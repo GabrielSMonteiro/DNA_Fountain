@@ -335,7 +335,7 @@ Byte-to-nucleotide mapping integrity was evaluated across all 256 possible singl
 \begin{equation}
     b = \texttt{dna\_para\_bytes}\big(\texttt{bytes\_para\_dna}(b)\big)
 \end{equation}
-Testing confirmed a zero error rate ($0.00\%$) across all individual byte values and random byte streams up to 1 megabyte, verifying that the mapping is bijective.
+Testing produced a zero error rate ($0.00\%$) across all individual byte values and random byte streams up to 1 megabyte, verifying that the mapping is bijective.
 
 \subsection{RSD Summation and Mode Safeguard Validation}
 
@@ -380,7 +380,7 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
         \textbf{Implemented Test} & \textbf{Level} & \textbf{Case Description} & \textbf{Observed Outcome} \\
         \midrule
         \texttt{test\_conversao\_bytes\_dna\_}\allowbreak\texttt{reversibilidade} & Unit & Closed loop bytes $\leftrightarrow$ DNA for all 256 byte values and random stream. & Error rate $= 0.00\%$ \\
-        \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across standard $K, c, \delta$. & Numerically confirmed \\
+        \texttt{test\_somatoria\_drs} & Unit & Verification of $\sum_{d=1}^K \mu(d) = 1.0$ across standard $K, c, \delta$. & Numerically verified \\
         \texttt{test\_somatoria\_drs\_salvaguarda\_}\allowbreak\texttt{m\_menor\_1} & Unit & DRS with $c \ge 0.5$ triggering mode safeguard $m_{\text{raw}} < 1 \implies m = 1$. & Normalization $\sum \mu = 1.0$ and $\mu(1) > 0.5$ \\
         \texttt{test\_screening\_gc\_limits} & Unit & Synthetic sequences with GC $< 40\%$ and GC $> 60\%$. & Successfully rejected \\
         \texttt{test\_screening\_homopolimeros} & Unit & Sequences containing homopolymers of length $\ge 4$. & Successfully rejected \\
