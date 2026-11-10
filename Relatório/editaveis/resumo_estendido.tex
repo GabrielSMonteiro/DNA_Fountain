@@ -49,7 +49,7 @@ Durante os experimentos, o sistema registrou a taxa de sucesso de decodificaçã
 
 \section*{6. Resultados e Discussão}
 
-A análise dos ensaios experimentais permitiu consolidar os achados em sete pontos principais:
+Os ensaios experimentais permitiram observar sete pontos principais:
 \begin{enumerate}
     \item \textbf{Validação funcional de referência.} Em condições de canal ideal sem perdas ($p_{\text{loss}} = 0{,}0$), com $\delta = 0{,}10$ e redundância $\epsilon = 1{,}00$, a configuração de referência com $c = 0{,}1$ alcançou $92{,}0\%$ de sucesso para $K = 32$ (com intervalo de confiança entre $90{,}1\%$ e $93{,}6\%$) e $98{,}5\%$ para $K = 64$. Para blocos menores ($K = 16$), o sucesso foi de $84{,}7\%$ sob $c = 0{,}1$, subindo para $89{,}3\%$ com $c = 0{,}3$. A auditoria detalhada das 153 falhas nesse cenário mostrou que $98{,}7\%$ dos casos (151 falhas) ocorreram por ciclos fechados no grafo que travaram o decodificador, e apenas 2 falhas foram decorrentes de blocos que não chegaram a ser sorteados em nenhuma gota.
     

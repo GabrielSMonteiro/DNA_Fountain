@@ -15,7 +15,7 @@ Beyond its high physical density, DNA can exhibit high physicochemical stability
 
 However, DNA data storage also faces technological challenges. The chemical synthesis of oligonucleotides (the artificial fabrication of short single-stranded DNA sequences, typically 100 to 300 nucleotides in length) remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies have been reducing per-base sequencing costs~\cite{ceze2019}, although synthesis costs per nucleotide have declined more slowly. Nevertheless, laboratory proofs of concept, though widely reported in academic literature, must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
-The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized \emph{in vitro}; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
+The complete DNA data storage lifecycle spans five main stages: digital encoding from binary files to nucleotide sequences, chemical synthesis of physical DNA strands \emph{in vitro}, storage of the oligonucleotide pool under controlled environmental conditions, sequencing to read the molecular strands, and computational decoding to reconstruct the original digital file.
 
 \section{Digital-to-DNA Encoding}
 \label{sec:digital_to_dna_encoding}
@@ -221,7 +221,7 @@ In the simulator implementation, degree sampling is executed via the Cumulative 
 
 The \textbf{peeling decoder} is the iterative algorithm employed in LT codes to reconstruct original source blocks from received droplets. It is a belief propagation algorithm over the bipartite graph; payload updates use XOR over the Galois field $GF(2)$, while the algorithm also maintains index structures and a processing queue to track residual degrees.
 
-The operational principle of the peeling decoder can be intuitively described as follows: if a received droplet has degree 1 (meaning it represents the XOR combination of a single source block), its payload is identically equal to that source block. Once a block's value is uncovered, it can be peeled off (via XOR) from all other received droplets containing it, decrementing their residual degrees by one. If any of those droplets reach degree 1 after peeling, another source block is revealed, and the process iterates.
+The peeling decoder works by identifying droplets of degree 1. Because a degree-1 droplet represents the combination of only a single source block, its payload directly yields that block's value. Once resolved, this block is peeled off (via XOR) from all remaining droplets that include it, decrementing their residual degrees by one. Any droplet whose degree drops to 1 enters the decoding queue, allowing the process to continue iteratively until all blocks are recovered.
 
 The algorithm is formalized in three phases:
 

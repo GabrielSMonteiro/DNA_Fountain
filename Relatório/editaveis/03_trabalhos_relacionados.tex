@@ -7,7 +7,7 @@ Digital DNA storage has progressed through several coding architectures since th
 \section{Coding Schemes for DNA Data Storage}
 \label{sec:related_dna_encoding}
 
-The following sections chronologically present the primary coding schemes proposed in the literature, highlighting design decisions, practical constraints, and achieved storage densities.
+This section reviews the primary coding schemes in chronological order, highlighting key design choices, practical constraints, and reported storage densities.
 
 \subsection{Church, Gao, and Kosuri (2012)}
 
@@ -45,7 +45,7 @@ Both works, however, used fixed-rate coding whose redundancy could not adapt to 
 
 The influential work of \citeonline{erlich2017}, published in \emph{Science} in 2017, pioneered the application of \emph{fountain codes} to DNA data storage. The DNA Fountain architecture combines a two-tier hierarchical coding structure: an outer rateless Luby Transform (LT) code operating across blocks to reconstruct the file in the presence of full oligonucleotide erasures via the Robust Soliton Distribution (RSD), and an inner Reed--Solomon code (2 parity bytes per oligonucleotide) designed to detect and discard localized substitution and indel errors caused by synthesis and sequencing. The rateless property of the outer code enables generating encoded droplets on demand until the receiver collects a sufficient quantity ($K(1 + \epsilon)$) to reconstruct the original data via the iterative \emph{peeling decoder}.
 
-DNA Fountain introduced three main contributions relative to the reviewed prior approaches:
+DNA Fountain introduced three key advantages over earlier schemes:
 
 \begin{itemize}
     \item \textbf{Rateless capability.} Unlike fixed-rate codes (such as Reed--Solomon or overlapping windows), DNA Fountain generates droplets continuously until the desired number of valid oligonucleotides is gathered. Rateless encoding enables generating additional oligonucleotides digitally and tuning the redundancy budget without requiring real-time feedback retransmission. However, an already synthesized physical pool remains limited to the generated batch.
@@ -98,7 +98,7 @@ The storage architecture proposed by \citeonline{bornholt2016} included a softwa
 
 A review of the works surveyed above shows that the reviewed approaches emphasize different goals: large-scale wet-lab replication artifacts (such as the original DNA Fountain~\cite{erlich2017}), theoretical analyses of short codes in telecommunication channels~\cite{hyytia2007}, and broad comparative frameworks focused on advanced rateless codes and numerical distribution optimizations~\cite{schwarz2021, schwarz2024}.
 
-The simulator uses only the Python standard library, records decoding-queue dynamics and XOR operations, and exports results to CSV files for reproducible batch experiments. The simulator is designed around four key priorities:
+To address these limitations, the simulator developed in this work focuses on four core priorities:
 
 \begin{enumerate}
     \item \textbf{Modular and self-contained implementation.} An object-oriented Python~3 implementation relying exclusively on the standard library, eliminating compiled C or Cython dependencies, and facilitating straightforward replication in educational and research environments.
