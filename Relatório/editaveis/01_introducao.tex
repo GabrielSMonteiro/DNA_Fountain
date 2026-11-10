@@ -10,7 +10,7 @@ Pioneering demonstrations~\cite{davis1996, church2012} established the technical
 \section{Motivation}
 Evaluating the DNA Fountain pipeline in wet-lab environments is expensive, time-consuming, and difficult to parameterize systematically. Each synthesis and sequencing cycle incurs high financial costs and introduces biological noise that complicates isolating the effects of algorithmic choices.
 
-A modular software simulator enables controlled, systematic analysis of fountain code dynamics, degree distributions, ripple behavior, and screening constraints without requiring DNA synthesis or sequencing experiments. While asymptotic fountain code properties are well documented for large file sizes ($K > 10{,}000$ source blocks), practical didactic implementations and exploratory research often operate with small block counts ($K \le 64$). In this finite-block regime, border effects and discrete degree distributions alter peeling decoding dynamics significantly. Software engineering principles---such as modular component separation, isolated pseudorandom number generators, and deterministic unit testing---are essential to ensure that such simulations yield reproducible, controlled observations.
+A modular software simulator enables controlled, systematic analysis of fountain code dynamics, degree distributions, ripple behavior, and screening constraints without requiring DNA synthesis or sequencing experiments. While asymptotic fountain code properties are well documented for large file sizes ($K > 10{,}000$ source blocks), practical didactic implementations and exploratory research often operate with small block counts ($K \le 64$). In this finite-block regime, border effects and discrete degree distributions alter peeling decoding dynamics significantly. Software engineering principles, such as modular component separation, isolated pseudorandom number generators, and deterministic unit testing, are essential to ensure that such simulations yield reproducible, controlled observations.
 
 \section{Research Problem}
 
@@ -98,16 +98,16 @@ The simulator source code, experiment scripts, and result matrices are publicly 
 
 This thesis is structured into eight chapters, including this introduction. A brief overview of the remaining chapters is presented below.
 
-\textbf{Chapter~\ref{chap:theoretical_foundation} --- Theoretical Foundation} covers the background on DNA data storage, digital encoding into nucleotide sequences, erasure and fountain codes, the Robust Soliton Distribution, peeling decoder mechanics, the DNA Fountain architecture, and the evaluation metrics.
+\textbf{Chapter~\ref{chap:theoretical_foundation}: Theoretical Foundation} covers the background on DNA data storage, digital encoding into nucleotide sequences, erasure and fountain codes, the Robust Soliton Distribution, peeling decoder mechanics, the DNA Fountain architecture, and the evaluation metrics.
 
-\textbf{Chapter~\ref{chap:related_work} --- Related Work} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
+\textbf{Chapter~\ref{chap:related_work}: Related Work} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
 
-\textbf{Chapter~\ref{chap:software_architecture} --- Software Architecture and Engineering} details the simulator's requirements, modular codebase, pipeline flow, key implementation choices, and the test suite.
+\textbf{Chapter~\ref{chap:software_architecture}: Software Architecture and Engineering} details the simulator's requirements, modular codebase, pipeline flow, key implementation choices, and the test suite.
 
-\textbf{Chapter~\ref{chap:experimental_methodology} --- Experimental Methodology} defines the experimental protocol: execution environment, independent and dependent variables, controlled parameters, the five experimental scenarios, repetition counts, statistical procedures, and reproducibility measures.
+\textbf{Chapter~\ref{chap:experimental_methodology}: Experimental Methodology} defines the experimental protocol: execution environment, independent and dependent variables, controlled parameters, the five experimental scenarios, repetition counts, statistical procedures, and reproducibility measures.
 
-\textbf{Chapter~\ref{chap:results} --- Results and Discussion} presents and discusses experimental results, including functional validation, the impact of biological screening on degree distribution, ripple dynamics during decoding, the relationship between overhead and success rate, the impact of parameters $c$ and $\delta$, channel resilience under different erasure rates, computational cost, and result limitations.
+\textbf{Chapter~\ref{chap:results}: Results and Discussion} presents and discusses experimental results, including functional validation, the impact of biological screening on degree distribution, ripple dynamics during decoding, the relationship between overhead and success rate, the impact of parameters $c$ and $\delta$, channel resilience under different erasure rates, computational cost, and result limitations.
 
-\textbf{Chapter~\ref{chap:conclusion} --- Conclusion} revisits the proposed objectives, evaluates them against experimental results, and presents final considerations.
+\textbf{Chapter~\ref{chap:conclusion}: Conclusion} revisits the proposed objectives, evaluates them against experimental results, and presents final considerations.
 
-Finally, \textbf{Chapter~\ref{chap:future_work} --- Future Work} outlines natural directions for project evolution, such as modeling channels with insertions and deletions, integrating additional error-correction mechanisms, and exploring hardware acceleration of the peeling decoder on reconfigurable logic.
+Finally, \textbf{Chapter~\ref{chap:future_work}: Future Work} outlines natural directions for project evolution, such as modeling channels with insertions and deletions, integrating additional error-correction mechanisms, and exploring hardware acceleration of the peeling decoder on reconfigurable logic.

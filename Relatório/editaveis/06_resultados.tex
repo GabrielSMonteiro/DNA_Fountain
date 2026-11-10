@@ -67,7 +67,7 @@ Table~\ref{tab:screening_graus} compares the theoretical expected value of the p
         \toprule
         \textbf{Sample Condition} & \textbf{Mean Degree ($\bar{d}$)} & \shortstack{\textbf{Relative Deviation from}\\\textbf{Theoretical Mean (\%)}} & \textbf{Samples (Oligos)} \\
         \midrule
-        Theoretical Distribution ($\mu$) & 4.945 & --- & --- \\
+        Theoretical Distribution ($\mu$) & 4.945 & -- & -- \\
         Total Generated Candidates & 4.930 & $-0.30$ & 100,000 (100.0\%) \\
         Accepted Droplets (transmitted) & 4.935 & $-0.20$ & 57,395 (57.4\%) \\
         Rejected Droplets (discarded) & 4.924 & $-0.42$ & 42,605 (42.6\%) \\
@@ -77,7 +77,7 @@ Table~\ref{tab:screening_graus} compares the theoretical expected value of the p
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-The sample mean across accepted droplets was $4.935$, while for rejected droplets it was $4.924$—a difference of only $0.011$ degrees. To formally verify whether biological filtering preserves the full degree distribution beyond the mean, a direct Pearson chi-square ($\chi^2$) test of homogeneity was conducted comparing the degree distributions of accepted versus rejected candidates across 18 canonical bins ($d \in \{1\}, \{2\}, \ldots, \{12\}$, and adjacent composite classes up to degree 32, ensuring expected cell counts $\ge 5$). The test yielded $\chi^2 = 23.66$ ($\text{df} = 17$, $p = 0.1289$), which does not reject the null hypothesis of homogeneity at the 5\% significance level, indicating that no statistically significant difference was detected between the degree distributions of accepted and rejected candidates under the evaluated framing.
+The sample mean across accepted droplets was $4.935$, while for rejected droplets it was $4.924$ (a difference of only $0.011$ degrees). To formally verify whether biological filtering preserves the full degree distribution beyond the mean, a direct Pearson chi-square ($\chi^2$) test of homogeneity was conducted comparing the degree distributions of accepted versus rejected candidates across 18 canonical bins ($d \in \{1\}, \{2\}, \ldots, \{12\}$, and adjacent composite classes up to degree 32, ensuring expected cell counts $\ge 5$). The test yielded $\chi^2 = 23.66$ ($\text{df} = 17$, $p = 0.1289$), which does not reject the null hypothesis of homogeneity at the 5\% significance level, indicating that no statistically significant difference was detected between the degree distributions of accepted and rejected candidates under the evaluated framing.
 
 Furthermore, the role of the additive scrambler was evaluated by testing the pipeline with an extreme low-entropy payload: an all-zero byte payload (\texttt{0x00000000}) evaluated across 1,000 trials resulted in 100.0\% rejection without scrambling due to the immediate formation of 16-base poly-A homopolymers, preventing droplet synthesis under the homopolymer constraint. With scrambling enabled, the rejection rate normalized to $38.5\%$ (385 out of 1,000 trials), indicating that the scrambler reduced the formation of long homopolymer runs under the tested low-entropy payload. Note that this $38.5\%$ rejection rate under scrambled all-zero payloads is an empirical result of the stress test (archived in \texttt{screening\_qui\_quadrado.json}), distinct from the aggregate $38.5\%$ decoding success rate observed for $c = 0.5$ in Table~\ref{tab:overhead_sucesso}.
 

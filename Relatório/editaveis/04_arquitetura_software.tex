@@ -14,21 +14,21 @@ To guide simulator development and ensure fulfillment of the objectives establis
 The functional requirements define the operational capabilities that the simulator must execute throughout the pipeline:
 
 \begin{itemize}
-    \item \textbf{FR01 --- File Segmentation}: The system must ingest an input message (text or binary) and partition it into $K$ source blocks of fixed length $L$ bytes, applying deterministic zero-padding with null bytes (\texttt{0x00}) to the final block if the total message length is not an exact multiple of $L$.
+    \item \textbf{FR01: File Segmentation}: The system must ingest an input message (text or binary) and partition it into $K$ source blocks of fixed length $L$ bytes, applying deterministic zero-padding with null bytes (\texttt{0x00}) to the final block if the total message length is not an exact multiple of $L$.
 
-    \item \textbf{FR02 --- Robust Soliton Distribution Calculation and Sampling}: The system must compute parameters $R$ and $m = \lfloor K/R \rfloor$, construct distributions $\rho(d)$ and $\tau(d)$, normalize $\mu(d)$, and enable deterministic sampling of degree $d$ and source block indices from an integer seed.
+    \item \textbf{FR02: Robust Soliton Distribution Calculation and Sampling}: The system must compute parameters $R$ and $m = \lfloor K/R \rfloor$, construct distributions $\rho(d)$ and $\tau(d)$, normalize $\mu(d)$, and enable deterministic sampling of degree $d$ and source block indices from an integer seed.
 
-    \item \textbf{FR03 --- Deterministic Droplet Synthesis via Seed}: For each droplet, the encoder must use an integer seed as PRNG input to derive degree and neighbor indices, combine selected blocks via XOR, optionally apply additive pseudo-random scrambling, and compose a header containing the XOR-masked seed.
+    \item \textbf{FR03: Deterministic Droplet Synthesis via Seed}: For each droplet, the encoder must use an integer seed as PRNG input to derive degree and neighbor indices, combine selected blocks via XOR, optionally apply additive pseudo-random scrambling, and compose a header containing the XOR-masked seed.
 
-    \item \textbf{FR04 --- Bijective Byte-to-DNA Conversion}: The system must map the binary payload (header + payload + CRC) into a nucleotide sequence over $\{A, C, G, T\}$ at a gross rate of 2 bits per base, and execute the inverse operation during decoding.
+    \item \textbf{FR04: Bijective Byte-to-DNA Conversion}: The system must map the binary payload (header + payload + CRC) into a nucleotide sequence over $\{A, C, G, T\}$ at a gross rate of 2 bits per base, and execute the inverse operation during decoding.
 
-    \item \textbf{FR05 --- Biological Screening}: The simulator must evaluate every generated DNA sequence against GC content bounds ($gc_{\min} \le \text{GC} \le gc_{\max}$) and homopolymer run length limits ($\le H_{\max}$). Candidate sequences violating these rules must be rejected, and a new droplet must be drawn using the next sequential seed.
+    \item \textbf{FR05: Biological Screening}: The simulator must evaluate every generated DNA sequence against GC content bounds ($gc_{\min} \le \text{GC} \le gc_{\max}$) and homopolymer run length limits ($\le H_{\max}$). Candidate sequences violating these rules must be rejected, and a new droplet must be drawn using the next sequential seed.
 
-    \item \textbf{FR06 --- Stochastic Erasure Channel Simulation}: The software must subject screened oligonucleotides to an i.i.d. packet erasure channel, discarding packets with configurable loss probability $p_{\text{loss}}$.
+    \item \textbf{FR06: Stochastic Erasure Channel Simulation}: The software must subject screened oligonucleotides to an i.i.d. packet erasure channel, discarding packets with configurable loss probability $p_{\text{loss}}$.
 
-    \item \textbf{FR07 --- Iterative Peeling Decoding}: The decoder must extract seeds from received oligonucleotide headers, regenerate neighbor indices, build an inverted adjacency index, and execute the peeling decoder while logging ripple trajectory, XOR operations count, and reconstructed data integrity.
+    \item \textbf{FR07: Iterative Peeling Decoding}: The decoder must extract seeds from received oligonucleotide headers, regenerate neighbor indices, build an inverted adjacency index, and execute the peeling decoder while logging ripple trajectory, XOR operations count, and reconstructed data integrity.
 
-    \item \textbf{FR08 --- Statistical Metric Logging}: The system must collect and export metrics covering decoding success rate, effective overhead, screening rejection rate, XOR operations count, ripple queue dynamics, recovered block count, and runtime, consolidating results into CSV format for analysis.
+    \item \textbf{FR08: Statistical Metric Logging}: The system must collect and export metrics covering decoding success rate, effective overhead, screening rejection rate, XOR operations count, ripple queue dynamics, recovered block count, and runtime, consolidating results into CSV format for analysis.
 \end{itemize}
 
 Table~\ref{tab:requisitos_funcionais} summarizes the functional requirements and their descriptions.
@@ -86,17 +86,17 @@ Table~\ref{tab:rastreabilidade_requisitos} establishes the Software Engineering 
 The non-functional requirements define software quality and architectural constraints:
 
 \begin{itemize}
-    \item \textbf{NFR01 --- Modularity}: Each pipeline phase must reside in an independent module with defined interfaces, enabling individual components (such as alternative channel models or decoders) to be tested, modified, or extended without altering surrounding pipeline logic.
+    \item \textbf{NFR01: Modularity}: Each pipeline phase must reside in an independent module with defined interfaces, enabling individual components (such as alternative channel models or decoders) to be tested, modified, or extended without altering surrounding pipeline logic.
 
-    \item \textbf{NFR02 --- Deterministic Reproducibility}: All stochastic behavior (degree sampling, neighbor selection, channel erasures) must be governed by pseudorandom number generators seeded by explicit integer values, guaranteeing repeatability across runs.
+    \item \textbf{NFR02: Deterministic Reproducibility}: All stochastic behavior (degree sampling, neighbor selection, channel erasures) must be governed by pseudorandom number generators seeded by explicit integer values, guaranteeing repeatability across runs.
 
-    \item \textbf{NFR03 --- Extensibility}: All system hyperparameters must be unified within a typed configuration structure, simplifying parameter variation without modifying core logic.
+    \item \textbf{NFR03: Extensibility}: All system hyperparameters must be unified within a typed configuration structure, simplifying parameter variation without modifying core logic.
 
-    \item \textbf{NFR04 --- Computational Performance}: Peeling decoding must employ hash-table inverted indexing to achieve $O(1)$ expected time per neighbor lookup. This avoids redundant linear scans, while overall decoding cost depends on the total number of edges visited in the bipartite graph.
+    \item \textbf{NFR04: Computational Performance}: Peeling decoding must employ hash-table inverted indexing to achieve $O(1)$ expected time per neighbor lookup. This avoids redundant linear scans, while overall decoding cost depends on the total number of edges visited in the bipartite graph.
 
-    \item \textbf{NFR05 --- Code Readability}: Source code must adhere to PEP~8 guidelines, utilize static type hints, and include detailed docstrings, fulfilling the educational objective of the project.
+    \item \textbf{NFR05: Code Readability}: Source code must adhere to PEP~8 guidelines, utilize static type hints, and include detailed docstrings, fulfilling the educational objective of the project.
 
-    \item \textbf{NFR06 --- Unit Testability}: Each module must be independently testable via deterministic unit tests verifying foundational primitives (conversions, sampling, screening, and decoding).
+    \item \textbf{NFR06: Unit Testability}: Each module must be independently testable via deterministic unit tests verifying foundational primitives (conversions, sampling, screening, and decoding).
 \end{itemize}
 
 \section{Architectural Decisions}

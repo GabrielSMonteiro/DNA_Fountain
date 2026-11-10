@@ -41,7 +41,7 @@ In parallel, \citeonline{blawat2016} systematically investigated Forward Error C
 
 Both works, however, used fixed-rate coding whose redundancy could not adapt to varying channel conditions.
 
-\subsection{Erlich and Zielinski --- DNA Fountain (2017)}
+\subsection{Erlich and Zielinski: DNA Fountain (2017)}
 
 The influential work of \citeonline{erlich2017}, published in \emph{Science} in 2017, pioneered the application of \emph{fountain codes} to DNA data storage. The DNA Fountain architecture combines a two-tier hierarchical coding structure: an outer rateless Luby Transform (LT) code operating across blocks to reconstruct the file in the presence of full oligonucleotide erasures via the Robust Soliton Distribution (RSD), and an inner Reed--Solomon code (2 parity bytes per oligonucleotide) designed to detect and discard localized substitution and indel errors caused by synthesis and sequencing. The rateless property of the outer code enables generating encoded droplets on demand until the receiver collects a sufficient quantity ($K(1 + \epsilon)$) to reconstruct the original data via the iterative \emph{peeling decoder}.
 
