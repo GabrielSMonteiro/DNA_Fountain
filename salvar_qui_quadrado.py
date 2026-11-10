@@ -71,6 +71,8 @@ def calcular_qui_quadrado():
 
     aceitos_por_grau = [0] * (K + 1)
     rejeitados_por_grau = [0] * (K + 1)
+    f_gc_viol = 0
+    f_homo_viol = 0
 
     for _ in range(N_SAMPLES):
         s = rng.randint(0, 65535)
@@ -84,7 +86,13 @@ def calcular_qui_quadrado():
             dados += bytes([crc8(dados)])
         dna = bytes_para_dna(dados)
 
-        if scr.verificar(dna):
+        gc_fail = not (cfg.gc_min <= scr.calcular_gc(dna) <= cfg.gc_max)
+        homo_fail = scr.maior_homopolimero(dna) > cfg.max_homopolimero
+
+        if gc_fail: f_gc_viol += 1
+        if homo_fail: f_homo_viol += 1
+
+        if not gc_fail and not homo_fail:
             aceitos_por_grau[grau] += 1
         else:
             rejeitados_por_grau[grau] += 1
@@ -181,6 +189,8 @@ def calcular_qui_quadrado():
             "aceitos": n_acc,
             "rejeitados": n_rej,
             "taxa_rejeicao_percentual": round(100.0 * n_rej / N_SAMPLES, 2),
+            "violacoes_gc_percentual": round(100.0 * f_gc_viol / N_SAMPLES, 2),
+            "violacoes_homopolimero_percentual": round(100.0 * f_homo_viol / N_SAMPLES, 2),
             "grau_medio_aceitos": round(grau_medio_acc, 4),
             "grau_medio_rejeitados": round(grau_medio_rej, 4),
             "grau_medio_teorico_drs": round(sol.grau_medio, 4)

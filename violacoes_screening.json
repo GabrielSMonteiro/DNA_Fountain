@@ -1,0 +1,26 @@
+{
+  "amostras": 100000,
+  "seed_rng": 42,
+  "unconstrained_28mers": {
+    "total_rejeitados": 49763,
+    "taxa_rejeicao_percentual": 49.76,
+    "violacoes_gc": 34579,
+    "taxa_gc_percentual": 34.58,
+    "violacoes_homopolimero": 26590,
+    "taxa_homopolimero_percentual": 26.59,
+    "violacoes_conjuntas": 11406,
+    "taxa_conjunta_percentual": 11.41,
+    "analitico_gc_violacao_percentual": 34.49
+  },
+  "framed_droplets": {
+    "total_rejeitados": 42605,
+    "taxa_rejeicao_percentual": 42.6,
+    "violacoes_gc": 24812,
+    "taxa_gc_percentual": 24.81,
+    "violacoes_homopolimero": 26370,
+    "taxa_homopolimero_percentual": 26.37,
+    "violacoes_conjuntas": 8577,
+    "taxa_conjunta_percentual": 8.58
+  },
+  "conclusao_secao_6_2": "O enquadramento com CRC-8 contrai a variância do teor GC ao longo do filamento, reduzindo as violações de GC de 34.6% para 24.8%, enquanto as violações de homopolímeros permanecem estáveis em ~26.4%. A taxa global de descarte cai de 49.8% para 42.60%."
+}

@@ -11,6 +11,8 @@
     "aceitos": 57395,
     "rejeitados": 42605,
     "taxa_rejeicao_percentual": 42.6,
+    "violacoes_gc_percentual": 24.81,
+    "violacoes_homopolimero_percentual": 26.37,
     "grau_medio_aceitos": 4.9346,
     "grau_medio_rejeitados": 4.9242,
     "grau_medio_teorico_drs": 4.9449
