@@ -77,7 +77,7 @@ These theoretical erasure channel models provide reference bounds for evaluating
 \section{Software Tools and Simulators}
 \label{sec:related_simulators}
 
-Although DNA data storage has garnered growing interest within the scientific community, the availability of open, modular, and didactic software tools geared toward academic experimentation remains limited. The primary tools documented in the literature are reviewed below.
+Although DNA data storage has garnered growing interest within the scientific community, the availability of open, modular, and didactic software tools geared toward academic experimentation remains limited. The tools identified in the literature reviewed here are summarized below.
 
 In rateless coding literature, degree distribution optimization for short message regimes was investigated by \citeonline{hyytia2007}. The authors analyzed LT codes for small block counts in telecommunication erasure channels, analytically and heuristically demonstrating that Luby's standard RSD suffers efficiency degradation in finite regimes, and proposed alternative distributions via absorbing Markov chains and recursive combinatorial optimization. That study focused on classical network channels, without addressing biochemical sequence constraints or DNA screening dynamics.
 
@@ -89,14 +89,14 @@ The storage architecture proposed by \citeonline{bornholt2016} included a softwa
 
 \citeonline{antkowiak2020} proposed a low-cost photolithographic synthesis pipeline coupled with dedicated alignment and reconstruction algorithms tailored to their proprietary physical setup.
 
-\citeonline{erlich2017} released the source code of their implementation in a public repository under the GPL-3.0 license. The original codebase was built as a pipeline comprising Python 2 modules and compiled Cython routines for fast execution (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py}, and \texttt{receiver.py}). The tool exposes a command-line interface with parameters such as block size, GC boundaries (default range 45\% to 55\%), failure probability $\delta$, tuning parameter $c$, and oligonucleotide target counts. However, this codebase was designed as a companion artifact to facilitate their large-scale wet-lab experiment (packaging multi-megabyte archives with $K = 67{,}088$ source blocks, 2-byte Reed--Solomon parity per oligo, and 32-bit headers), without the pedagogical objective of detailed decoding instrumentation of ripple dynamics, standard-library execution, or automated batch parametric grid execution with CSV metric logging.
+\citeonline{erlich2017} released the source code of their implementation in a public repository under the GPL-3.0 license. The original codebase was built as a pipeline comprising Python 2 modules and compiled Cython routines for fast execution (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py}, and \texttt{receiver.py}). The tool exposes a command-line interface with parameters such as block size, GC boundaries (default range 45\% to 55\%), failure probability $\delta$, tuning parameter $c$, and oligonucleotide target counts. However, this codebase was designed as a companion artifact to facilitate their large-scale wet-lab experiment (packaging multi-megabyte archives with $K = 67{,}088$ source blocks, 2-byte Reed--Solomon parity per oligo, and 32-bit headers). The original repository focuses on reproducing that large-scale experimental pipeline; it does not provide the specific decoding instrumentation of ripple dynamics, standard-library execution, or automated batch parametric grid execution with CSV metric logging implemented here.
 
 \citeonline{schwarz2021} introduced \textbf{NOREC4DNA}, an open-source Python framework designed for comparative analysis of rateless erasure codes for DNA data storage. NOREC4DNA implements LT, Raptor, and Online codes, supporting ideal and robust soliton distributions as well as programmable adaptive distributions. The framework incorporates biological constraints and noisy channel simulation with substitution and erasure errors. More recently, \citeonline{schwarz2024} advanced numerical optimization of rateless codes for DNA storage, presenting algorithms to tailor degree distributions to specific molecular error profiles and sequence constraints, achieving measurable capacity and reliability gains over generic distributions.
 
 \section{Identified Gap and Positioning of this Work}
 \label{sec:identified_gap}
 
-A review of the state of the art reveals that existing solutions are divided among large-scale wet-lab replication artifacts (such as the original DNA Fountain~\cite{erlich2017}), theoretical analyses of short codes in telecommunication channels~\cite{hyytia2007}, and broad comparative frameworks focused on advanced rateless codes and numerical distribution optimizations~\cite{schwarz2021, schwarz2024}.
+A review of the works surveyed above shows that the reviewed approaches emphasize different goals: large-scale wet-lab replication artifacts (such as the original DNA Fountain~\cite{erlich2017}), theoretical analyses of short codes in telecommunication channels~\cite{hyytia2007}, and broad comparative frameworks focused on advanced rateless codes and numerical distribution optimizations~\cite{schwarz2021, schwarz2024}.
 
 The simulator uses only the Python standard library, records decoding-queue dynamics and XOR operations, and exports results to CSV files for reproducible batch experiments. The proposal is structured upon four pillars:
 
@@ -124,13 +124,13 @@ Table~\ref{tab:comparacao_especificacao} compares the technical specifications o
         \midrule
         Language & Python 2.7 and Cython (C extensions) & Python 3 (requires NumPy, SciPy) & Pure Python 3.12 (standard library only) \\
         License & GPL-3.0 & Open Source (AGPL-3.0) & Open Source (MIT License) \\
-        Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Configurable (none, CRC, or RS) & Complementary CRC-8 validation \\
+        Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Configurable (none, CRC, or RS) & CRC-8 corruption detection (non-correcting) \\
         Outer code (across blocks) & LT Code (RSD) & LT, Raptor, and Online codes & LT Code (RSD) and $GF(2)$ Gaussian validator \\
         Seed header size & 32 bits (4 bytes) in header & Configurable (defaults to 16 bits) & 16 bits (2 bytes) with XOR mask \\
         Target regime ($K$) & Large scale ($K = 67{,}088$) & Broad range (small to large) & Short blocks ($K \in \{16, 32, 64\}$) \\
         GC content range & 45\% to 55\% & Configurable biochemical filter & 40\% to 60\% ($H_{\max} \le 3$) \\
         Payload handling & LFSR scrambler and PCR primers & Scrambler and adaptable mapping & Additive scrambler (XOR mask) and direct mapping \\
-        Core purpose & Real-world wet-lab synthesis pipeline & Comparative benchmarking framework & Analytical and didactic instrumentation \\
+        Core purpose & Software pipeline used in a wet-lab demonstration & Comparative benchmarking framework & Analytical and didactic instrumentation \\
         Collected metrics & File reconstruction success & Throughput, code rate, recovery & XOR operations, ripple queue, runtimes, erasures \\
         \bottomrule
     \end{tabular}%
