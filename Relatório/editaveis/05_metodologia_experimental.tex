@@ -2,12 +2,12 @@
 \chapter{Experimental Methodology}
 \label{chap:experimental_methodology}
 
-This chapter defines the experimental protocol employed to evaluate the simulator. It specifies the execution environment, independent variables systematically swept across the factorial matrix, measured dependent variables, controlled parameters held fixed, the five planned experimental scenarios, statistical procedures including exact confidence intervals and hypothesis tests, and reproducibility measures ensuring full traceability of results.
+This chapter defines the experimental protocol employed to evaluate the simulator. It specifies the execution environment, independent variables swept across the factorial matrix, measured dependent variables, and controlled parameters held fixed. It also describes the five planned experimental scenarios, statistical procedures, and reproducibility measures ensuring full traceability of results.
 
 \section{Experimental Environment and Channel Assumptions}
 \label{sec:experimental_environment}
 
-All experiments were executed on a dedicated host with the following hardware and software configuration:
+All experiments were run on a machine with the following hardware and software configuration:
 
 \begin{itemize}
     \item \textbf{Processor}: AMD Ryzen 5 5600X (6 cores, 12 threads, 3.7 GHz base / 4.6 GHz boost);
@@ -72,7 +72,7 @@ To maintain internal experimental validity, the following parameters remained fi
 
     \item \textbf{Biological Screening}: Active with GC acceptability window $[40\%, 60\%]$ and maximum homopolymer run length $H_{\max} = 3$ consecutive identical bases.
 
-    \item \textbf{Synthetic Payload}: Source blocks generated as pseudorandom byte streams governed by the experiment base seed, ensuring reproducibility without external file dependencies.
+    \item \textbf{Synthetic Payload}: Source blocks generated as pseudorandom byte streams governed by the child seed \texttt{child\_seed\_payload} derived from the experiment master key (see Section~\ref{sec:reproducibility}), ensuring reproducibility without external file dependencies.
 
     \item \textbf{Nucleotide Mapping}: Direct 2-bit-per-base mapping ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), as described in Section~\ref{sec:digital_to_dna_encoding}.
 
@@ -154,7 +154,7 @@ This experiment captures the tradeoff between robustness and overhead: moderate 
 
 \subsection{Experiment 4: Impact of Biological Screening}
 
-The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 100,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring empirical rejection rate ($R_{\text{screen}}$) and comparing sampled degree distributions of accepted and rejected droplets against the theoretical RSD expectation via a direct $\chi^2$ test of homogeneity. In addition, low-entropy stress testing was performed to evaluate the role of the scrambler. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
+The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 100,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring the empirical rejection rate ($R_{\text{screen}}$) computed over the total number of candidate droplets generated to fill the quota of $N_{\text{tx}}$ approved sequences. The sampled degree distributions of accepted and rejected droplets were compared against one another via a $\chi^2$ test of homogeneity, using a two-way contingency table (accepted vs.\ rejected $\times$ degree bins) with degrees of freedom equal to the number of aggregated degree bins minus one. In addition, low-entropy stress testing was performed to evaluate the role of the scrambler. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
 
 \subsection{Experiment 5: Impact of the Erasure Channel}
 
@@ -186,7 +186,7 @@ Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
 \section{Repetitions and Statistical Procedures}
 \label{sec:repetitions_and_statistics}
 
-Each configuration was executed across 1,000 independent repetitions to estimate recovery frequency and sample uncertainty across the LT ensemble, totaling 216,000 full executions.
+Each configuration was executed across 1,000 repetitions to estimate recovery frequency and sample uncertainty across the LT ensemble, totaling 216,000 full executions. Repetitions are independent in the pseudorandom design: each trial uses a distinct starting seed drawn sequentially from a dedicated PRNG stream (\texttt{rng\_seeds}), so that every trial explores a different bipartite graph realization; they are not physically independent measurements.
 
 For continuous metrics (decoding runtime and XOR operation counts), the following statistics are reported:
 \begin{itemize}
@@ -215,7 +215,7 @@ Experimental reproducibility is grounded in five methodological measures:
         \label{eq:master_seed}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a unique integer key, preventing seed collisions across grid configurations. The key initializes a master generator (\texttt{rng\_master}), which derives three isolated PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing an independent starting seed ($s_0 \in [0, 65535]$) per repetition, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility in the declared environment (CPython~3.12.7).
+    This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a deterministic integer key for the evaluated parameter combinations; it does not constitute a formal proof of injectivity across all possible inputs. The key initializes a master generator (\texttt{rng\_master}), which derives three separate PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing a fresh starting seed ($s_0 \in [0, 65535]$) at each repetition in sequence, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility given the same master key and repetition index in the declared environment (CPython~3.12.7).
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
