@@ -7,13 +7,13 @@ This chapter presents the theoretical foundations necessary to understand this w
 \section{DNA Data Storage}
 \label{sec:dna_data_storage}
 
-The deoxyribonucleic acid (DNA) molecule is the biopolymer responsible for storing genetic information in living organisms. Each DNA strand consists of a linear sequence of nucleotides, which are units composed of a phosphate group, a 2-deoxyribose sugar, and a nitrogenous base. The four nitrogenous bases present in DNA are adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
+The deoxyribonucleic acid (DNA) molecule is a biopolymer composed of a linear sequence of nucleotides, each consisting of a phosphate group, a 2-deoxyribose sugar, and one of four nitrogenous bases: adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
 
 From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This property endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
 
-Beyond its high physical density, DNA exhibits high physicochemical stability. When encapsulated under appropriate conditions of low temperature and dehydration (or shielded within synthetic silica microcapsules), genetic material can preserve molecular strands for millennia with viable retrieval. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
+Beyond its high physical density, DNA can exhibit high physicochemical stability under specific preservation conditions. When encapsulated at low temperature and in a dehydrated state (or shielded within synthetic silica microcapsules), molecular strands have been shown to remain retrievable over timescales of millennia~\cite{grass2015}. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
 
-However, DNA data storage also faces technological challenges. The chemical synthesis of oligonucleotides---the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)---remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies continue to lower these costs. Nevertheless, laboratory proofs of concept---widely reported in academic literature---must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
+However, DNA data storage also faces technological challenges. The chemical synthesis of oligonucleotides---the artificial fabrication of short single-stranded DNA sequences (typically 100 to 300 nucleotides in length)---remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies have been reducing per-base sequencing costs~\cite{ceze2019}, although synthesis costs per nucleotide have declined more slowly. Nevertheless, laboratory proofs of concept---widely reported in academic literature---must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
 The complete lifecycle of DNA data storage can be structured into five principal stages: (1)~digital encoding, in which the binary file is converted into nucleotide sequences; (2)~chemical synthesis, in which physical DNA strands are synthesized \emph{in vitro}; (3)~physical storage of the oligonucleotide pool under controlled environmental conditions; (4)~sequencing, in which molecules are read by a sequencing device; and (5)~computational decoding, in which raw sequence reads are processed to reconstruct the original digital file.
 
@@ -44,7 +44,7 @@ Once source blocks are partitioned, each byte is converted into a sequence of fo
 Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
 \begin{enumerate}
     \item \textbf{Unconstrained capacity} ($2.0$ bits/nt): Shannon's theoretical informational upper bound for an ideal memoryless channel with four equiprobable symbols without sequence constraints;
-    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences complying with GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases);
+    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences complying with the specific GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases) adopted by \citeonline{erlich2017};
     \item \textbf{Estimated capacity under the Erlich and Zielinski storage model} ($\approx 1.83$ bits/nt): operational Shannon limit after deducting the required overhead for addressing/indexing unordered sequences in the molecular pool and tolerance to molecular dropout under their model assumptions.
 \end{enumerate}
 The net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
@@ -74,7 +74,7 @@ In this work, the DNA storage channel is modeled in a simplified manner as a \te
 
 \subsection{Biological Acceptability Constraints}
 
-Independently of channel noise, not all arbitrary DNA sequences can be synthesized and sequenced with uniform reliability. Certain sequence properties directly govern biochemical efficiency, and sequences violating these rules must be screened out prior to synthesis. The two primary constraints in DNA Fountain are:
+Independently of channel noise, not all arbitrary DNA sequences can be synthesized and sequenced with uniform reliability. Certain sequence properties directly govern biochemical efficiency, and sequences violating these rules must be screened out prior to synthesis. The two constraints adopted in this study are:
 
 \begin{itemize}
     \item \textbf{GC Content}: The proportion of guanine (G) and cytosine (C) bases relative to total sequence length must lie within an acceptable window, typically between 40\% and 60\%. Sequences with extreme GC content exhibit anomalous melting temperatures ($T_m$), hindering Polymerase Chain Reaction (PCR) amplification and introducing sequencing bias~\cite{erlich2017}. In this work, an operational GC window of 40\% to 60\% was adopted as the prototype configuration, slightly wider than the 45--55\% window utilized in the original wet-lab experiment.
@@ -94,7 +94,7 @@ Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate c
 \textbf{Fountain codes} (or rateless codes), conversely, belong to the class of channel erasure codes without a fixed rate, and should not be confused with source coding (data compression). The encoder operates continuously, generating encoded packets (\textbf{droplets}) on demand until the receiver collects sufficient information to reconstruct the $K$ original source blocks. The primary properties of this approach are:
 
 \begin{itemize}
-    \item The transmitter can generate a potentially inexhaustible stream of encoded droplets from the $K$ original blocks, providing complete flexibility in sequence generation and redundancy budgeting prior to chemical synthesis.
+    \item The transmitter can generate a potentially large stream of encoded droplets from the $K$ original blocks, providing flexibility in setting the digital redundancy budget before chemical synthesis.
     
     \item The decoder can reconstruct the original message with high probability upon gathering a moderate volume of valid droplets, typically $N = K(1 + \epsilon)$, with overhead $\epsilon > 0$. Unlike deterministic MDS codes (such as Reed--Solomon), recovery under the iterative peeling decoder is probabilistic, depending on the random connectivity of the bipartite graph formed by received droplets.
     
@@ -142,7 +142,7 @@ The probability distribution used to sample droplet degrees constitutes the theo
     \end{cases}
 \end{equation}
 
-The Ideal Soliton Distribution was engineered such that, in expectation, exactly one degree-1 droplet becomes available at each decoding step. In finite practice, however, stochastic variance causes the number of available degree-1 droplets to fluctuate, frequently dropping to zero and causing premature decoding stall.
+The Ideal Soliton Distribution was designed so that, in expectation, exactly one degree-1 droplet becomes available at each decoding step. In finite practice, however, stochastic variance causes the number of available degree-1 droplets to fluctuate, frequently dropping to zero and causing premature decoding stall.
 
 To resolve this fragility, Luby introduced the \textbf{Robust Soliton Distribution} (RSD) $\mu(d)$, which adds an auxiliary corrective function $\tau(d)$ to the ideal distribution to provide an expected surplus of low-degree droplets. The function $\tau(d)$ is defined as:
 
@@ -162,7 +162,7 @@ where the scale parameter $R$ and the mode index $m$ are defined by:
     R = c \cdot \ln\!\left(\frac{K}{\delta}\right) \cdot \sqrt{K}, \qquad m = \left\lfloor\frac{K}{R}\right\rfloor
 \end{equation}
 
-In computational practice, particularly in finite regimes with small block counts ($K \le 64$), extreme parameter combinations can violate implicit analytical assumptions of Luby's asymptotic formulation. To preserve operational integrity during software sampling, the simulator explicitly implements a modified operational extension of the RSD for edge cases where the raw mode index satisfies $m_{\text{raw}} = \lfloor K/R \rfloor < 1$:
+In computational practice, particularly in finite regimes with small block counts ($K \le 64$), extreme parameter combinations can violate implicit analytical assumptions of Luby's asymptotic formulation. To preserve operational integrity during software sampling, the simulator explicitly implements a finite-domain variant of the RSD for edge cases where the raw mode index satisfies $m_{\text{raw}} = \lfloor K/R \rfloor < 1$:
 \begin{enumerate}
     \item \textbf{Safeguard for raw mode index $m_{\text{raw}} < 1$}: When $c$ is large for short messages, the computed value of $R$ can approach or exceed the block count $K$, yielding $m_{\text{raw}} = \lfloor K/R \rfloor = 0$. Because sampled droplet degrees must be valid integers in $\{1, \ldots, K\}$, the algorithm enforces an operational floor of $m = 1$, clamping the index via:
     \begin{equation}
@@ -178,7 +178,7 @@ In computational practice, particularly in finite regimes with small block count
         \end{cases}
         \qquad (\text{for } m_{\text{raw}} < 1)
     \end{equation}
-    This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes an operational finite-domain variant adopted by the simulator to maintain numerical consistency, rather than the theoretical asymptotic RSD.
+    This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes a finite-domain implementation variant adopted by the simulator to maintain numerical consistency, rather than a modification of the classical asymptotic RSD.
     
     Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
     
@@ -219,7 +219,7 @@ In the simulator implementation, degree sampling is executed via the Cumulative 
 \section{Peeling Decoder and Ripple Dynamics}
 \label{sec:peeling_decoder_and_ripple}
 
-The \textbf{peeling decoder} is the iterative algorithm employed in LT codes to reconstruct original source blocks from received droplets. It is a belief propagation algorithm over the bipartite graph that operates exclusively through XOR operations on the Galois field $GF(2)$.
+The \textbf{peeling decoder} is the iterative algorithm employed in LT codes to reconstruct original source blocks from received droplets. It is a belief propagation algorithm over the bipartite graph; payload updates use XOR over the Galois field $GF(2)$, while the algorithm also maintains index structures and a processing queue to track residual degrees.
 
 The operational principle of the peeling decoder can be intuitively described as follows: if a received droplet has degree 1—meaning it represents the XOR combination of a single source block—its payload is identically equal to that source block. Once a block's value is uncovered, it can be ``peeled off'' (via XOR) from all other received droplets containing it, decrementing their residual degrees by one. If any of those droplets reach degree 1 after peeling, another source block is revealed, and the process iterates.
 
@@ -294,13 +294,13 @@ To quantitatively evaluate simulator performance across configurations, this wor
     
     where $N_{\text{cand}}$ is the total number of candidate droplets generated until fulfilling the quota of $N_{\text{tx}}$ valid transmitted oligos.
     
-    \item \textbf{Number of XOR Operations}: The cumulative count of XOR operations executed by the decoder during peeling. Each recorded operation corresponds to a bitwise XOR between two full $L$-byte blocks (\texttt{xor\_blocos}), executed exactly once per edge peeled on the bipartite graph during neighbor elimination. This metric provides a platform-agnostic measure of algorithmic decoding work.
+    \item \textbf{Number of XOR Operations}: The cumulative count of block-level XOR operations executed by the decoder during peeling. Each recorded operation corresponds to a bitwise XOR between two full $L$-byte blocks (\texttt{xor\_blocos}), counted once per edge peeled on the bipartite graph during neighbor elimination. This metric provides a platform-agnostic measure of algorithmic decoding work.
     
     \item \textbf{Ripple Size}: Recorded across decoding steps, tracking both peak ($Q_{\max}$) and active minimum ($Q_{\min}$) queue lengths. Ripple trajectory characterizes decoding momentum and reveals stall points.
     
     \item \textbf{Recovered Blocks}: The count of source blocks successfully reconstructed upon decoding termination. In failure cases, this metric indicates how close the decoder was to full recovery.
     
-    \item \textbf{Processing Runtime}: Measured for the iterative decoding stage in milliseconds (the primary computational bottleneck of belief propagation on the bipartite graph), enabling scalability assessment as a function of block count $K$.
+    \item \textbf{Decoding Runtime}: Measured for the iterative decoding stage in milliseconds (the primary computational bottleneck of belief propagation on the bipartite graph), enabling scalability assessment as a function of block count $K$.
 \end{itemize}
 
 These metrics are automatically gathered by the simulator on each trial and consolidated into CSV files for statistical analysis, as detailed in Chapter~\ref{chap:experimental_methodology}.
