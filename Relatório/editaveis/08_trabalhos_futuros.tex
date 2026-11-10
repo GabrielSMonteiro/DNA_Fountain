@@ -2,14 +2,14 @@
 \chapter{Future Work}
 \label{chap:future_work}
 
-Based on the findings and conclusions established in this work, several natural directions emerge for the continuation and expansion of research in Software Engineering and molecular storage systems:
+The following extensions address limitations identified in the present simulator and suggest directions for further research:
 
 \begin{enumerate}
     \item \textbf{Noisy Channel Modeling with Indels and Substitutions}:
-    The current simulator models transmission through an idealized Binary Erasure Channel (BEC), where oligonucleotides arrive intact or are erased completely. In physical DNA storage, chemical synthesis, molecular decay, and sequencing technologies (such as Oxford Nanopore and Pacific Biosciences) introduce nucleotide substitutions and insertions/deletions (indels). Extending the channel model to incorporate indel noise and exploring synchronization mechanisms such as Levenshtein distance alignment or HEDGES codes~\cite{press2020} would allow evaluating pipeline resilience under asynchronous phase shifts.
+    The current simulator models transmission through an idealized Binary Erasure Channel (BEC), where oligonucleotides arrive intact or are erased completely. In physical DNA storage, chemical synthesis, molecular decay, and sequencing technologies (such as Oxford Nanopore and Pacific Biosciences) introduce nucleotide substitutions and insertions/deletions (indels). Extending the channel model to incorporate indel noise and exploring synchronization mechanisms such as Levenshtein distance alignment or HEDGES codes~\cite{press2020} would allow evaluating pipeline resilience when insertions and deletions alter nucleotide alignment and effective sequence length.
 
     \item \textbf{Integration of Concatenated Inner Error-Correcting Codes}:
-    In this work, error handling is confined to packet-level erasures. Physical implementations such as \citeonline{erlich2017} couple an inner byte-level block code to resolve intra-strand substitutions before droplets reach the fountain decoder. Integrating an inner Reed--Solomon code (e.g., 2 parity bytes per oligo) would align the architecture with full wet-lab specifications and protect against misread seed headers.
+    In this work, error handling is confined to packet-level erasures. Physical implementations such as \citeonline{erlich2017} couple an inner byte-level block code to resolve intra-strand substitutions before droplets reach the fountain decoder. Integrating an inner Reed--Solomon code (e.g., 2 parity bytes per oligo) would align the architecture with full wet-lab specifications and enable intra-strand error detection and correction of nucleotide-level substitutions.
 
     \item \textbf{Investigation of Pre-coded and Systematic Distributions}:
     Peeling decoder failures in small block regimes ($K \le 64$) were shown to stem primarily from cyclic stopping sets ($98.7\%$ of failures for $K=16$). Investigating pre-coded fountain families such as Raptor codes and Batched Sparse (BATS) codes, or exploring systematic variants where the first $K$ droplets correspond to uncoded blocks, could mitigate stopping set stagnation and reduce required overhead in finite-length applications.
@@ -18,11 +18,11 @@ Based on the findings and conclusions established in this work, several natural 
     Current experiments focused on finite block counts ($K \le 64$) and short payloads ($L = 4$~bytes) to facilitate exhaustive factorial exploration. Scaling to megabyte- or gigabyte-scale datasets requires increasing both $K$ and $L$, alongside memory-efficient sparse graph representations and parallel decoding implementations utilizing process pools or compiled extensions.
 
     \item \textbf{Dedicated Hardware Acceleration (FPGA)}:
-    While Python runtime measurements showed millisecond-scale execution for small instances, belief propagation in large-scale pipelines is bounded by sequential graph updates in interpreted runtimes. Synthesizing a dedicated peeling decoder core in VHDL or Verilog for low-cost FPGA platforms (such as the Digilent Basys 3 equipped with a Xilinx Artix-7 FPGA) would allow concurrent edge elimination and evaluate hardware throughput in real-time DNA storage controllers.
+    While Python runtime measurements showed millisecond-scale execution for small instances, belief propagation in large-scale pipelines is bounded by sequential graph updates in interpreted runtimes. Synthesizing a dedicated peeling decoder core in VHDL or Verilog for low-cost FPGA platforms (such as the Digilent Basys 3 equipped with a Xilinx Artix-7 FPGA) would allow evaluating parallel implementations of graph updates and measuring hardware decoding throughput.
 
     \item \textbf{Autonomous and Portable PRNG for Hardware Synthesis}:
     Simulator reproducibility currently depends on the Python standard library's pseudorandom generator. Implementing a standalone, bit-exact PRNG---such as a Linear Feedback Shift Register (LFSR) or a PCG32/xoshiro generator---would ensure portable graph reconstruction across heterogeneous platforms and facilitate synthesis in reconfigurable logic.
 
     \item \textbf{Analytical Modeling of Framing-Induced Screening Rejection}:
-    Empirical screening trials revealed that framing structure (seed mask and CRC-8 checksum) shifts rejection rates relative to unconstrained uniform sequences ($42.6\%$ observed vs. $49.8\%$ theoretical benchmark). Developing analytical models based on Markov chain embeddings or generating functions would provide closed-form rejection bounds across arbitrary strand lengths and framing protocols.
+    Empirical screening trials revealed that framing structure (seed mask and CRC-8 checksum) shifts rejection rates relative to unconstrained uniform sequences ($42.6\%$ observed vs. $49.8\%$ theoretical benchmark). Developing analytical models---for example, based on Markov chain embeddings or generating functions---would provide tighter rejection-rate estimates across arbitrary strand lengths and framing protocols.
 \end{enumerate}
