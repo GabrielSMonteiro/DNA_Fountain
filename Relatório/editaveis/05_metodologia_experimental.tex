@@ -2,7 +2,7 @@
 \chapter{Experimental Methodology}
 \label{chap:experimental_methodology}
 
-This chapter defines the experimental protocol used to evaluate the simulator. It details the execution environment, independent and dependent variables, controlled parameters, the five test scenarios, statistical validation methods, and reproducibility measures.
+This chapter defines the experimental protocol used to evaluate the simulator. It details the execution environment, independent and dependent variables, controlled parameters, the five test scenarios, statistical validation methods and reproducibility measures.
 
 \section{Experimental Environment and Channel Assumptions}
 \label{sec:experimental_environment}
@@ -14,7 +14,7 @@ All experiments were run on a machine with the following hardware and software c
     \item \textbf{RAM}: 16 GB DDR4 3200 MHz.
     \item \textbf{Operating System}: Microsoft Windows 11 Home 24H2.
     \item \textbf{Runtime}: Python 3.12.7 (CPython).
-    \item \textbf{Dependencies}: Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, and \texttt{dataclasses}), requiring no external packages for the simulator core.
+    \item \textbf{Dependencies}: Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections} and \texttt{dataclasses}), requiring no external packages for the simulator core.
 \end{itemize}
 
 The core simulator relies on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements\discretionary{-}{-}{-}dev.txt}).
@@ -22,7 +22,7 @@ The core simulator relies on the Python standard library. Running the automated 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
     \item \textbf{Packet erasure channel (BEC abstraction).} A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$.
-    \item \textbf{Integrity of surviving packets.} Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions.
+    \item \textbf{Integrity of surviving packets.} Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions or deletions.
     \item \textbf{Pre-transmission screening rejection with deterministic replacement.} DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
 \end{enumerate}
 
@@ -38,7 +38,7 @@ Independent variables comprise the pipeline parameters systematically varied acr
 
     \item \textbf{RSD parameter $\delta$.} Asymptotic failure probability bound governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels), capturing tight ($1\%$) and moderate ($10\%$) theoretical failure bounds.
 
-    \item \textbf{Relative overhead ($\epsilon$).} Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
+    \item \textbf{Relative overhead ($\epsilon$).} Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$ and $100\%$ additional packets.
 
     \item \textbf{Channel erasure probability ($p_{\text{loss}}$).} Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
 \end{itemize}
@@ -85,7 +85,7 @@ To maintain internal experimental validity, the following parameters remained fi
     \item \textbf{Payload scrambler.} Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A} to break low-entropy patterns.
 \end{itemize}
 
-Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, and controlled variables within the experimental protocol.
+Table~\ref{tab:parametros_experimentais} consolidates independent, dependent and controlled variables within the experimental protocol.
 
 \begin{table}[htbp]
     \centering
@@ -148,7 +148,7 @@ The goal is to map the transition boundary between incomplete recovery and succe
 
 \subsection{Experiment 3: Impact of Parameters $c$ and $\delta$}
 
-The third scenario evaluates how Robust Soliton Distribution parameters govern system performance. For each $(c, \delta)$ pair, decoding success rate, sample mean degree $\bar{d}$, scale parameter $R$, XOR operations count, and ripple dynamics are evaluated.
+The third scenario evaluates how Robust Soliton Distribution parameters govern system performance. For each $(c, \delta)$ pair, decoding success rate, sample mean degree $\bar{d}$, scale parameter $R$, XOR operations count and ripple dynamics are evaluated.
 
 This experiment captures the tradeoff between robustness and overhead: moderate values ($c=0.1$) maintain balanced graph connectivity, whereas elevated $c$ values drive the corrective mode down to low degrees, with outcomes dependent on $K$ and $\delta$. Experimental evaluation determines under which configurations this mass concentration aids or hinders original message recovery.
 
@@ -160,7 +160,7 @@ The fourth scenario isolates the impact of physicochemical screening constraints
 
 The fifth scenario evaluates system resilience across erasure rates, varying $p_{\text{loss}}$ from $0\%$ to $20\%$ in 10\% increments. Across loss rates, the test battery runs under multiple overhead values to quantify performance degradation and compensatory redundancy requirements.
 
-The methodological distinction between scenarios and the experimental grid is explicit: Scenarios 1, 2, 3, and 5 constitute focused sub-analyses drawn directly from the primary 216-combination factorial grid ($3 \times 4 \times 2 \times 3 \times 3$), whose 1,000 repetitions total exactly $216 \times 1{,}000 = 216{,}000$ full simulator executions. Scenario 4, conversely, consists of a dedicated independent sampling trial designed specifically to evaluate physicochemical selectivity and degree distributions over an isolated cohort of 100,000 candidate oligonucleotides, separate from the 216,000 grid runs.
+The methodological distinction between scenarios and the experimental grid is explicit: Scenarios 1, 2, 3 and 5 constitute focused sub-analyses drawn directly from the primary 216-combination factorial grid ($3 \times 4 \times 2 \times 3 \times 3$), whose 1,000 repetitions total exactly $216 \times 1{,}000 = 216{,}000$ full simulator executions. Scenario 4, conversely, consists of a dedicated independent sampling trial designed specifically to evaluate physicochemical selectivity and degree distributions over an isolated cohort of 100,000 candidate oligonucleotides, separate from the 216,000 grid runs.
 
 Table~\ref{tab:cenarios_experimentais} summarizes the five evaluated scenarios.
 
@@ -215,11 +215,11 @@ Experimental reproducibility is grounded in five methodological measures:
         \label{eq:master_seed}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a deterministic integer key for the evaluated parameter combinations; it does not constitute a formal proof of injectivity across all possible inputs. The key initializes a master generator (\texttt{rng\_master}), which derives three separate PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing a fresh starting seed ($s_0 \in [0, 65535]$) at each repetition in sequence, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility given the same master key and repetition index in the declared environment (CPython~3.12.7).
+    This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a deterministic integer key for the evaluated parameter combinations; it does not constitute a formal proof of injectivity across all possible inputs. The key initializes a master generator (\texttt{rng\_master}), which derives three separate PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing a fresh starting seed ($s_0 \in [0, 65535]$) at each repetition in sequence and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility given the same master key and repetition index in the declared environment (CPython~3.12.7).
 
     \item \textbf{Separation of aggregated data and individual audit logs.} The repository provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
-        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in the data file \texttt{resultados\_1000.csv} (and companion \texttt{resultados\_100.csv}), containing 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point.
+        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in the data file \texttt{resultados\_1000.csv} (and companion \texttt{resultados\_100.csv}), containing 216 rows summarizing means, standard deviations and rates across 1,000 independent repetitions per point.
         \item \emph{Individual Runtime and Cost Logs}: Measurements in \texttt{tempos\_brutos\_decodificacao.json} record the 1,000 timing and XOR values for each block count $K \in \{16, 32, 64\}$ in performance validation.
         \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs all 153 failure repetitions observed in the $K=16$ baseline scenario, cross-validated against $GF(2)$ Gaussian elimination.
         \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed bin counts across the 18 classes of the direct $\chi^2$ homogeneity test for the 100,000 evaluated candidate oligos, along with scrambler stress tests.
@@ -237,5 +237,5 @@ Experimental reproducibility is grounded in five methodological measures:
 
     \item \textbf{Simulator core library independence.} The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Version-controlled release.} All simulator modules, experiment scripts, and dataset matrices are versioned and accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
+    \item \textbf{Version-controlled release.} All simulator modules, experiment scripts and dataset matrices are versioned and accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
 \end{enumerate}

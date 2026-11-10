@@ -2,14 +2,14 @@
 \chapter{Related Work}
 \label{chap:related_work}
 
-Digital DNA storage has progressed through several coding architectures since the first large-scale demonstrations in 2012. This chapter traces that evolution, reviews the theoretical capacity bounds that frame the field, surveys the existing software tools, and positions the simulator developed here relative to prior work.
+Digital DNA storage has progressed through several coding architectures since the first large-scale demonstrations in 2012. This chapter traces that evolution, reviews the theoretical capacity bounds that frame the field, surveys the existing software tools and positions the simulator developed here relative to prior work.
 
 \section{Coding Schemes for DNA Data Storage}
 \label{sec:related_dna_encoding}
 
-This section reviews the primary coding schemes in chronological order, highlighting key design choices, practical constraints, and reported storage densities.
+This section reviews the primary coding schemes in chronological order, highlighting key design choices, practical constraints and reported storage densities.
 
-\subsection{Church, Gao, and Kosuri (2012)}
+\subsection{Church, Gao and Kosuri (2012)}
 
 The work by \citeonline{church2012} is considered one of the initial milestones in scaled digital DNA storage. The authors encoded an entire 53,426-word book, including images and JavaScript code, into synthetic oligonucleotides. The encoding scheme employed was straightforward: each bit of the original file was directly mapped to a nitrogenous base (0 $\rightarrow$ A or C, 1 $\rightarrow$ G or T), alternating assignments to avoid long homopolymers.
 
@@ -19,7 +19,7 @@ From a fault-tolerance perspective, the scheme exhibited significant fragility, 
 
 \subsection{Goldman et al. (2013)}
 
-The following year, \citeonline{goldman2013} proposed a more sophisticated encoding scheme published in \emph{Nature}. The authors utilized a base-3 (trit) mapping with alphabet rotation, where each trit was mapped to one of three bases distinct from the preceding base, thereby preventing consecutive base repetitions by construction. The rotation scheme reduced the occurrence of homopolymers by construction, preventing runs of length greater than 1.
+The following year, \citeonline{goldman2013} proposed a more sophisticated encoding scheme published in \emph{Nature}. The authors utilized a base-3 (trit) mapping with alphabet rotation, where each trit was mapped to one of three bases distinct from the preceding base, preventing consecutive base repetitions by construction. The rotation scheme reduced the occurrence of homopolymers by construction, preventing runs of length greater than 1.
 
 \citeonline{goldman2013} also introduced redundancy through overlapping segments: each region of the file was covered by four partially overlapping oligonucleotides, enabling data recovery even in the presence of individual segment loss. Although the theoretical encoding potential of the rotating scheme was 1.58 bits per nucleotide (disregarding redundancy), the effective net density resulting from four-fold overlapping and indexing overhead in that experimental configuration was approximately $0.33$ bits per nucleotide, which does not constitute an invariant upper bound for all overlap-based schemes. The four-fold overlap improved tolerance to segment losses, although the resulting net density in that trial remained well below channel capacity.
 
@@ -55,7 +55,7 @@ DNA Fountain introduced three key advantages over earlier schemes:
     \item \textbf{Integrated biological screening.} The process of discarding and re-drawing candidate oligonucleotides that violate biochemical synthesis constraints (such as GC bias or long homopolymers) is naturally absorbed by the rateless nature of fountain codes, without structural penalties to the coding scheme.
 \end{itemize}
 
-The authors experimentally validated error-free encoding and decoding of a 2.14-megabyte file (including a full operating system, a computer virus, and a \$50 Amazon gift card) partitioned into $K = 67{,}088$ source segments, packaged into 72,000 oligonucleotides of 200 nucleotides each ($\approx 7.3\%$ overhead).
+The authors experimentally validated error-free encoding and decoding of a 2.14-megabyte file (including a full operating system, a computer virus and a \$50 Amazon gift card) partitioned into $K = 67{,}088$ source segments, packaged into 72,000 oligonucleotides of 200 nucleotides each ($\approx 7.3\%$ overhead).
 
 \subsection{Organick et al. (2018)}
 
@@ -66,7 +66,7 @@ Regarding coding strategy, \citeonline{organick2018} employed a hierarchical app
 \section{Theoretical Foundations and Capacity Bounds}
 \label{sec:related_theoretical}
 
-In parallel with experimental breakthroughs, theoretical studies formalized fundamental limits for DNA data storage, establishing tradeoffs among capacity, redundancy, and reliability.
+In parallel with experimental breakthroughs, theoretical studies formalized fundamental limits for DNA data storage, establishing tradeoffs among capacity, redundancy and reliability.
 
 \citeonline{heckel2017} derived fundamental capacity limits for the DNA storage channel under a model where sequences are stored unordered in a molecular pool and subjected to random sampling and mutation errors. The authors proved that, for capacity to remain positive, oligonucleotide length must scale at least logarithmically with the number of stored molecules, mathematically formalizing the penalty imposed by unordered pooling. This result provides motivating theoretical context for unordered molecular channels, rather than physical validation of the simplified memoryless Binary Erasure Channel (BEC) adopted in this work's simulations.
 
@@ -89,9 +89,9 @@ The storage architecture proposed by \citeonline{bornholt2016} included a softwa
 
 \citeonline{antkowiak2020} proposed a low-cost photolithographic synthesis pipeline coupled with dedicated alignment and reconstruction algorithms tailored to their proprietary physical setup.
 
-\citeonline{erlich2017} released the source code of their implementation in a public repository under the GPL-3.0 license. The original codebase was built as a pipeline comprising Python 2 modules and compiled Cython routines for fast execution (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py}, and \texttt{receiver.py}). The tool exposes a command-line interface with parameters such as block size, GC boundaries (default range 45\% to 55\%), failure probability $\delta$, tuning parameter $c$, and oligonucleotide target counts. However, this codebase was designed as a companion artifact to facilitate their large-scale wet-lab experiment (packaging multi-megabyte archives with $K = 67{,}088$ source blocks, 2-byte Reed--Solomon parity per oligo, and 32-bit headers). The original repository focuses on reproducing that large-scale experimental pipeline; it does not provide the specific decoding instrumentation of ripple dynamics, standard-library execution, or automated batch parametric grid execution with CSV metric logging implemented here.
+\citeonline{erlich2017} released the source code of their implementation in a public repository under the GPL-3.0 license. The original codebase was built as a pipeline comprising Python 2 modules and compiled Cython routines for fast execution (\texttt{fountain.pyx}, \texttt{glass.pyx}, \texttt{robust\_solition.pyx}, \texttt{lfsr.py}, \texttt{encode.py} and \texttt{receiver.py}). The tool exposes a command-line interface with parameters such as block size, GC boundaries (default range 45\% to 55\%), failure probability $\delta$, tuning parameter $c$ and oligonucleotide target counts. However, this codebase was designed as a companion artifact to facilitate their large-scale wet-lab experiment (packaging multi-megabyte archives with $K = 67{,}088$ source blocks, 2-byte Reed--Solomon parity per oligo, and 32-bit headers). The original repository focuses on reproducing that large-scale experimental pipeline; it does not provide the specific decoding instrumentation of ripple dynamics, standard-library execution, or automated batch parametric grid execution with CSV metric logging implemented here.
 
-\citeonline{schwarz2021} introduced \textbf{NOREC4DNA}, an open-source Python framework designed for comparative analysis of rateless erasure codes for DNA data storage. NOREC4DNA implements LT, Raptor, and Online codes, supporting ideal and robust soliton distributions as well as programmable adaptive distributions. The framework incorporates biological constraints and noisy channel simulation with substitution and erasure errors. More recently, \citeonline{schwarz2024} advanced numerical optimization of rateless codes for DNA storage, presenting algorithms to tailor degree distributions to specific molecular error profiles and sequence constraints, achieving measurable capacity and reliability gains over generic distributions.
+\citeonline{schwarz2021} introduced \textbf{NOREC4DNA}, an open-source Python framework designed for comparative analysis of rateless erasure codes for DNA data storage. NOREC4DNA implements LT, Raptor and Online codes, supporting ideal and robust soliton distributions as well as programmable adaptive distributions. The framework incorporates biological constraints and noisy channel simulation with substitution and erasure errors. More recently, \citeonline{schwarz2024} advanced numerical optimization of rateless codes for DNA storage, presenting algorithms to tailor degree distributions to specific molecular error profiles and sequence constraints, achieving measurable capacity and reliability gains over generic distributions.
 
 \section{Identified Gap and Positioning of this Work}
 \label{sec:identified_gap}
@@ -103,7 +103,7 @@ To address these limitations, the simulator developed in this work focuses on fo
 \begin{enumerate}
     \item \textbf{Modular and self-contained implementation.} An object-oriented Python~3 implementation relying exclusively on the standard library, eliminating compiled C or Cython dependencies, and facilitating straightforward replication in educational and research environments.
     
-    \item \textbf{Analytical peeling instrumentation.} Direct exposure of the internal mechanics of the peeling decoder, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph.
+    \item \textbf{Analytical peeling instrumentation.} Direct exposure of the internal mechanics of the peeling decoder, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block and droplet degree transitions on the bipartite graph.
     
     \item \textbf{Experimental evaluation in short-block regimes ($K \le 64$).} Empirical characterization of the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions.
     
@@ -115,7 +115,7 @@ Table~\ref{tab:comparacao_especificacao} compares the technical specifications o
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Technical comparison among the original DNA Fountain, NOREC4DNA, and the simulator developed in this work.}
+    \caption{Technical comparison among the original DNA Fountain, NOREC4DNA and the simulator developed in this work.}
     \label{tab:comparacao_especificacao}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{lp{4.0cm}p{4.5cm}p{4.2cm}}
@@ -125,7 +125,7 @@ Table~\ref{tab:comparacao_especificacao} compares the technical specifications o
         Language & Python 2.7 and Cython (C extensions) & Python 3 (requires NumPy, SciPy) & Pure Python 3.12 (standard library only) \\
         License & GPL-3.0 & Open Source (AGPL-3.0) & Open Source (MIT License) \\
         Inner code (per oligo) & Reed--Solomon (2 bytes/oligo) & Configurable (none, CRC, or RS) & CRC-8 corruption detection (non-correcting) \\
-        Outer code (across blocks) & LT Code (RSD) & LT, Raptor, and Online codes & LT Code (RSD) and $GF(2)$ Gaussian validator \\
+        Outer code (across blocks) & LT Code (RSD) & LT, Raptor and Online codes & LT Code (RSD) and $GF(2)$ Gaussian validator \\
         Seed header size & 32 bits (4 bytes) in header & Configurable (defaults to 16 bits) & 16 bits (2 bytes) with XOR mask \\
         Target regime ($K$) & Large scale ($K = 67{,}088$) & Broad range (small to large) & Short blocks ($K \in \{16, 32, 64\}$) \\
         GC content range & 45\% to 55\% & Configurable biochemical filter & 40\% to 60\% ($H_{\max} \le 3$) \\

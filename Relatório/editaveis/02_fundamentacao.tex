@@ -2,12 +2,12 @@
 \chapter{Theoretical Foundation}
 \label{chap:theoretical_foundation}
 
-Understanding the simulator developed in this work requires background in several areas, including DNA as a digital storage medium, how binary data maps to nucleotide sequences, the errors and biological constraints that arise in this channel, rateless fountain codes and the Robust Soliton Distribution, the peeling decoder, and the DNA Fountain architecture. This chapter covers each topic in turn and closes with the evaluation metrics used across the experiments.
+Understanding the simulator developed in this work requires background in several areas, including DNA as a digital storage medium, how binary data maps to nucleotide sequences, the errors and biological constraints that arise in this channel, rateless fountain codes and the Robust Soliton Distribution, the peeling decoder and the DNA Fountain architecture. This chapter covers each topic in turn and closes with the evaluation metrics used across the experiments.
 
 \section{DNA Data Storage}
 \label{sec:dna_data_storage}
 
-The deoxyribonucleic acid (DNA) molecule is a biopolymer composed of a linear sequence of nucleotides, each consisting of a phosphate group, a 2-deoxyribose sugar, and one of four nitrogenous bases: adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
+The deoxyribonucleic acid (DNA) molecule is a biopolymer composed of a linear sequence of nucleotides, each consisting of a phosphate group, a 2-deoxyribose sugar and one of four nitrogenous bases: adenine (A), cytosine (C), guanine (G) and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
 
 From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This gives DNA a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
 
@@ -15,7 +15,7 @@ Beyond its high physical density, DNA can exhibit high physicochemical stability
 
 However, DNA data storage also faces technological challenges. The chemical synthesis of oligonucleotides (the artificial fabrication of short single-stranded DNA sequences, typically 100 to 300 nucleotides in length) remains costly and error-prone. Similarly, high-throughput sequencing, which reads nucleotide sequences from a molecular pool, introduces noise and stochastic dropouts into data reconstruction. Modern Next-Generation Sequencing (NGS) and nanopore sequencing technologies have been reducing per-base sequencing costs~\cite{ceze2019}, although synthesis costs per nucleotide have declined more slowly. Nevertheless, laboratory proofs of concept, though widely reported in academic literature, must be distinguished from large-scale economic and operational feasibility, which still hinges on overcoming high synthesis costs per gigabyte and significant read/write latencies~\cite{ceze2019}.
 
-The complete DNA data storage lifecycle spans five main stages: digital encoding from binary files to nucleotide sequences, chemical synthesis of physical DNA strands \emph{in vitro}, storage of the oligonucleotide pool under controlled environmental conditions, sequencing to read the molecular strands, and computational decoding to reconstruct the original digital file.
+The complete DNA data storage lifecycle spans five main stages: digital encoding from binary files to nucleotide sequences, chemical synthesis of physical DNA strands \emph{in vitro}, storage of the oligonucleotide pool under controlled environmental conditions, sequencing to read the molecular strands and computational decoding to reconstruct the original digital file.
 
 \section{Digital-to-DNA Encoding}
 \label{sec:digital_to_dna_encoding}
@@ -47,14 +47,14 @@ Under this mapping, each byte (8 bits) is represented by exactly four nucleotide
     \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt), representing the theoretical combinatorial capacity of sequences satisfying specific GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases) adopted by \citeonline{erlich2017}.
     \item \textbf{Estimated capacity under the Erlich and Zielinski storage model} ($\approx 1.83$ bits/nt), which corresponds to the operational Shannon limit after deducting the required overhead for addressing/indexing unordered sequences in the molecular pool and tolerance to molecular dropout under their model assumptions.
 \end{enumerate}
-The net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
+The net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt) and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
 
 The simplicity of this direct mapping scheme represents a deliberate architectural choice in DNA Fountain. As discussed in subsequent sections, robustness against errors and physical losses is not delegated to the base-mapping layer itself, but rather to the rateless fountain coding layer, which operates over blocks prior to nucleotide conversion.
 
 \section{Errors and Biological Constraints}
 \label{sec:errors_and_biological_constraints}
 
-Throughout the lifecycle of DNA data storage, two distinct classes of phenomena affect data integrity. The first class consists of physical channel errors introduced during chemical synthesis and sequencing, and the second encompasses biological acceptability constraints that dictate whether an oligonucleotide can be stably synthesized and amplified.
+Throughout the lifecycle of DNA data storage, two distinct classes of phenomena affect data integrity. The first class consists of physical channel errors introduced during chemical synthesis and sequencing and the second encompasses biological acceptability constraints that dictate whether an oligonucleotide can be stably synthesized and amplified.
 
 \subsection{Channel Errors}
 
@@ -67,10 +67,10 @@ Channel errors arise during physical synthesis and sequencing operations and can
     
     \item \textbf{Deletions.} A base is omitted during synthesis or reading, causing a frameshift in the direction opposite to insertions.
     
-    \item \textbf{Erasures.} An entire oligonucleotide is lost during the process, whether from physical decay, molecular dropout, synthesis failure, or insufficient sequencing coverage. In this case, the sequence simply fails to reach the receiver, resulting in an unreceived packet.
+    \item \textbf{Erasures.} An entire oligonucleotide is lost during the process, whether from physical decay, molecular dropout, synthesis failure or insufficient sequencing coverage. In this case, the sequence simply fails to reach the receiver, resulting in an unreceived packet.
 \end{itemize}
 
-In this work, the DNA storage channel is modeled in a simplified manner as a \textbf{packet erasure channel}, where complete oligonucleotides are lost with an independent erasure probability $p_{\text{loss}}$, while received sequences are treated as error-free. This model is consistent with the scope declared in Chapter~\ref{chap:introduction} and isolates the pure effect of packet losses on rateless decoding without the confounding complexity of insertions, deletions, and substitutions.
+In this work, the DNA storage channel is modeled in a simplified manner as a \textbf{packet erasure channel}, where complete oligonucleotides are lost with an independent erasure probability $p_{\text{loss}}$, while received sequences are treated as error-free. This model is consistent with the scope declared in Chapter~\ref{chap:introduction} and isolates the pure effect of packet losses on rateless decoding without the confounding complexity of insertions, deletions and substitutions.
 
 \subsection{Biological Acceptability Constraints}
 
@@ -101,7 +101,7 @@ Traditional erasure codes, such as Reed--Solomon codes, are \textbf{fixed-rate c
     \item No real-time feedback channel is required between receiver and transmitter during transmission.
 \end{itemize}
 
-Fountain codes are particularly suitable for DNA data storage because the number of oligonucleotides that survive synthesis, storage, and sequencing cannot be determined precisely before encoding. This rateless flexibility operates during digital \emph{in silico} generation before synthesis; once a fixed physical oligonucleotide library is produced \emph{in vitro}, no new molecules are autonomously generated during readout, and recovery remains conditioned upon the stored physical library, sequencing sampling depth, and cumulative molecular losses.
+Fountain codes are particularly suitable for DNA data storage because the number of oligonucleotides that survive synthesis, storage and sequencing cannot be determined precisely before encoding. This rateless flexibility operates during digital \emph{in silico} generation before synthesis; once a fixed physical oligonucleotide library is produced \emph{in vitro}, no new molecules are autonomously generated during readout, and recovery remains conditioned upon the stored physical library, sequencing sampling depth and cumulative molecular losses.
 
 \section{LT Codes}
 \label{sec:lt_codes}
@@ -180,14 +180,14 @@ In computational practice, particularly in finite regimes with small block count
     \end{equation}
     This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes a finite-domain implementation variant adopted by the simulator to maintain numerical consistency, rather than a modification of the classical asymptotic RSD.
     
-    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$.
+    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$ and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$.
     
     \item \textbf{Safeguard for $R < \delta$ ($\tau(m) < 0$).} In the hypothetical scenario where $R < \delta$, the quotient $R/\delta < 1$, yielding $\ln(R/\delta) < 0$. If unhandled, this would produce a negative probability mass in $\tau(m)$, which is why the implementation adopts a defensive numerical safeguard:
     \begin{equation}
         \label{eq:tau_adaptado}
         \tau(m) = \max\left(0.0, \frac{R}{K} \cdot \ln\!\left(\frac{R}{\delta}\right)\right)
     \end{equation}
-    Across the primary factorial grid of 216 combinations ($K \ge 16$, $\delta \le 0.10$, and $c \ge 0.1$), $R \ge 2.03 \gg \delta$ always holds, making this safeguard a preventive structural guard.
+    Across the primary factorial grid of 216 combinations ($K \ge 16$, $\delta \le 0.10$ and $c \ge 0.1$), $R \ge 2.03 \gg \delta$ always holds, making this safeguard a preventive structural guard.
 \end{enumerate}
 
 Thus, the experimental grid evaluates the classical RSD across theoretically valid configurations and the operational modified extension in boundary cases where $m_{\text{raw}} < 1$.
@@ -279,7 +279,7 @@ To quantitatively evaluate simulator performance across configurations, this wor
         P_{\text{succ}} = \frac{\text{number of complete decodings}}{\text{total number of runs}}
     \end{equation}
     
-    \item \textbf{Nominal and effective overhead} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$) express the droplet redundancy relative to the theoretical minimum $K$, and are distinguished as follows:
+    \item \textbf{Nominal and effective overhead} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$) express the droplet redundancy relative to the theoretical minimum $K$ and are distinguished as follows:
     \begin{enumerate}
         \item \textbf{Nominal transmission overhead}, $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, where $N_{\text{tx}}$ is the number of encoded oligonucleotides transmitted (passing biological screening).
         \item \textbf{Effective received overhead}, $\epsilon_{\text{rx}} = (N_{\text{rx}} - K) / K$, where $N_{\text{rx}}$ is the total number of oligonucleotides reaching the decoder after stochastic channel erasures. Over ideal channels ($p_{\text{loss}} = 0.0$), $N_{\text{rx}} = N_{\text{tx}}$ and $\epsilon_{\text{rx}} = \epsilon_{\text{tx}}$.

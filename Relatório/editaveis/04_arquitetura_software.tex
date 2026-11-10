@@ -94,15 +94,15 @@ The non-functional requirements define software quality and architectural constr
 
     \item \textbf{NFR04 (Computational Performance).} Peeling decoding must employ hash-table inverted indexing to achieve $O(1)$ expected time per neighbor lookup. This avoids redundant linear scans, while overall decoding cost depends on the total number of edges visited in the bipartite graph.
 
-    \item \textbf{NFR05 (Code Readability).} Source code must adhere to PEP~8 guidelines, utilize static type hints, and include detailed docstrings, fulfilling the educational objective of the project.
+    \item \textbf{NFR05 (Code Readability).} Source code must adhere to PEP~8 guidelines, utilize static type hints and include detailed docstrings, fulfilling the educational objective of the project.
 
-    \item \textbf{NFR06 (Unit Testability).} Each module must be independently testable via deterministic unit tests verifying foundational primitives (conversions, sampling, screening, and decoding).
+    \item \textbf{NFR06 (Unit Testability).} Each module must be independently testable via deterministic unit tests verifying foundational primitives (conversions, sampling, screening and decoding).
 \end{itemize}
 
 \section{Architectural Decisions}
 \label{sec:architectural_decisions}
 
-The simulator separates distribution sampling, encoding, screening, channel simulation, decoding, and metric collection into independent modules. This organization facilitates component-level testing and allows experimental parameters to be changed without modifying the decoding logic. Whereas research codebases designed for large-scale wet-lab experiments (such as the repository by \citeonline{erlich2017}) utilize Cython extensions and specialized C routines to handle multi-megabyte archives, this project provides an object-oriented architecture in pure Python 3, guided by two primary design principles:
+The simulator separates distribution sampling, encoding, screening, channel simulation, decoding and metric collection into independent modules. This organization facilitates component-level testing and allows experimental parameters to be changed without modifying the decoding logic. Whereas research codebases designed for large-scale wet-lab experiments (such as the repository by \citeonline{erlich2017}) utilize Cython extensions and specialized C routines to handle multi-megabyte archives, this project provides an object-oriented architecture in pure Python 3, guided by two primary design principles:
 
 \begin{enumerate}
     \item \textbf{Functional decomposition.} Each logical phase of the pipeline is implemented in a dedicated module. The encoder (\texttt{DNAFountainEncoder}) operates independently from the decoder's reconstruction algorithm (\texttt{DNAFountainDecoder}), and the channel (\texttt{ErasureChannel}) processes packet arrivals without altering droplet connectivity or payload content.
@@ -126,8 +126,8 @@ The simulator source code is structured within the \texttt{dna\_fountain} packag
 
     \item \textbf{\texttt{lt\_codec.py}}, containing two core classes:
     \begin{itemize}
-        \item \texttt{DNAFountainEncoder}, which orchestrates preprocessing, synthesizes droplets via XOR, formats headers with XOR-masked seeds, applies optional scrambling and CRC-8, converts bytes to DNA, and applies biological screening.
-        \item \texttt{DNAFountainDecoder}, which implements the peeling decoder, extracting seeds, verifying CRC checksums, regenerating neighbor indices, constructing inverted adjacency tables (\texttt{por\_bloco}), and executing iterative decoding with ripple logging.
+        \item \texttt{DNAFountainEncoder}, which orchestrates preprocessing, synthesizes droplets via XOR, formats headers with XOR-masked seeds, applies optional scrambling and CRC-8, converts bytes to DNA and applies biological screening.
+        \item \texttt{DNAFountainDecoder}, which implements the peeling decoder, extracting seeds, verifying CRC checksums, regenerating neighbor indices, constructing inverted adjacency tables (\texttt{por\_bloco}) and executing iterative decoding with ripple logging.
     \end{itemize}
 
     \item \textbf{\texttt{screening.py}}: Implements \texttt{BiologicalScreening} with configurable validators for GC content (\texttt{calcular\_gc}) and homopolymer runs (\texttt{maior\_homopolimero}), returning boolean acceptance decisions.
@@ -153,13 +153,13 @@ Table~\ref{tab:modulos_sistema} summarizes the modular organization of the simul
         \textbf{Module} & \textbf{Core Responsibility} \\
         \midrule
         \texttt{config.py} & Global hyperparameters and simulation configuration. \\
-        \texttt{preprocessing.py} & Message preprocessing, segmentation, and zero-padding. \\
-        \texttt{soliton.py} & Formulas for $\rho$, $\tau$, $\mu$, CDF table, and degree sampling. \\
+        \texttt{preprocessing.py} & Message preprocessing, segmentation and zero-padding. \\
+        \texttt{soliton.py} & Formulas for $\rho$, $\tau$, $\mu$, CDF table and degree sampling. \\
         \texttt{lt\_codec.py} & XOR droplet synthesis and iterative peeling decoder engine. \\
         \texttt{screening.py} & Biochemical validators (GC\% window and homopolymer limits). \\
         \texttt{channel.py} & Packet erasure channel simulation with stochastic loss. \\
         \texttt{dna\_conversion.py} & Deterministic mapping: binary $\leftrightarrow$ DNA. \\
-        \texttt{utils.py} & Bitwise XOR blocks, CRC-8 checksum, and additive scrambling. \\
+        \texttt{utils.py} & Bitwise XOR blocks, CRC-8 checksum and additive scrambling. \\
         \texttt{experiments.py} & Batch experimental suite orchestration and CSV metric export. \\
         \texttt{run\_experiments.py} & CLI entry point for batch parameter grid sweeps. \\
         \texttt{main.py} & Interactive single-run demonstration with terminal logging. \\
@@ -185,9 +185,9 @@ The following terms define conceptual entities within the pipeline, with their c
         \item \texttt{dna}: nucleotide string over $\{A, C, G, T\}$ representing header + payload + CRC.
     \end{itemize}
 
-    \item \textbf{DNAFountainConfig}: The dataclass defined in \texttt{config.py} centralizes 14 parameters across six categories: preprocessing ($L$, padding), soliton distribution ($c$, $\delta$), LT encoding ($N$, seed bit width, XOR mask), payload processing (scrambling, CRC), biological screening (GC boundaries, max homopolymer), and simulation ($p_{\text{loss}}$, experiment seed).
+    \item \textbf{DNAFountainConfig}: The dataclass defined in \texttt{config.py} centralizes 14 parameters across six categories: preprocessing ($L$, padding), soliton distribution ($c$, $\delta$), LT encoding ($N$, seed bit width, XOR mask), payload processing (scrambling, CRC), biological screening (GC boundaries, max homopolymer) and simulation ($p_{\text{loss}}$, experiment seed).
 
-    \item \textbf{ExperimentResult}: The \texttt{experimento()} routine returns an aggregated dictionary over $n$ trials: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, sent overhead, $R$, mean degree, success rate, average XOR count, average peak/minimum ripple, and decoding runtime in milliseconds.
+    \item \textbf{ExperimentResult}: The \texttt{experimento()} routine returns an aggregated dictionary over $n$ trials: $K$, $c$, $\delta$, $N$, $p_{\text{loss}}$, sent overhead, $R$, mean degree, success rate, average XOR count, average peak/minimum ripple and decoding runtime in milliseconds.
 \end{itemize}
 
 \section{Pipeline Flow}
@@ -210,7 +210,7 @@ The simulator operates across ten sequential stages, described below:
 
     \item \textbf{Block Segmentation}: The byte stream is partitioned into $K$ blocks of length $L$. The final block receives null-byte zero-padding (\texttt{0x00}) up to $L$ bytes.
 
-    \item \textbf{Robust Soliton Calculation}: Using $K$, $c$, and $\delta$, \texttt{soliton.py} computes $R$, $m$, distributions $\rho(d)$, $\tau(d)$, $\mu(d)$, and builds the sampling CDF.
+    \item \textbf{Robust Soliton Calculation}: Using $K$, $c$ and $\delta$, \texttt{soliton.py} computes $R$, $m$, distributions $\rho(d)$, $\tau(d)$, $\mu(d)$ and builds the sampling CDF.
 
     \item \textbf{Droplet Generation}: For each droplet, an integer seed initializes a PRNG instance (\texttt{random.Random(seed)}), drawing degree $d$ from $\mu$ and selecting $d$ distinct block indices. Blocks are combined via XOR, and the payload optionally undergoes scrambling.
 
@@ -224,7 +224,7 @@ The simulator operates across ten sequential stages, described below:
 
     \item \textbf{Peeling Decoding}: The receiver parses seeds from arriving headers, regenerates neighbor indices via PRNG, constructs inverted index \texttt{por\_bloco}, and executes iterative peeling decoding: degree-1 droplets resolve source blocks, which are peeled from remaining droplets via XOR, maintaining the ripple queue.
 
-    \item \textbf{Metric Consolidation}: The simulator records recovered block count, ripple trajectory, XOR operations, CRC verification errors, decoding runtime, and outcome status. In batch mode, metrics are aggregated and exported to CSV.
+    \item \textbf{Metric Consolidation}: The simulator records recovered block count, ripple trajectory, XOR operations, CRC verification errors, decoding runtime and outcome status. In batch mode, metrics are aggregated and exported to CSV.
 \end{enumerate}
 
 \section{Implementation Decisions}
@@ -271,7 +271,7 @@ The decoder performs the inverse operations:
     \item Regenerate degree $d$ and neighbor indices deterministically from the recovered seed.
 \end{enumerate}
 
-However, CRC-8 does not serve as a packet recovery mechanism for the pure erasure channel modeled in this work, since packet dropouts are resolved by the outer LT code. Rather, it serves as complementary integrity validation, useful in two scenarios:
+However, CRC-8 is not a packet recovery mechanism for the pure erasure channel modeled in this work, since packet dropouts are resolved by the outer LT code. Rather, it serves as complementary integrity validation, useful in two scenarios:
 \begin{itemize}
     \item Enabling early rejection of corrupted packets should the channel be extended to incorporate substitution errors in future work.
     \item Detecting bit flips based on the Hamming distance properties of the CRC-8 polynomial. Because experimental simulations model pure erasures of intact oligonucleotides, CRC-8 does not act as an active error detector in the reported experimental results.
@@ -293,10 +293,10 @@ To ensure deterministic reproducibility and prevent one component's draws from a
         \label{eq:seed_base_arch}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    A master PRNG (\texttt{rng\_master}) initialized with this key generates three 31-bit child seeds: \texttt{child\_seed\_payload} (for generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for channel \texttt{rng\_channel}). This compound key provides a deterministic initialization for evaluated parameter combinations, though it does not constitute a formal proof of injectivity across all inputs. At each repetition, a fresh starting seed ($s_0 \in [0, 65535]$) is drawn sequentially from \texttt{rng\_seeds}, so each trial explores a distinct trajectory of the LT code ensemble while remaining fully reproducible given the same master key and repetition index.
+    A master PRNG (\texttt{rng\_master}) initialized with this key generates three 31-bit child seeds: \texttt{child\_seed\_payload} (for generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for generator \texttt{rng\_seeds}) and \texttt{child\_seed\_channel} (for channel \texttt{rng\_channel}). This compound key provides a deterministic initialization for evaluated parameter combinations, though it does not constitute a formal proof of injectivity across all inputs. At each repetition, a fresh starting seed ($s_0 \in [0, 65535]$) is drawn sequentially from \texttt{rng\_seeds}, so each trial explores a distinct trajectory of the LT code ensemble while remaining fully reproducible given the same master key and repetition index.
 \end{enumerate}
 
-\subsection{Header Sizing, Framing, and Library Storage Density}
+\subsection{Header Sizing, Framing and Library Storage Density}
 
 In the implemented simulator, each droplet header utilizes a 16-bit (2-byte) integer seed. This choice bounds the maximum seed search space to $2^{16} = 65{,}536$ distinct seed values. Candidate seed search proceeds sequentially with unit increments starting from initial seed $s_0$ (which defaults to $0$ in standalone single-file execution, or is randomly drawn from $\texttt{rng\_seeds}$ per trial in batch experimental sweeps). Under biological screening constraints (which reject approximately $42.6\%$ of framed candidates, compared to the $49.8\%$ analytical benchmark for unconstrained 28-mers), the extrapolated usable seed universe contains approximately $65{,}536 \times (1 - 0.426) \approx 37{,}600$ distinct valid oligonucleotides. While sufficient for the finite regimes investigated ($K \le 64$), large-scale systems require 32-bit (4-byte) headers, as in the original work by \citeonline{erlich2017}. If the incremental seed counter exhausts the space of $2^{16} = 65{,}536$ before meeting the target quota of $N_{\text{tx}}$ valid oligonucleotides (for instance, under overly stringent filters rejecting all candidates), the encoder halts execution and explicitly raises \texttt{RuntimeError("Espaço de seeds esgotado.")}, preventing infinite loops.
 
@@ -330,7 +330,7 @@ These values quantitatively demonstrate the relative impact of framing overhead 
 
 Software infrastructure validation maintained a clear methodological distinction between two test categories:
 \begin{enumerate}
-    \item \textbf{Deterministic Correctness Validation}: Unit tests operating over known canonical fixtures, designed to verify component compliance against specifications (such as exact base-mapping inversion, distribution unit summation, padding reversibility, and biological screening thresholds).
+    \item \textbf{Deterministic Correctness Validation}: Unit tests operating over known canonical fixtures, designed to verify component compliance against specifications (such as exact base-mapping inversion, distribution unit summation, padding reversibility and biological screening thresholds).
     \item \textbf{Probabilistic Performance Evaluation}: Stochastic experiments over random graphs sampled from the RSD, where occasional recovery failures reflect the inherent probabilistic nature of LT codes in finite regimes rather than implementation defects.
 \end{enumerate}
 
@@ -350,9 +350,9 @@ Robust Soliton Distribution logic was verified analytically, confirming:
 \begin{equation}
     \sum_{d=1}^{K} \mu(d) = 1.0
 \end{equation}
-across multiple configurations of $K$, $c$, and $\delta$. In particular, the automated unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
+across multiple configurations of $K$, $c$ and $\delta$. In particular, the automated unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
 
-Empirical distribution sampling was also evaluated across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. Under multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
+Empirical distribution sampling was also evaluated across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$ and $\delta = 0.10$. Under multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
 
 \subsection{Biological Screening Boundary and Homogeneity Tests}
 
@@ -363,7 +363,7 @@ The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequen
     \item Low-entropy payloads (such as all-zero byte sequences) were evaluated with and without scrambling: without scrambling, $100.0\%$ of candidates were rejected due to the immediate formation of 16-base poly-A homopolymers; with scrambling active, the rejection rate normalized to $38.5\%$.
 \end{itemize}
 
-\subsection{Canonical, Negative, and Cross-Validation Testing of Decoders}
+\subsection{Canonical, Negative and Cross-Validation Testing of Decoders}
 
 To verify the algorithmic correctness of the decoding engines and decouple implementation correctness from stochastic graph connectivity, six complementary testing procedures were established:
 \begin{enumerate}

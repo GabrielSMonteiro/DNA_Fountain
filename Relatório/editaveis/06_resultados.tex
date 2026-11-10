@@ -2,7 +2,7 @@
 \chapter{Results and Discussion}
 \label{chap:results}
 
-This chapter presents the experimental results from the DNA Fountain simulations, following the methodology described in Chapter~\ref{chap:experimental_methodology}. A total of 216 parameter configurations were evaluated over 1,000 repetitions each, producing 216,000 complete simulation runs. The discussion is organized around functional validation, biological screening effects, ripple queue behavior, overhead and parameter sensitivity, channel loss resilience, and computational cost.
+This chapter presents the experimental results from the DNA Fountain simulations, following the methodology described in Chapter~\ref{chap:experimental_methodology}. A total of 216 parameter configurations were evaluated over 1,000 repetitions each, producing 216,000 complete simulation runs. The discussion is organized around functional validation, biological screening effects, ripple queue behavior, overhead and parameter sensitivity, channel loss resilience and computational cost.
 
 \section{Functional Validation of the Simulator}
 \label{sec:results_functional_validation}
@@ -37,9 +37,9 @@ Table~\ref{tab:validacao_funcional} presents the performance observed across the
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-The data indicate that, under overhead $\epsilon = 1.00$, ideal channel ($p_{\text{loss}} = 0.0$), and reference parameters $c = 0.1$ and $\delta = 0.10$, high recovery rates were observed across 1,000 independent executions: 92.0\% for $K = 32$ (95\% exact Clopper--Pearson confidence interval: $[90.1\%, 93.6\%]$) and 98.5\% for $K = 64$ (95\% CI: $[97.5\%, 99.2\%]$). In all successful executions, reconstructed data integrity was verified byte-for-byte against the original source blocks with zero discrepancies.
+The data indicate that, under overhead $\epsilon = 1.00$, ideal channel ($p_{\text{loss}} = 0.0$) and reference parameters $c = 0.1$ and $\delta = 0.10$, high recovery rates were observed across 1,000 independent executions: 92.0\% for $K = 32$ (95\% exact Clopper--Pearson confidence interval: $[90.1\%, 93.6\%]$) and 98.5\% for $K = 64$ (95\% CI: $[97.5\%, 99.2\%]$). In all successful executions, reconstructed data integrity was verified byte-for-byte against the original source blocks with zero discrepancies.
 
-For $K = 16$ under $c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$, and $p_{\text{loss}} = 0.0$, the observed success rate was 84.7\% (153 failures in 1,000 runs; 95\% CI: $[82.3\%, 86.9\%]$). An audit of these 153 failures was conducted using \texttt{analisar\_falhas\_k16.py} and archived in \texttt{falhas\_k16.json}, cross-validating each failed instance against $GF(2)$ Gaussian elimination.
+For $K = 16$ under $c = 0.1$, $\delta = 0.10$, $\epsilon = 1.00$ and $p_{\text{loss}} = 0.0$, the observed success rate was 84.7\% (153 failures in 1,000 runs; 95\% CI: $[82.3\%, 86.9\%]$). An audit of these 153 failures was conducted using \texttt{analisar\_falhas\_k16.py} and archived in \texttt{falhas\_k16.json}, cross-validating each failed instance against $GF(2)$ Gaussian elimination.
 
 This audit identified two causes of decoding failure:
 \begin{enumerate}
@@ -52,7 +52,7 @@ While peeling succeeded in 84.7\% of runs, the Gaussian decoder achieved a 99.8\
 \label{sec:results_biological_screening}
 The biological screening module acts as a physicochemical quality filter, rejecting candidate DNA sequences that violate the GC content window ($40\% \le \text{GC} \le 60\%$) or contain homopolymer runs exceeding 3 consecutive identical nucleotides.
 
-To assess the screening impact, a direct homogeneity evaluation across $N = 100{,}000$ framed candidate droplets was conducted ($K = 32$, $c = 0.1$, $\delta = 0.10$). Screening rejected 42.6\% of candidate sequences (42,605 out of 100,000 candidates). This rejection rate reflects the combined stringency of both criteria applied to framed candidates: the 3-base homopolymer threshold eliminates sequences such as \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG}, and \texttt{TTTT}, while GC boundaries discard oligos deviating from the central window.
+To assess the screening impact, a direct homogeneity evaluation across $N = 100{,}000$ framed candidate droplets was conducted ($K = 32$, $c = 0.1$, $\delta = 0.10$). Screening rejected 42.6\% of candidate sequences (42,605 out of 100,000 candidates). This rejection rate reflects the combined stringency of both criteria applied to framed candidates: the 3-base homopolymer threshold eliminates sequences such as \texttt{AAAA}, \texttt{CCCC}, \texttt{GGGG} and \texttt{TTTT}, while GC boundaries discard oligos deviating from the central window.
 
 Analytically, for pure unconstrained uniform random 28-mers (generated from 7 independent uniform random bytes), exact dynamic programming over the joint distribution of GC count ($\in [12, 16]$) and homopolymer length ($\le 3$) yields a theoretical rejection rate of $49.77\%$ (comprising $34.7\%$ GC violations and $26.5\%$ homopolymer violations). In the framed candidate strands, the rejection rate is observed at $42.60\%$ (42,605 out of 100,000 candidates). This difference stems from the framing structure rather than any loss of uniformity in seed space. The mask \texttt{0x1B1B} applies a reversible bitwise XOR across all $2^{16} = 65{,}536$ seeds without introducing bias. The lower overall rejection rate ($42.6\%$ vs. $49.8\%$) is driven by the 1-byte CRC-8 checksum, which balances sequence composition and contracts GC content variance across the 28-mer, lowering GC violations from $34.7\%$ down to $24.8\%$, while homopolymer violations remain steady at $26.5\%$. The primary practical effect of the XOR mask \texttt{0x1B1B} is localized to low-index seeds ($s \in [0, 2000]$): without masking, early seeds starting at 0 produce immediate \texttt{AAAAAAAA} homopolymers, whereas with \texttt{0x1B1B} seed 0 maps to \texttt{ACGTACGT}, reducing low-seed rejection to $39.2\%$. Over the entire $2^{16}$ seed address space, an acceptance rate of $57.4\%$ yields approximately $37{,}600$ valid oligonucleotides, providing sufficient addressing capacity for the evaluated message scales.
 
@@ -90,7 +90,7 @@ Observed queue dynamics in the simulator exhibit three characteristic phases:
 \begin{enumerate}
     \item \textbf{Initialization.} The decoder enqueues all received droplets with degree $d = 1$. If no degree-1 droplet is received, the queue begins empty and decoding stalls immediately.
     \item \textbf{Propagation.} At each step, a packet is dequeued; if its corresponding source block has not yet been resolved, it is recorded and peeled (via XOR) from all incident droplet neighbors, enqueuing any neighbors whose residual degree is reduced to 1. Queue length peaks ($Q_{\max}$) during this phase.
-    \item \textbf{Completion.} In final iterations, most blocks are resolved, and few new degree-1 droplets enter. The queue drains gradually to zero, terminating the loop.
+    \item \textbf{Completion.} In final iterations, most blocks are resolved and few new degree-1 droplets enter. The queue drains gradually to zero, terminating the loop.
 \end{enumerate}
 
 If the queue empties before all $K$ source blocks are recovered, the algorithm terminates prematurely due to the absence of solvable degree-1 equations.
@@ -176,7 +176,7 @@ Table~\ref{tab:overhead_sucesso} summarizes success rates obtained for different
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$, and $K = 64$) and constants $c \in \{0.1, 0.3, 0.5, 0.8\}$.
+Figure~\ref{fig:overhead_sucesso} illustrates sample points and guide curves of success rate as a function of transmitted overhead across source block counts ($K = 16$, $K = 32$ and $K = 64$) and constants $c \in \{0.1, 0.3, 0.5, 0.8\}$.
 
 \begin{figure}[htbp]
     \centering
@@ -263,7 +263,7 @@ Examining the overhead tiers clarifies where $c = 0.3$ excels:
     \item \textbf{Intermediate overhead ($\epsilon = 0.50$).} $c = 0.3$ achieved higher success for $K = 16$ ($56.0\%$ vs. $47.3\%$, $p = 0.0001$) and $K = 32$ ($63.3\%$ vs. $49.2\%$, $p < 10^{-9}$), while remaining statistically equivalent for $K = 64$ ($64.8\%$ vs. $61.6\%$, $p = 0.15$).
     \item \textbf{Full overhead ($\epsilon = 1.00$).} $c = 0.3$ improved recovery for $K = 16$ ($89.3\%$ vs. $84.7\%$, $p = 0.0027$) and matched $c = 0.1$ for $K = 32$ ($93.9\%$ vs. $92.0\%$, $p = 0.12$).
 \end{itemize}
-Consequently, no single parameterization dominates the entire finite block regime. Rather than an optimal setting for all scenarios, $c = 0.1$ serves as an analytical reference baseline.
+Consequently, no single parameterization dominates the entire finite block regime. Instead of being universally optimal, $c = 0.1$ is used as an analytical baseline.
 
 The advantage of $c = 0.3$ under constrained redundancy stems from underlying RSD dynamics. For $K = 16$, under $c = 0.1$, scale $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration means that many degree-2 droplets can become degree-1 after one neighboring block is recovered, sustaining ripple propagation. For $K = 32$, increasing $c$ to $0.3$ expands $R$ to $9.79$, shifting the corrective peak to mode $m = 3$ with $\mu(3) \approx 0.548$ and $\mu(2) \approx 0.228$; this likewise sustains ripple replenishment while avoiding premature exhaustion under low-to-moderate redundancy budgets.
 
@@ -301,7 +301,7 @@ Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations unde
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-Figure~\ref{fig:resiliencia_canal} illustrates recovery rate as a function of $p_{\text{loss}}$ across the three overhead tiers ($\epsilon = 0.25$, $\epsilon = 0.50$, and $\epsilon = 1.00$) for $K = 32$ and $K = 64$.
+Figure~\ref{fig:resiliencia_canal} illustrates recovery rate as a function of $p_{\text{loss}}$ across the three overhead tiers ($\epsilon = 0.25$, $\epsilon = 0.50$ and $\epsilon = 1.00$) for $K = 32$ and $K = 64$.
 
 \begin{figure}[htbp]
     \centering
@@ -322,9 +322,9 @@ Conversely, configurations operating with intermediate nominal overhead ($\epsil
 
 Computational cost was quantified through two complementary metrics: total decoder execution runtime (in milliseconds) and XOR operation counts executed across data blocks.
 
-Measured execution time covers complete execution of \texttt{decoder.\allowbreak decodificar()}, including nucleotide-to-byte conversion, obfuscated seed parsing, CRC-8 integrity verification, neighbor index regeneration, inverted adjacency index construction, and peeling decoding steps with XOR operations.
+Measured execution time covers complete execution of \texttt{decoder.\allowbreak decodificar()}, including nucleotide-to-byte conversion, obfuscated seed parsing, CRC-8 integrity verification, neighbor index regeneration, inverted adjacency index construction and peeling decoding steps with XOR operations.
 
-Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR effort observed across 1,000 repetitions with $c = 0.1$, $\delta = 0.10$, overhead $\epsilon = 1.00$, and ideal channel ($p_{\text{loss}} = 0.0$). Each counted XOR operation records a call to \texttt{xor\_blocos} between two $L = 4$-byte blocks executed when peeling an edge on the bipartite graph to update an incident droplet's payload. Bitwise operations for CRC-8 calculation, descrambling, and internal graph index updates are handled separately and are not included in this counter. Individual timing and operation records are archived in \texttt{tempos\_brutos\_decodificacao.json}, from which sample mean, sample standard deviation, median, and extreme values were computed.
+Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR effort observed across 1,000 repetitions with $c = 0.1$, $\delta = 0.10$, overhead $\epsilon = 1.00$ and ideal channel ($p_{\text{loss}} = 0.0$). Each counted XOR operation records a call to \texttt{xor\_blocos} between two $L = 4$-byte blocks executed when peeling an edge on the bipartite graph to update an incident droplet's payload. Bitwise operations for CRC-8 calculation, descrambling and internal graph index updates are handled separately and are not included in this counter. Individual timing and operation records are archived in \texttt{tempos\_brutos\_decodificacao.json}, from which sample mean, sample standard deviation, median and extreme values were computed.
 
 \begin{table}[htbp]
     \centering
@@ -362,7 +362,7 @@ LT code theory establishes asymptotic decoding complexity of order $O(K \ln(K/\d
     \item Observed runtime standard deviations ranged between 0.25 and 0.65~ms across 1,000 runs per point, with sample medians close to means and variations reflecting OS thread scheduling and Python interpreter execution overhead.
 \end{itemize}
 
-These results characterize short study instances ($K \le 64$), tailored for controlled, pedagogical experimentation. They cannot be directly extrapolated to large-scale files (scaling $K \times L$ to megabytes or gigabytes), where memory allocation and Python interpreter overhead warrant compiled implementations in C/C++, Rust, or dedicated FPGA hardware acceleration.
+These results characterize short study instances ($K \le 64$), tailored for controlled, pedagogical experimentation. They cannot be directly extrapolated to large-scale files (scaling $K \times L$ to megabytes or gigabytes), where memory allocation and Python interpreter overhead warrant compiled implementations in C/C++, Rust or dedicated FPGA hardware acceleration.
 
 \section{Limitations of the Results}
 \label{sec:results_limitations}
@@ -370,13 +370,13 @@ These results characterize short study instances ($K \le 64$), tailored for cont
 To contextualize the findings, the scope and limitations of the presented results are delimited across seven main aspects:
 
 \begin{enumerate}
-    \item \textbf{Simplified communication channel.} The simulator models DNA storage as an abstract memoryless Binary Erasure Channel (BEC), where droplets arrive intact or are entirely erased. In physical wet-lab practice, synthesis, storage, and sequencing suffer from substitution errors, insertions, deletions (indels), and non-uniform sequence-dependent coverage bias~\cite{heckel2019, shomorony2022}. Resilience results reported in this work reflect performance under idealized packet erasures without phase noise or point mutations. The evaluated erasure probabilities represent controlled simulation scenarios rather than calibrated estimates for a specific laboratory protocol.
+    \item \textbf{Simplified communication channel.} The simulator models DNA storage as an abstract memoryless Binary Erasure Channel (BEC), where droplets arrive intact or are entirely erased. In physical wet-lab practice, synthesis, storage and sequencing suffer from substitution errors, insertions, deletions (indels) and non-uniform sequence-dependent coverage bias~\cite{heckel2019, shomorony2022}. Resilience results reported in this work reflect performance under idealized packet erasures without phase noise or point mutations. The evaluated erasure probabilities represent controlled simulation scenarios rather than calibrated estimates for a specific laboratory protocol.
     
     \item \textbf{Source block scale ($K$).} Experimental batteries focused on $K \in \{16, 32, 64\}$. This choice enabled exhaustive exploration of a 216-combination factorial matrix with 1,000 independent repetitions per point (216,000 trials). While suitable for analyzing transition dynamics and RSD behavior in small regimes, real-world DNA archiving platforms~\cite{erlich2017} operate with $K$ on the order of tens or hundreds of thousands of blocks. In those large-scale settings, boundary effects diminish and required overhead drops to 5\%--10\%. In comparison, the original DNA Fountain experiment by \citeonline{erlich2017} employed $c = 0.025$ and $\delta = 0.001$, which lie below the evaluated parameter grid ($c \in \{0.1, 0.3, 0.5, 0.8\}$); the sub-0.1 parameter domain ($c < 0.1$) therefore was not examined in this study.
     
-    \item \textbf{High-level language implementation.} The simulator was developed in pure Python 3 to prioritize code clarity, modularity, and reproducibility. As a result, runtime measurements reflect CPython interpretation overhead rather than the performance obtainable via optimized C/C++, Rust, or FPGA implementations.
+    \item \textbf{High-level language implementation.} The simulator was developed in pure Python 3 to prioritize code clarity, modularity and reproducibility. As a result, runtime measurements reflect CPython interpretation overhead rather than the performance obtainable via optimized C/C++, Rust or FPGA implementations.
     
-    \item \textbf{Seed search space and net storage density.} A 16-bit seed header limits addressing capacity to $2^{16} = 65{,}536$ unique seed values. Under biological screening (rejecting $\approx 42.6\%$ of framed candidates), the usable oligonucleotide universe is approximately $37{,}600$ sequences. In this short-strand framing (2 bytes seed, $L=4$ bytes payload, 1 byte CRC-8, totaling 7 bytes or 28 nucleotides), raw payload density is $\approx 1.14$ bits per nucleotide ($32\text{ bits} / 28\text{ nt}$) per transmitted strand prior to accounting for LT redundancy ($1+\epsilon$), screening rejections, or PCR primers, illustrating the relative weight of headers in short oligonucleotides.
+    \item \textbf{Seed search space and net storage density.} A 16-bit seed header limits addressing capacity to $2^{16} = 65{,}536$ unique seed values. Under biological screening (rejecting $\approx 42.6\%$ of framed candidates), the usable oligonucleotide universe is approximately $37{,}600$ sequences. In this short-strand framing (2 bytes seed, $L=4$ bytes payload, 1 byte CRC-8, totaling 7 bytes or 28 nucleotides), raw payload density is $\approx 1.14$ bits per nucleotide ($32\text{ bits} / 28\text{ nt}$) per transmitted strand prior to accounting for LT redundancy ($1+\epsilon$), screening rejections or PCR primers, illustrating the relative weight of headers in short oligonucleotides.
     
     \item \textbf{Stochastic portability across runtimes.} Reliance on Python's standard \texttt{random} module ensures deterministic reproducibility when runtime version is held fixed (Python~3.12). However, CPython specifications guarantee long-term repeatability only for the core floating-point generator \texttt{random()}, while sampling routines may undergo subtle implementation refinements across minor versions. For decadal digital preservation or FPGA migration, an autonomous PRNG specification (such as an arithmetic LFSR or PCG/xoshiro generator) is recommended.
     
