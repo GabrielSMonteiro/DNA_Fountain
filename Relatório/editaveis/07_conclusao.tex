@@ -2,26 +2,24 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-This work presented the design, implementation, and experimental evaluation of a modular Python simulator of the DNA Fountain pipeline, aimed at studying digital data storage in synthetic DNA molecules. The study combined principles of Software Engineering, information theory, and bioinformatics to build a controlled, extensible, and deterministically reproducible computational environment within the declared setup.
+This work presented the design, implementation, and experimental evaluation of a modular Python simulator of the DNA Fountain pipeline for digital data storage in synthetic DNA. The simulator combines principles of Software Engineering, information theory, and bioinformatics to provide an extensible and deterministically reproducible environment for short-block fountain codes.
 
-The general objective formulated in Chapter~\ref{chap:introduction} was addressed within the delimited scope (erasure channel, $K \le 64$). The simulator models the logical pipeline from file segmentation and LT encoding through biological screening, erasure channel simulation, and iterative peeling decoding.
-
-The objectives were addressed within the declared scope:
+The general objective was to model and evaluate the logical progression from message segmentation and LT encoding through biological screening, erasure channel loss, and iterative peeling decoding under short-block regimes ($K \le 64$). The specific objectives were addressed as follows:
 
 \begin{enumerate}
-    \item \textbf{Theoretical Foundation}: The concepts of rateless fountain codes, the Robust Soliton Distribution, and iterative peeling decoding were mathematically formalized in Chapter~\ref{chap:theoretical_foundation};
+    \item \textbf{Theoretical Foundation}: The concepts of rateless fountain codes, the Robust Soliton Distribution, and iterative peeling decoding were mathematically formalized in Chapter~\ref{chap:theoretical_foundation}.
     
-    \item \textbf{Computational Modeling}: Core data entities (\texttt{Segment}, \texttt{Droplet}, \texttt{DNAFountainConfig}, and \texttt{ExperimentResult}) were structured with deterministic rules for seed generation, nucleotide conversion, and zero-padding;
+    \item \textbf{Computational Modeling}: Core data entities (\texttt{Segment}, \texttt{Droplet}, \texttt{DNAFountainConfig}, and \texttt{ExperimentResult}) were structured with deterministic rules for seed generation, nucleotide conversion, and zero-padding.
     
-    \item \textbf{Modular Software Architecture}: The simulator was constructed in object-oriented Python 3.12, organized into specialized modules relying exclusively on the Python standard library;
+    \item \textbf{Modular Software Architecture}: The simulator was constructed in object-oriented Python 3.12, organized into specialized modules relying exclusively on the Python standard library.
     
-    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates without detecting a statistically significant difference in the degree distribution ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$), while scrambling reduced the formation of long homopolymer runs in the tested low-entropy payload;
+    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates without detecting a statistically significant difference in the degree distribution ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$), while scrambling reduced the formation of long homopolymer runs in the tested low-entropy payload.
     
-    \item \textbf{Stochastic Channel Simulation}: The erasure channel with loss probability $p_{\text{loss}}$ enabled the simulation of oligonucleotide loss resulting from synthesis inefficiencies, molecular decay, and sequencing subsampling;
+    \item \textbf{Stochastic Channel Simulation}: The erasure channel with loss probability $p_{\text{loss}}$ enabled the simulation of oligonucleotide loss resulting from synthesis inefficiencies, molecular decay, and sequencing subsampling.
     
-    \item \textbf{Metrics and Instrumentation}: The experimental suite collected metrics on decoding success rate, mean degrees, ripple queue dynamics, XOR operation counts, and execution runtimes;
+    \item \textbf{Metrics and Instrumentation}: The experimental suite collected metrics on decoding success rate, mean degrees, ripple queue dynamics, XOR operation counts, and execution runtimes.
     
-    \item \textbf{Experimental Evaluation}: A total of 216,000 simulations across 216 parameter configurations (1,000 repetitions each) characterized peeling recovery in finite block regimes ($K \le 64$). Key findings include: (a) high $c$ ($c \ge 0.5$) shifts the RSD mode to $m=1$ when $R > K/2$, concentrating excessive mass on degree 1 and impairing recovery for $K = 32$, whereas for $K = 64$ the mode remained at $m=2$, sustaining a $69.2\%$ decoding success rate; (b) the moderate parameterization $c = 0.3$ outperformed or matched the reference baseline ($c = 0.1$) across 8 of 9 finite-length parameter cells under constrained overhead; and (c) for $K = 16$, $98.7\%$ of peeling failures were caused by cyclic stopping sets with full rank rather than lack of coverage, confirming that no single parameterization dominates the entire finite-length regime;
+    \item \textbf{Experimental Evaluation}: A total of 216,000 simulations across 216 parameter configurations (1,000 repetitions each) characterized peeling recovery in finite block regimes ($K \le 64$). Key findings include: (a) high $c$ ($c \ge 0.5$) shifts the RSD mode to $m=1$ when $R > K/2$, concentrating excessive mass on degree 1 and impairing recovery for $K = 32$, whereas for $K = 64$ the mode remained at $m=2$, sustaining a $69.2\%$ decoding success rate; (b) the moderate parameterization $c = 0.3$ outperformed or matched the reference baseline ($c = 0.1$) across 8 of the 9 experimental combinations of $K$ and $\epsilon$ under constrained overhead; and (c) for $K = 16$, $98.7\%$ of peeling failures were caused by cyclic stopping sets with full rank rather than lack of coverage, confirming that no single parameterization dominates the entire finite-length regime.
     
     \item \textbf{Experimental Reproducibility}: Decoupling three separate PRNG streams (payload generation, per-trial initial seeds, and channel erasures) from a deterministic master key prevented cross-component random number consumption from affecting other streams, while maintaining repeatability. In addition, 18 automated tests validated software primitives and cross-validated peeling against $GF(2)$ Gaussian elimination.
 \end{enumerate}
@@ -31,11 +29,11 @@ The objectives were addressed within the declared scope:
 In addressing the central research question regarding how to design, verify, and evaluate a modular simulator of the DNA Fountain pipeline under finite block regimes, this work showed that peeling decoding dynamics in small messages ($K \le 64$) diverge from asymptotic predictions:
 
 \begin{itemize}
-    \item \textbf{Screening and Degree Invariance ($H_1$)}: Biological screening filters did not induce statistically significant distortion in the empirical degree distribution of accepted droplets compared to rejected candidates, supporting hypothesis $H_1$;
+    \item \textbf{Screening and Degree Invariance ($H_1$)}: Biological screening filters did not induce statistically significant distortion in the empirical degree distribution of accepted droplets compared to rejected candidates, supporting hypothesis $H_1$.
     
-    \item \textbf{Parameter Sensitivity ($H_2$)}: The asymptotic choice $c = 0.1$ does not universally optimize recovery in finite regimes. Moderate values ($c \approx 0.3$) proved superior under constrained overhead budgets by supplying sufficient low-degree equations to sustain ripple propagation, supporting hypothesis $H_2$;
+    \item \textbf{Parameter Sensitivity ($H_2$)}: The asymptotic choice $c = 0.1$ does not universally optimize recovery in finite regimes. Moderate values ($c \approx 0.3$) proved superior under constrained overhead budgets by supplying sufficient low-degree equations to sustain ripple propagation, supporting hypothesis $H_2$.
     
-    \item \textbf{Erasure Resilience ($H_3$)}: Channel loss reduced recovery in accordance with the decrease in effective received overhead, with higher nominal overhead partially mitigating these losses, consistent with hypothesis $H_3$.
+    \item \textbf{Erasure Resilience ($H_3$)}: Channel loss reduced recovery as effective received overhead decreased, with higher nominal overhead partially mitigating these losses, consistent with hypothesis $H_3$.
 \end{itemize}
 
 \section{Scope Limitations}
@@ -43,11 +41,11 @@ In addressing the central research question regarding how to design, verify, and
 The conclusions of this study remain delimited by the following constraints:
 
 \begin{itemize}
-    \item The channel is modeled as a memoryless packet erasure channel (BEC), without accounting for intra-strand substitutions, insertions, or deletions;
+    \item The channel is modeled as a memoryless packet erasure channel (BEC), without accounting for intra-strand substitutions, insertions, or deletions.
     
-    \item Addressing capacity is bounded by the 16-bit seed header, limiting exploration to small block counts ($K \le 64$);
+    \item Addressing capacity is bounded by the 16-bit seed header, limiting exploration to small block counts ($K \le 64$).
     
-    \item Execution times measured in Python reflect CPython runtime overhead rather than the bounds of compiled or hardware-accelerated implementations;
+    \item Execution times measured in Python reflect CPython runtime overhead rather than the bounds of compiled or hardware-accelerated implementations.
     
     \item While seed randomization per trial provides an estimate across randomized seed trajectories, it does not substitute for asymptotic ensemble proofs.
 \end{itemize}

@@ -5,7 +5,7 @@
 \section{Context}
 The growing volume of digital data has increased interest in archival storage media characterized by long service life and low operational energy consumption. Conventional media such as magnetic tapes and hard disks require periodic data migration cycles every 5 to 10 years and may demand energy for facility operation and cooling~\cite{ceze2019}. Synthetic DNA has been investigated as a candidate medium for archival workloads because it offers information density of up to hundreds of exabytes per gram and can remain biochemically stable for centuries when protected from moisture and elevated temperatures.
 
-Pioneering demonstrations~\cite{davis1996, church2012} established the technical feasibility of encoding digital files into synthetic oligonucleotides. However, DNA storage systems are affected by molecular losses and sequencing errors: chemical synthesis and sequencing suffer from oligonucleotide dropouts (packet erasures) and sequence-dependent substitution errors. In addition, sequence composition can affect synthesis and sequencing reliability, as strands with extreme GC content or long homopolymer runs (repeats of identical nucleotides) are prone to failure. To address these constraints, \citeonline{erlich2017} introduced the DNA Fountain architecture, which couples rateless fountain codes (specifically Luby Transform or LT codes) with biochemical screening filters and error-correcting codes, enabling data reconstruction without requiring physical retransmission feedback.
+Early demonstrations~\cite{davis1996, church2012} established the technical feasibility of encoding digital files into synthetic oligonucleotides. However, DNA storage systems are affected by molecular losses and sequencing errors: chemical synthesis and sequencing suffer from oligonucleotide dropouts (packet erasures) and sequence-dependent substitution errors. In addition, sequence composition can affect synthesis and sequencing reliability, as strands with extreme GC content or long homopolymer runs (repeats of identical nucleotides) are prone to failure. To address these constraints, \citeonline{erlich2017} introduced the DNA Fountain architecture, which couples rateless fountain codes (specifically Luby Transform or LT codes) with biochemical screening filters and error-correcting codes, enabling data reconstruction without requiring physical retransmission feedback.
 
 \section{Motivation}
 Evaluating the DNA Fountain pipeline in wet-lab environments is expensive, time-consuming, and difficult to parameterize systematically. Each synthesis and sequencing cycle incurs high financial costs and introduces biological noise that complicates isolating the effects of algorithmic choices.
@@ -14,7 +14,7 @@ A modular software simulator enables controlled, systematic analysis of fountain
 
 \section{Research Problem}
 
-Accessible, didactic, and extensible open-source software tools specifically designed to analyze DNA Fountain pipeline parameters remain limited in the literature. There is a need for a reproducible software environment that allows researchers to systematically investigate the internal mechanics of Luby Transform codes, biological screening filters, and peeling decoders in finite message regimes.
+Open-source software tools designed for didactic exploration and parameter analysis of the DNA Fountain pipeline remain limited in the literature. There is a need for a reproducible software environment that allows researchers to systematically investigate the internal mechanics of Luby Transform codes, biological screening filters, and peeling decoders in finite message regimes.
 
 Four terms are central to the pipeline. A \textbf{droplet} is an encoded packet formed by combining source blocks. \textbf{Biological screening} filters droplets by GC content and homopolymer run limits before synthesis. The \textbf{ripple} is the queue of degree-1 droplets available to drive peeling propagation. A \textbf{stopping set} is a cyclic subgraph in which every remaining droplet has degree $\ge 2$, halting decoding before full recovery.
 
@@ -35,7 +35,7 @@ To guide the experimental investigation, three research hypotheses are formulate
 
 \section{Objectives}
 
-The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, capable of representing the segmentation, droplet generation, biological screening, erasure channel simulation, and peeling decoding stages, in order to experimentally analyze the influence of its operational parameters.
+The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, representing segmentation, droplet generation, biological screening, erasure channel loss, and peeling decoding, to experimentally analyze the influence of its operational parameters.
 
 The specific objectives are:
 
@@ -63,13 +63,13 @@ The specific objectives are:
 The primary contributions of this work are:
 
 \begin{enumerate}
-    \item \textbf{Modular Python Simulator}: A modular Python simulator that separates encoding, screening, channel simulation, decoding, and metric collection;
+    \item \textbf{Modular Python Simulator}: A modular Python simulator that separates encoding, screening, channel simulation, decoding, and metric collection.
     
-    \item \textbf{Verification Suite with Algebraic Cross-Validation}: An 18-test automated validation suite covering canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination;
+    \item \textbf{Verification Suite with Algebraic Cross-Validation}: An 18-test automated validation suite covering canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination.
     
-    \item \textbf{Systematic Characterization in Finite Block Regimes}: A factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations). The battery assessed how scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and found that $c = 0.3$ offers superior or comparable performance across 8 of 9 finite-length parameter cells ($K \le 64$) relative to the historical reference baseline ($c = 0.1$);
+    \item \textbf{Systematic Characterization in Finite Block Regimes}: A factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations). The battery assessed how scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and found that $c = 0.3$ offers superior or comparable performance across 8 of the 9 experimental combinations of $K$ and $\epsilon$ ($K \le 64$) relative to the historical reference baseline ($c = 0.1$).
     
-    \item \textbf{Framing and Screening Mechanics Elucidation}: Quantitative analysis of how CRC-8 checksum calculation constrains GC content variance across framed candidate oligonucleotides, reducing candidate rejection to 42.6\% compared to the 49.8\% theoretical benchmark for unconstrained uniform sequences. The XOR mask \texttt{0x1B1B} acts as an involution protecting low-index seed prefixes;
+    \item \textbf{Framing and Screening Mechanics Elucidation}: Quantitative analysis of how CRC-8 checksum calculation constrains GC content variance across framed candidate oligonucleotides, reducing candidate rejection to 42.6\% compared to the 49.8\% theoretical benchmark for unconstrained uniform sequences. The XOR mask \texttt{0x1B1B} acts as an involution protecting low-index seed prefixes.
     
     \item \textbf{Failure Cause Audit}: Failure analysis indicated that 98.7\% of peeling decoding failures in small blocks ($K = 16$) were driven by cyclic stopping sets with full matrix rank rather than source block unreachability, as certified by 99.8\% recovery under $GF(2)$ Gaussian elimination.
 \end{enumerate}
@@ -77,7 +77,7 @@ The primary contributions of this work are:
 \section{Scope Delimitation}
 \label{sec:scope_delimitation}
 
-This study focuses on the computational modeling of fountain codes for DNA data storage. It does not intend to re-derive the complete asymptotic theory of LT codes or replicate physical synthesis and sequencing processes in the wet lab, thereby maintaining a scope appropriate for an undergraduate thesis.
+This study focuses on the computational modeling of fountain codes for DNA data storage. It does not re-derive the asymptotic theory of LT codes or replicate wet-lab chemical synthesis and sequencing processes.
 
 Specifically, the following boundaries are explicitly declared:
 

@@ -43,8 +43,8 @@ Once source blocks are partitioned, each byte is converted into a sequence of fo
 
 Under this mapping, each byte (8 bits) is represented by exactly four nucleotides, yielding a gross rate of 2 bits per base for an unconstrained four-symbol alphabet ($\log_2 4 = 2.0$ bits/nt)~\cite{shannon1948}. In the DNA storage literature, three tiers of theoretical and practical capacity are formally distinguished~\cite{erlich2017}:
 \begin{enumerate}
-    \item \textbf{Unconstrained capacity} ($2.0$ bits/nt): Shannon's theoretical informational upper bound for an ideal memoryless channel with four equiprobable symbols without sequence constraints;
-    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences complying with the specific GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases) adopted by \citeonline{erlich2017};
+    \item \textbf{Unconstrained capacity} ($2.0$ bits/nt): Shannon's theoretical informational upper bound for an ideal memoryless channel with four equiprobable symbols without sequence constraints.
+    \item \textbf{Maximum capacity under physicochemical constraints} ($1.98$ bits/nt): theoretical combinatorial capacity of sequences complying with the specific GC content boundaries (45\% to 55\%) and homopolymer run length limits ($\le 3$ identical consecutive bases) adopted by \citeonline{erlich2017}.
     \item \textbf{Estimated capacity under the Erlich and Zielinski storage model} ($\approx 1.83$ bits/nt): operational Shannon limit after deducting the required overhead for addressing/indexing unordered sequences in the molecular pool and tolerance to molecular dropout under their model assumptions.
 \end{enumerate}
 The net information density of $1.57$ bits/nt experimentally achieved by \citeonline{erlich2017} corresponds to $78.5\%$ of the unconstrained 2 bits/nt limit, $79.3\%$ of the capacity under physicochemical constraints ($1.98$ bits/nt), and $85.8\%$ (approximately $86\%$) of the practical capacity estimated in the reference model ($\approx 1.83$ bits/nt). This 2-bit-per-base mapping is bijective: converting bytes to DNA and the inverse conversion from DNA to bytes are deterministic and perfectly reversible operations in the absence of channel noise.
@@ -180,7 +180,7 @@ In computational practice, particularly in finite regimes with small block count
     \end{equation}
     This allocation concentrates the entire corrective mass of $\tau(d)$ onto degree 1. Subsequently, the full distribution is normalized via $\mu(d) = (\rho(d) + \tau(d)) / \beta$, where $\beta = \sum_{d=1}^K [\rho(d) + \tau(d)]$. This constitutes a finite-domain implementation variant adopted by the simulator to maintain numerical consistency, rather than a modification of the classical asymptotic RSD.
     
-    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$;
+    Across the evaluated grid, this variant is activated in exactly three parameter combinations: $(K, c, \delta) \in \{(16, 0.8, 0.10), (16, 0.8, 0.01), (32, 0.8, 0.01)\}$. For example, for $K = 16$, $c = 0.8$, and $\delta = 0.10$, we obtain $R \approx 16.241$ and $m_{\text{raw}} = 0$, resulting in $m = 1$.
     
     \item \textbf{Safeguard for $R < \delta$ ($\tau(m) < 0$)}: In the hypothetical scenario where $R < \delta$, the quotient $R/\delta < 1$, yielding $\ln(R/\delta) < 0$. If unhandled, this would produce a negative probability mass in $\tau(m)$, which is why the implementation adopts a defensive numerical safeguard:
     \begin{equation}
@@ -281,7 +281,7 @@ To quantitatively evaluate simulator performance across configurations, this wor
     
     \item \textbf{Nominal and Effective Overhead} ($\epsilon_{\text{tx}}, \epsilon_{\text{rx}}$): Droplet overhead relative to the theoretical minimum $K$. We distinguish:
     \begin{enumerate}
-        \item \textbf{Nominal transmission overhead}: $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, where $N_{\text{tx}}$ is the number of encoded oligonucleotides transmitted (passing biological screening);
+        \item \textbf{Nominal transmission overhead}: $\epsilon_{\text{tx}} = (N_{\text{tx}} - K) / K$, where $N_{\text{tx}}$ is the number of encoded oligonucleotides transmitted (passing biological screening).
         \item \textbf{Effective received overhead}: $\epsilon_{\text{rx}} = (N_{\text{rx}} - K) / K$, where $N_{\text{rx}}$ is the total number of oligonucleotides reaching the decoder after stochastic channel erasures. Over ideal channels ($p_{\text{loss}} = 0.0$), $N_{\text{rx}} = N_{\text{tx}}$ and $\epsilon_{\text{rx}} = \epsilon_{\text{tx}}$.
     \end{enumerate}
     

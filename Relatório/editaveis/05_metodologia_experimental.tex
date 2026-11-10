@@ -10,10 +10,10 @@ This chapter defines the experimental protocol used to evaluate the simulator. I
 All experiments were run on a machine with the following hardware and software configuration:
 
 \begin{itemize}
-    \item \textbf{Processor}: AMD Ryzen 5 5600X (6 cores, 12 threads, 3.7 GHz base / 4.6 GHz boost);
-    \item \textbf{RAM}: 16 GB DDR4 3200 MHz;
-    \item \textbf{Operating System}: Microsoft Windows 11 Home 24H2;
-    \item \textbf{Runtime}: Python 3.12.7 (CPython);
+    \item \textbf{Processor}: AMD Ryzen 5 5600X (6 cores, 12 threads, 3.7 GHz base / 4.6 GHz boost).
+    \item \textbf{RAM}: 16 GB DDR4 3200 MHz.
+    \item \textbf{Operating System}: Microsoft Windows 11 Home 24H2.
+    \item \textbf{Runtime}: Python 3.12.7 (CPython).
     \item \textbf{Dependencies}: Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), requiring no external packages for the simulator core.
 \end{itemize}
 
@@ -21,8 +21,8 @@ The core simulator relies on the Python standard library. Running the automated 
 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
-    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$;
-    \item \textbf{Integrity of Surviving Packets}: Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions;
+    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$.
+    \item \textbf{Integrity of Surviving Packets}: Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions.
     \item \textbf{Pre-Transmission Screening Rejection with Deterministic Replacement}: DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
 \end{enumerate}
 
@@ -190,8 +190,8 @@ Each configuration was executed across 1,000 repetitions to estimate recovery fr
 
 For continuous metrics (decoding runtime and XOR operation counts), the following statistics are reported:
 \begin{itemize}
-    \item \textbf{Sample Mean}: $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$;
-    \item \textbf{Sample Standard Deviation}: $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$;
+    \item \textbf{Sample Mean}: $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$.
+    \item \textbf{Sample Standard Deviation}: $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$.
     \item \textbf{Median and Dispersion}: Quartiles and extreme values to characterize distribution skewness.
 \end{itemize}
 
@@ -219,19 +219,19 @@ Experimental reproducibility is grounded in five methodological measures:
 
     \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
-        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_1000.csv} (and companion file \texttt{resultados\_100.csv}), containing exactly 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point;
-        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 1,000 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation;
-        \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs all 153 failure repetitions observed in the $K=16$ baseline scenario, cross-validated against $GF(2)$ Gaussian elimination;
+        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_1000.csv} (and companion file \texttt{resultados\_100.csv}), containing exactly 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point.
+        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 1,000 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation.
+        \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs all 153 failure repetitions observed in the $K=16$ baseline scenario, cross-validated against $GF(2)$ Gaussian elimination.
         \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed bin counts across the 18 classes of the direct $\chi^2$ homogeneity test for the 100,000 evaluated candidate oligos, along with scrambler stress tests.
     \end{itemize}
 
     \item \textbf{Automation and Artifact Regeneration}: Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
     \begin{itemize}
-        \item Factorial grid execution: \texttt{python run\_experiments.py} (or multi-threaded \texttt{reexecutar\_grade.py});
-        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py};
-        \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py};
-        \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py};
-        \item Vector plot regeneration: \texttt{python gerar\_graficos.py};
+        \item Factorial grid execution: \texttt{python run\_experiments.py} (or multi-threaded \texttt{reexecutar\_grade.py}).
+        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py}.
+        \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py}.
+        \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py}.
+        \item Vector plot regeneration: \texttt{python gerar\_graficos.py}.
         \item Test suite execution: \texttt{python -m pytest tests/}.
     \end{itemize}
 

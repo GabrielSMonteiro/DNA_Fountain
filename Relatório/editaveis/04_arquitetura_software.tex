@@ -113,7 +113,7 @@ The simulator separates distribution sampling, encoding, screening, channel simu
 \section{Modular Organization}
 \label{sec:modular_organization}
 
-In line with Software Engineering academic documentation guidelines and to maintain focus on architectural concepts and analytical models, the complete source code is not printed verbatim in this document, but is publicly available in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
+To maintain focus on architectural concepts and experimental models, the complete source code is hosted in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain}.
 
 The simulator source code is structured within the \texttt{dna\_fountain} Python package, organized as follows:
 
@@ -178,10 +178,10 @@ The following terms define conceptual entities within the pipeline, with their c
 
     \item \textbf{Droplet}: Each encoded droplet is stored internally as a structured dictionary containing:
     \begin{itemize}
-        \item \texttt{seed}: integer seed utilized for PRNG sampling;
-        \item \texttt{grau}: combined block count ($d \in \{1, \ldots, K\}$);
-        \item \texttt{indices}: sorted list of incident source block identifiers;
-        \item \texttt{payload}: $L$-byte string produced by XOR combination;
+        \item \texttt{seed}: integer seed utilized for PRNG sampling.
+        \item \texttt{grau}: combined block count ($d \in \{1, \ldots, K\}$).
+        \item \texttt{indices}: sorted list of incident source block identifiers.
+        \item \texttt{payload}: $L$-byte string produced by XOR combination.
         \item \texttt{dna}: nucleotide string over $\{A, C, G, T\}$ representing header + payload + CRC.
     \end{itemize}
 
@@ -251,10 +251,10 @@ The simulator includes an optional integrity layer via an 8-bit Cyclic Redundanc
 
 The order of operations in the encoder proceeds as follows:
 \begin{enumerate}
-    \item Compute raw payload $y$ via bitwise XOR across incident source blocks selected by the seed;
-    \item Apply additive scrambling to payload: $y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})$;
-    \item Obfuscate 16-bit big-endian seed via XOR with static mask: $\text{seed}_{\text{obfuscated}} = \text{seed} \oplus \texttt{0x1B1B}$;
-    \item Calculate CRC-8 checksum over the $L + 2$ bytes of $(\text{seed}_{\text{obfuscated}} \Vert y_{\text{scrambled}})$;
+    \item Compute raw payload $y$ via bitwise XOR across incident source blocks selected by the seed.
+    \item Apply additive scrambling to payload: $y_{\text{scrambled}} = y \oplus \mathbf{s}(\text{seed})$.
+    \item Obfuscate 16-bit big-endian seed via XOR with static mask: $\text{seed}_{\text{obfuscated}} = \text{seed} \oplus \texttt{0x1B1B}$.
+    \item Calculate CRC-8 checksum over the $L + 2$ bytes of $(\text{seed}_{\text{obfuscated}} \Vert y_{\text{scrambled}})$.
     \item Pack contiguous packet bytes:
     \begin{equation}
         \text{Droplet} = \text{seed}_{\text{obfuscated}} \,(2\text{ bytes}) \;\Vert\; y_{\text{scrambled}} \,(L\text{ bytes}) \;\Vert\; \text{CRC-8} \,(1\text{ byte})
@@ -264,16 +264,16 @@ The order of operations in the encoder proceeds as follows:
 
 The decoder performs the inverse operations:
 \begin{enumerate}
-    \item Convert the DNA string back to raw bytes;
-    \item Verify the CRC-8 checksum over the first $L + 2$ bytes, discarding the droplet on mismatch;
-    \item Recover the original seed by unmasking ($\text{header} \oplus \texttt{0x1B1B}$);
-    \item Reconstitute raw payload $y$ through scrambling self-inversion ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$);
+    \item Convert the DNA string back to raw bytes.
+    \item Verify the CRC-8 checksum over the first $L + 2$ bytes, discarding the droplet on mismatch.
+    \item Recover the original seed by unmasking ($\text{header} \oplus \texttt{0x1B1B}$).
+    \item Reconstitute raw payload $y$ through scrambling self-inversion ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$).
     \item Regenerate degree $d$ and neighbor indices deterministically from the recovered seed.
 \end{enumerate}
 
 However, CRC-8 does not serve as a packet recovery mechanism for the pure erasure channel modeled herein, since packet dropouts are resolved by the outer LT code. Rather, it serves as complementary integrity validation, useful in two scenarios:
 \begin{itemize}
-    \item Enabling early rejection of corrupted packets should the channel be extended to incorporate substitution errors in future work;
+    \item Enabling early rejection of corrupted packets should the channel be extended to incorporate substitution errors in future work.
     \item Detecting bit flips in accordance with the Hamming distance properties of the CRC-8 polynomial. Because experimental simulations model pure erasures of intact oligonucleotides, CRC-8 does not act as an active error detector in the reported experimental results.
 \end{itemize}
 
@@ -312,7 +312,7 @@ We formally distinguish individual oligonucleotide payload density from global l
         \label{eq:densidade_oligo}
         D_{\text{oligo}} = \frac{32 \text{ payload bits}}{28 \text{ nucleotides}} \approx 1.14 \text{ bits/nt}
     \end{equation}
-    computed prior to introducing global LT redundancy and PCR primer overhangs;
+    computed prior to introducing global LT redundancy and PCR primer overhangs.
     
     \item \textbf{Net storage library density} (approximate when padding is present):
     \begin{equation}
@@ -330,7 +330,7 @@ These values quantitatively demonstrate the relative impact of framing overhead 
 
 Software infrastructure validation maintained a clear methodological distinction between two test categories:
 \begin{enumerate}
-    \item \textbf{Deterministic Correctness Validation}: Unit tests operating over known canonical fixtures, designed to verify component compliance against specifications (such as exact base-mapping inversion, distribution unit summation, padding reversibility, and biological screening thresholds);
+    \item \textbf{Deterministic Correctness Validation}: Unit tests operating over known canonical fixtures, designed to verify component compliance against specifications (such as exact base-mapping inversion, distribution unit summation, padding reversibility, and biological screening thresholds).
     \item \textbf{Probabilistic Performance Evaluation}: Stochastic experiments over random graphs sampled from the RSD, where occasional recovery failures reflect the inherent probabilistic nature of LT codes in finite regimes rather than implementation defects.
 \end{enumerate}
 
@@ -352,14 +352,14 @@ Robust Soliton Distribution logic was verified analytically, confirming:
 \end{equation}
 across multiple configurations of $K$, $c$, and $\delta$. In particular, unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
 
-Furthermore, empirical distribution sampling was validated exhaustively across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. In accordance with multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in unit test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
+Empirical distribution sampling was also evaluated across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. Under multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in unit test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
 
 \subsection{Biological Screening Boundary and Homogeneity Tests}
 
 The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequences designed to test acceptability boundaries:
 \begin{itemize}
-    \item Sequences with synthetic GC ratios ranging from $20\%$ to $80\%$ were correctly classified, accepting only the $[40\%, 60\%]$ interval;
-    \item Sequences containing homopolymers of length 2 and 3 were accepted, while runs of length $\ge 4$ were rejected, confirming the $H_{\max} = 3$ threshold;
+    \item Sequences with synthetic GC ratios ranging from $20\%$ to $80\%$ were correctly classified, accepting only the $[40\%, 60\%]$ interval.
+    \item Sequences containing homopolymers of length 2 and 3 were accepted, while runs of length $\ge 4$ were rejected, confirming the $H_{\max} = 3$ threshold.
     \item Low-entropy payloads (such as all-zero byte sequences) were evaluated with and without scrambling: without scrambling, $100.0\%$ of candidates were rejected due to the immediate formation of 16-base poly-A homopolymers; with scrambling active, the rejection rate normalized to $38.5\%$.
 \end{itemize}
 
@@ -367,11 +367,11 @@ The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequen
 
 To verify the algorithmic correctness of the decoding engines and decouple implementation correctness from stochastic graph connectivity, six complementary testing procedures were established:
 \begin{enumerate}
-    \item \textbf{Canonical Unit Graph}: A deterministic fixture of $K$ degree-1 droplets (\texttt{test\_grafo\_canonico\_gotas\_unitarias}) verifies immediate single-step peeling with peak ripple queue $Q_{\max} = K$ and complete recovery;
-    \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets (\texttt{test\_grafo\_canonico\_cascata\_triangular}) where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$);
-    \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet (\texttt{test\_falha\_stopping\_set\_sem\_grau1}) verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) when unit equations are absent;
-    \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets (\texttt{test\_descarte\_crc\_corrompido}) verify that corrupted packets are rejected during framing parse;
-    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco\_seeds}) validates explicit raising of \texttt{RuntimeError};
+    \item \textbf{Canonical Unit Graph}: A deterministic fixture of $K$ degree-1 droplets (\texttt{test\_grafo\_canonico\_gotas\_unitarias}) verifies immediate single-step peeling with peak ripple queue $Q_{\max} = K$ and complete recovery.
+    \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets (\texttt{test\_grafo\_canonico\_cascata\_triangular}) where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$).
+    \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet (\texttt{test\_falha\_stopping\_set\_sem\_grau1}) verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) when unit equations are absent.
+    \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets (\texttt{test\_descarte\_crc\_corrompido}) verify that corrupted packets are rejected during framing parse.
+    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco\_seeds}) validates explicit raising of \texttt{RuntimeError}.
     \item \textbf{Cross-Validation via $GF(2)$ Gaussian Elimination}: Peeling decoding outcomes were systematically cross-validated against an exact Gauss--Jordan elimination solver over $GF(2)$ (\texttt{GaussianGF2Decoder}). Because Gaussian elimination determines the true linear rank of the incidence matrix, whenever peeling succeeds, the matrix is verified to have full rank $K$. Conversely, when peeling fails while the matrix possesses full rank $K$, the failure is certified as a structural stopping set.
 \end{enumerate}
 

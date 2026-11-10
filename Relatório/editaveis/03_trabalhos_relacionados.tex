@@ -23,7 +23,7 @@ The following year, \citeonline{goldman2013} proposed a more sophisticated encod
 
 \citeonline{goldman2013} also introduced redundancy through overlapping segments: each region of the file was covered by four partially overlapping oligonucleotides, enabling data recovery even in the presence of individual segment loss. Although the theoretical encoding potential of the rotating scheme was 1.58 bits per nucleotide (disregarding redundancy), the effective net density resulting from four-fold overlapping and indexing overhead in that experimental configuration was approximately $0.33$ bits per nucleotide, which does not constitute an invariant upper bound for all overlap-based schemes. The four-fold overlap improved tolerance to segment losses, although the resulting net density in that trial remained well below channel capacity.
 
-Moreover, overlap redundancy operated at a fixed rate set at design time, limiting adaptability to channels with varying loss profiles. If physical degradation exceeded the predefined redundancy budget, decoding failed irreversibly without the capability to request or generate additional segments.
+At the same time, overlap redundancy operated at a fixed rate set at design time, limiting adaptability to channels with varying loss profiles. If physical degradation exceeded the predefined redundancy budget, decoding failed irreversibly without the capability to request or generate additional segments.
 
 \subsection{Grass et al. (2015)}
 
@@ -31,7 +31,7 @@ Moreover, overlap redundancy operated at a fixed rate set at design time, limiti
 
 This hierarchical strategy treated intra-oligo substitutions and whole-sequence erasures as distinct error processes. The authors experimentally demonstrated error-free recovery of 83 kilobytes of data after accelerated aging equivalent to 2,000 years under ambient conditions.
 
-Nonetheless, like \citeonline{goldman2013}, the scheme of \citeonline{grass2015} relied on fixed-rate coding: redundancy was predetermined statically and could not adapt dynamically to channel conditions. Moreover, Reed--Solomon decoding complexity is quadratic in the general case, posing computational bottlenecks for larger data volumes.
+Nonetheless, like \citeonline{goldman2013}, the scheme of \citeonline{grass2015} relied on fixed-rate coding: redundancy was predetermined statically and could not adapt dynamically to channel conditions. In addition, general Reed--Solomon decoding has quadratic complexity, posing computational bottlenecks for larger data volumes.
 
 \subsection{Bornholt et al. (2016) and Blawat et al. (2016)}
 
@@ -98,14 +98,14 @@ The storage architecture proposed by \citeonline{bornholt2016} included a softwa
 
 A review of the works surveyed above shows that the reviewed approaches emphasize different goals: large-scale wet-lab replication artifacts (such as the original DNA Fountain~\cite{erlich2017}), theoretical analyses of short codes in telecommunication channels~\cite{hyytia2007}, and broad comparative frameworks focused on advanced rateless codes and numerical distribution optimizations~\cite{schwarz2021, schwarz2024}.
 
-The simulator uses only the Python standard library, records decoding-queue dynamics and XOR operations, and exports results to CSV files for reproducible batch experiments. The proposal is structured upon four pillars:
+The simulator uses only the Python standard library, records decoding-queue dynamics and XOR operations, and exports results to CSV files for reproducible batch experiments. The simulator is designed around four key priorities:
 
 \begin{enumerate}
-    \item \textbf{Modular and Self-Contained Implementation}: An object-oriented Python~3 implementation relying exclusively on the standard library (eliminating compiled C or Cython dependencies), facilitating execution without compiled dependencies and reproducibility in the declared environment;
+    \item \textbf{Modular and Self-Contained Implementation}: An object-oriented Python~3 implementation relying exclusively on the standard library (eliminating compiled C or Cython dependencies), facilitating execution without compiled dependencies and reproducibility in the declared environment.
     
-    \item \textbf{Analytical Peeling Instrumentation}: Expose the internal mechanics of the peeling decoder in detail, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph;
+    \item \textbf{Analytical Peeling Instrumentation}: Expose the internal mechanics of the peeling decoder in detail, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph.
     
-    \item \textbf{Experimental Evaluation in Short Block Regimes ($K \le 64$)}: Empirically characterize the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions;
+    \item \textbf{Experimental Evaluation in Short Block Regimes ($K \le 64$)}: Empirically characterize the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions.
     
     \item \textbf{Batch Experimental Infrastructure}: Provide execution scripts for multidimensional parameter grids with pseudorandom seed control and CSV metrics export.
 \end{enumerate}
