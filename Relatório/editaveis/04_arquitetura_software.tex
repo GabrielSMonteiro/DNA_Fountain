@@ -122,7 +122,7 @@ The simulator source code is structured within the \texttt{dna\_fountain} Python
 
     \item \textbf{\texttt{preprocessing.py}}: Implements \texttt{MessageProcessor}, responsible for byte conversion, fixed-size segmentation of length $L$ with zero-padding, and reconstruction with exact length truncation.
 
-    \item \textbf{\texttt{soliton.py}}: Implements \texttt{RobustSoliton}, computing distributions $\rho(d)$, $\tau(d)$, and $\mu(d)$, building the CDF, and executing deterministic sampling via \texttt{sortear\_grau\_e\_indices(seed)}.
+    \item \textbf{\texttt{soliton.py}}: Implements \texttt{RobustSoliton}, computing distributions $\rho(d)$, $\tau(d)$, and $\mu(d)$, building the CDF, and executing deterministic degree sampling via \texttt{sortear\_grau\_e\_indices(seed)}.
 
     \item \textbf{\texttt{lt\_codec.py}}: Contains two core classes:
     \begin{itemize}
@@ -282,7 +282,7 @@ However, CRC-8 does not serve as a packet recovery mechanism for the pure erasur
 To ensure deterministic reproducibility and prevent one component's draws from affecting another, the simulator segregates pseudorandom number generation into three separate domains:
 
 \begin{enumerate}
-    \item \textbf{Droplet Seed PRNG (Graph Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical bipartite graphs without exchanging connection metadata.
+    \item \textbf{Droplet Seed PRNG (Graph Reconstruction)}: Each droplet is identified by an integer 16-bit seed that, when supplied to \texttt{random.Random(seed)}, deterministically regenerates degree $d$ and the $d$ source block indices. This mechanism enables index-free transmission: encoder and decoder execute the method \texttt{soliton.sortear\_grau\_e\_indices(seed)} and obtain identical bipartite graphs without exchanging connection metadata.
     
     Interoperability between encoder and decoder requires identical PRNG implementations: sharing seeds across runtimes with divergent generator algorithms will produce mismatched graphs and cause decoding to fail. While CPython~3.12 provides deterministic repeatability across the declared environments, long-term archival storage or migration to FPGA hardware warrants a standardized autonomous PRNG (such as an arithmetic LFSR or PCG/xoshiro generator), removing software runtime dependencies.
 
@@ -293,7 +293,7 @@ To ensure deterministic reproducibility and prevent one component's draws from a
         \label{eq:seed_base_arch}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
-    A master PRNG (\texttt{rng\_master}) initialized with this key generates three 31-bit child seeds: \texttt{child\_seed\_payload} (for the synthetic message generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for the starting seed generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for the erasure channel \texttt{rng\_channel}). This compound key provides a deterministic initialization for the evaluated parameter combinations, though it does not constitute a formal proof of injectivity across all possible inputs. At each repetition, a fresh starting seed ($s_0 \in [0, 65535]$) is drawn sequentially from \texttt{rng\_seeds}, so each trial explores a distinct trajectory of the LT code ensemble while remaining fully reproducible given the same master key and repetition index.
+    A master PRNG (\texttt{rng\_master}) initialized with this key generates three 31-bit child seeds: \texttt{child\_seed\_payload} (for generator \texttt{rng\_payload}), \texttt{child\_seed\_seeds} (for generator \texttt{rng\_seeds}), and \texttt{child\_seed\_channel} (for channel \texttt{rng\_channel}). This compound key provides a deterministic initialization for evaluated parameter combinations, though it does not constitute a formal proof of injectivity across all inputs. At each repetition, a fresh starting seed ($s_0 \in [0, 65535]$) is drawn sequentially from \texttt{rng\_seeds}, so each trial explores a distinct trajectory of the LT code ensemble while remaining fully reproducible given the same master key and repetition index.
 \end{enumerate}
 
 \subsection{Header Sizing, Framing, and Library Storage Density}
@@ -350,9 +350,9 @@ Robust Soliton Distribution logic was verified analytically, confirming:
 \begin{equation}
     \sum_{d=1}^{K} \mu(d) = 1.0
 \end{equation}
-across multiple configurations of $K$, $c$, and $\delta$. In particular, unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
+across multiple configurations of $K$, $c$, and $\delta$. In particular, the automated unit test \texttt{test\_somatoria\_drs\_salvaguarda\_m\_menor\_1} evaluates boundary configurations with $c \ge 0.5$ (such as $K=16, c=0.8, \delta=0.10$, where $R \approx 16.24 > K$ yields $m_{\text{raw}} = 0$), verifying that the safeguard clamps $m = 1$, concentrates the corrective mass on degree 1 ($\mu(1) > 0.50$), and preserves exact probability normalization $\sum \mu(d) = 1.0$.
 
-Empirical distribution sampling was also evaluated across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. Under multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in unit test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
+Empirical distribution sampling was also evaluated across the entire 16-bit address space of $2^{16} = 65{,}536$ unique seeds for $K = 32$, $c = 0.1$, and $\delta = 0.10$. Under multinomial sampling theory, individual degree frequencies exhibited standard errors $SE = \sqrt{\mu(d)(1-\mu(d))/N} \le 0.0019$, with maximum absolute deviation $\max_d |\hat{\mu}(d) - \mu(d)| < 0.004$ (specifically $0.0037$). A Pearson chi-square goodness-of-fit test across all degree classes yielded $\chi^2 = 30.01$ ($\text{df} = 31$, $p = 0.5169$). Because $p > 0.05$, the null hypothesis is not rejected, indicating that deterministic seed sampling aligns with the theoretical Robust Soliton Distribution across the complete seed universe (implemented in test \texttt{test\_aderencia\_qui\_quadrado\_espaco\_seeds}).
 
 \subsection{Biological Screening Boundary and Homogeneity Tests}
 
@@ -367,11 +367,11 @@ The \texttt{BiologicalScreening} component was subjected to synthetic DNA sequen
 
 To verify the algorithmic correctness of the decoding engines and decouple implementation correctness from stochastic graph connectivity, six complementary testing procedures were established:
 \begin{enumerate}
-    \item \textbf{Canonical Unit Graph}: A deterministic fixture of $K$ degree-1 droplets (\texttt{test\_grafo\_canonico\_gotas\_unitarias}) verifies immediate single-step peeling with peak ripple queue $Q_{\max} = K$ and complete recovery.
-    \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets (\texttt{test\_grafo\_canonico\_cascata\_triangular}) where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$).
-    \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet (\texttt{test\_falha\_stopping\_set\_sem\_grau1}) verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) when unit equations are absent.
-    \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets (\texttt{test\_descarte\_crc\_corrompido}) verify that corrupted packets are rejected during framing parse.
-    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space (\texttt{test\_esgotamento\_espaco\_seeds}) validates explicit raising of \texttt{RuntimeError}.
+    \item \textbf{Canonical Unit Graph}: A deterministic fixture of $K$ degree-1 droplets verifies immediate single-step peeling with peak ripple queue $Q_{\max} = K$ and complete recovery (\texttt{test\_grafo\_canonico\_gotas\_unitarias}).
+    \item \textbf{Canonical Triangular Cascade}: An encascaded chain of droplets where droplet $i$ covers blocks $\{i-1, i\}$ validates ripple propagation with exactly one active element in queue at each iteration ($Q_{\max} = 1, Q_{\min} = 1$), verified in \texttt{test\_grafo\_canonico\_cascata\_triangular}.
+    \item \textbf{Negative Stopping Set Test}: A cyclic bipartite graph with degree $\ge 2$ and no degree-1 droplet verifies that the peeling decoder correctly stalls immediately ($Q_{\max} = 0, \text{passos} = 0$) in \texttt{test\_falha\_stopping\_set\_sem\_grau1}.
+    \item \textbf{Negative CRC Corruption Test}: Deterministic single-nucleotide mutations injected into DNA packets verify that corrupted packets are rejected during framing parse (\texttt{test\_descarte\_crc\_corrompido}).
+    \item \textbf{Negative Seed Space Exhaustion}: An over-constrained droplet quota exceeding the addressable space validates explicit raising of \texttt{RuntimeError} (\texttt{test\_esgotamento\_espaco\_seeds}).
     \item \textbf{Cross-Validation via $GF(2)$ Gaussian Elimination}: Peeling decoding outcomes were systematically cross-validated against an exact Gauss--Jordan elimination solver over $GF(2)$ (\texttt{GaussianGF2Decoder}). Because Gaussian elimination determines the true linear rank of the incidence matrix, whenever peeling succeeds, the matrix is verified to have full rank $K$. Conversely, when peeling fails while the matrix possesses full rank $K$, the failure is certified as a structural stopping set.
 \end{enumerate}
 

@@ -14,10 +14,10 @@ All experiments were run on a machine with the following hardware and software c
     \item \textbf{RAM}: 16 GB DDR4 3200 MHz.
     \item \textbf{Operating System}: Microsoft Windows 11 Home 24H2.
     \item \textbf{Runtime}: Python 3.12.7 (CPython).
-    \item \textbf{Dependencies}: Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, \texttt{dataclasses}), requiring no external packages for the simulator core.
+    \item \textbf{Dependencies}: Python standard library modules (\texttt{random}, \texttt{math}, \texttt{csv}, \texttt{time}, \texttt{collections}, and \texttt{dataclasses}), requiring no external packages for the simulator core.
 \end{itemize}
 
-The core simulator relies on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements-dev.txt}).
+The core simulator relies on the Python standard library. Running the automated test suite and regenerating figures require development dependencies (\texttt{pytest} and \texttt{matplotlib}), specified in the repository's development requirements file (\texttt{requirements\discretionary{-}{-}{-}dev.txt}).
 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
@@ -59,7 +59,7 @@ Dependent variables correspond to output metrics collected by the simulator on e
 
     \item \textbf{Operational Ripple Queue Size}: Monitored length of the processable droplet queue across decoding iterations. The maximum value ($Q_{\max}$) captures the peak number of simultaneous degree-1 droplets, while the minimum value ($Q_{\min}$) reflects the operational guard condition during the active loop (\texttt{while ripple:}), where $Q_{\min} = 1$ by definition.
 
-    \item \textbf{Decoding Runtime}: Execution time in milliseconds consumed by \texttt{decoder.decodificar()}, measured via \texttt{time.perf\_counter()} with microsecond resolution.
+    \item \textbf{Decoding Runtime}: Wall-clock duration in milliseconds measured by \texttt{decoder.\allowbreak decodificar()} via \texttt{time.perf\_counter()} with microsecond resolution.
 \end{itemize}
 
 \section{Controlled Variables}
@@ -217,22 +217,22 @@ Experimental reproducibility is grounded in five methodological measures:
     \end{equation}
     This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a deterministic integer key for the evaluated parameter combinations; it does not constitute a formal proof of injectivity across all possible inputs. The key initializes a master generator (\texttt{rng\_master}), which derives three separate PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing a fresh starting seed ($s_0 \in [0, 65535]$) at each repetition in sequence, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility given the same master key and repetition index in the declared environment (CPython~3.12.7).
 
-    \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository openly provides aggregated factorial matrices alongside raw audit records:
+    \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
-        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in \texttt{resultados\_1000.csv} (and companion file \texttt{resultados\_100.csv}), containing exactly 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point.
-        \item \emph{Individual Runtime and Cost Logs}: The file \texttt{tempos\_brutos\_decodificacao.json} records the 1,000 individual timing and XOR measurements for each block count $K \in \{16, 32, 64\}$ in performance validation.
+        \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in the data file \texttt{resultados\_1000.csv} (and companion \texttt{resultados\_100.csv}), containing 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point.
+        \item \emph{Individual Runtime and Cost Logs}: Measurements in \texttt{tempos\_brutos\_decodificacao.json} record the 1,000 timing and XOR values for each block count $K \in \{16, 32, 64\}$ in performance validation.
         \item \emph{Failure Audit Records}: The file \texttt{falhas\_k16.json} logs all 153 failure repetitions observed in the $K=16$ baseline scenario, cross-validated against $GF(2)$ Gaussian elimination.
         \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed bin counts across the 18 classes of the direct $\chi^2$ homogeneity test for the 100,000 evaluated candidate oligos, along with scrambler stress tests.
     \end{itemize}
 
     \item \textbf{Automation and Artifact Regeneration}: Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
     \begin{itemize}
-        \item Factorial grid execution: \texttt{python run\_experiments.py} (or multi-threaded \texttt{reexecutar\_grade.py}).
-        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python salvar\_estatisticas\_custo.py}.
-        \item Failure analysis for $K=16$: \texttt{python analisar\_falhas\_k16.py}.
-        \item $\chi^2$ histogram calculation: \texttt{python salvar\_qui\_quadrado.py}.
-        \item Vector plot regeneration: \texttt{python gerar\_graficos.py}.
-        \item Test suite execution: \texttt{python -m pytest tests/}.
+        \item Factorial grid execution: \texttt{python} \texttt{run\_experiments.py} (or multi-threaded script \texttt{reexecutar\_grade.py}).
+        \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python} \texttt{salvar\_estatisticas\_custo.py}.
+        \item Failure analysis for $K=16$: \texttt{python} \texttt{analisar\_falhas\_k16.py}.
+        \item $\chi^2$ histogram calculation: \texttt{python} \texttt{salvar\_qui\_quadrado.py}.
+        \item Vector plot regeneration: \texttt{python} \texttt{gerar\_graficos.py}.
+        \item Test suite execution: \texttt{python} \texttt{-m pytest tests/}.
     \end{itemize}
 
     \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
