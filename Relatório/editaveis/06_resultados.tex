@@ -2,9 +2,7 @@
 \chapter{Results and Discussion}
 \label{chap:results}
 
-This chapter presents and discusses the results obtained from computational simulations of the DNA Fountain pipeline, conducted in accordance with the methodology detailed in Chapter~\ref{chap:experimental_methodology}. A total of 216 parameter combinations were evaluated, with 1,000 independent repetitions for each configuration, yielding 216,000 complete executions of encoding, transmission, and decoding.
-
-The collected data support analyses of the simulator's functional validity, the effect of biological screening on degree distributions, ripple queue dynamics during peeling decoding, the relationship between overhead and decoding success rate, sensitivity to Robust Soliton Distribution parameters, channel loss resilience, and computational cost.
+This chapter presents and discusses the results obtained from computational simulations of the DNA Fountain pipeline, conducted in accordance with the methodology detailed in Chapter~\ref{chap:experimental_methodology}. A total of 216 parameter combinations were evaluated, with 1,000 independent repetitions for each configuration, yielding 216,000 complete executions of encoding, transmission, and decoding. These simulations support the analysis of functional validity, biological screening effects on degree distributions, ripple queue dynamics during peeling decoding, overhead sensitivity, Robust Soliton Distribution parameters, channel loss resilience, and computational cost.
 
 \section{Functional Validation of the Simulator}
 \label{sec:results_functional_validation}
@@ -89,12 +87,12 @@ Observed queue dynamics in the simulator exhibit three characteristic phases:
 
 If the queue empties before all $K$ source blocks are recovered, the algorithm terminates prematurely due to the absence of solvable degree-1 equations.
 
-Table~\ref{tab:ripple_metricas} presents mean ripple queue dynamics as a function of RSD parameters for $K = 32$ under overhead $\epsilon = 0.50$ and lossless channel ($p_{\text{loss}} = 0.0$).
+Table~\ref{tab:ripple_metricas} presents mean peak and operational minimum ripple queue sizes as a function of RSD parameters for $K = 32$ under overhead $\epsilon = 0.50$ and lossless channel ($p_{\text{loss}} = 0.0$).
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Ripple queue dynamics as a function of $c$ and $\delta$ ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$, 1,000 runs per configuration).}
+    \caption{Mean peak and operational minimum ripple queue sizes as a function of $c$ and $\delta$ ($K = 32$, $\epsilon = 0.50$, $p_{\text{loss}} = 0.0$, 1,000 runs per configuration).}
     \label{tab:ripple_metricas}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{cccccc}
@@ -115,7 +113,7 @@ Table~\ref{tab:ripple_metricas} presents mean ripple queue dynamics as a functio
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple queue size across peeling decoding iterations for $K = 32$ with overhead $\epsilon = 1.00$ and ideal channel, contrasting the recommended parameterization ($c = 0.1$, $\delta = 0.10$) against a degenerate configuration ($c = 0.5$, $\delta = 0.10$).
+Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple queue size across peeling decoding iterations for $K = 32$ with overhead $\epsilon = 1.00$ and ideal channel, contrasting the reference parameterization ($c = 0.1$, $\delta = 0.10$) against a configuration with poor recovery in this setting ($c = 0.5$, $\delta = 0.10$).
 
 \begin{figure}[htbp]
     \centering
@@ -128,7 +126,7 @@ Figure~\ref{fig:dinamica_ripple} illustrates the temporal trajectory of ripple q
 Analysis of Figure~\ref{fig:dinamica_ripple} and Table~\ref{tab:ripple_metricas} clarifies operational differences between aggregate means and individual runs:
 \begin{enumerate}
     \item The ``Queue Peak ($Q_{\max}$)'' metric in Table~\ref{tab:ripple_metricas} reports the sample mean of maximum queue lengths reached across 1,000 independent runs under intermediate overhead $\epsilon = 0.50$. In contrast, Figure~\ref{fig:dinamica_ripple} displays the trajectory of a single execution under full overhead ($\epsilon = 1.00$), explaining why individual curve peaks differ from tabulated $\epsilon = 0.50$ means;
-    \item Under recommended settings ($c = 0.1$, $\epsilon = 1.00$), the queue is replenished steadily throughout decoding, reaching a moderate peak of 22 elements and sustaining continuous releases until all 32 blocks are recovered (32/32);
+    \item Under reference settings ($c = 0.1$, $\epsilon = 1.00$), the queue is replenished steadily throughout decoding, reaching a moderate peak of 22 elements and sustaining continuous releases until all 32 blocks are recovered (32/32);
     \item Under $c = 0.5$, the RSD mode collapses to $m = \lfloor 32/16.32 \rfloor = 1$, where approximately 73\% of droplets are generated with degree 1. In this illustrative run, the initial queue is flooded (peak of 50 elements), executing 64 iterations dequeuing packets that mostly cover previously resolved blocks; lacking higher-degree interlinking equations, decoding halted with one unresolved block (31 of 32 recovered). Across the full ensemble of 1,000 independent seed sequences, $c = 0.5$ achieves 38.5\% success under $\epsilon = 1.00$, but collapses to only 3.7\% under $\epsilon = 0.50$;
     \item The minimum queue size ($Q_{\min}$) being recorded as 1.0 across all rows in Table~\ref{tab:ripple_metricas} is an artifact of instrumentation: sampling occurs inside the decoding loop (\texttt{while ripple:}), when the queue inherently holds at least one active element. Final emptying (size zero) represents the loop termination condition.
 \end{enumerate}
@@ -194,10 +192,10 @@ A key structural difference documented in Table~\ref{tab:overhead_sucesso} occur
 This contrast stems directly from how mode index $m = \lfloor K/R \rfloor$ scales with $K$:
 \begin{itemize}
     \item For $K = 32$, we have $R = 0.5 \ln(32/0.10)\sqrt{32} \approx 16.32$. Because $R > K/2 = 16$, the mode index drops to $m = \lfloor 32 / 16.32 \rfloor = 1$, concentrating the entire corrective mass of $\tau(d)$ onto degree 1. The resulting RSD allocates approximately 73\% of total probability mass to unit-degree droplets, depleting the higher-degree combinatoric packets needed to interlink remaining blocks and causing peeling to stall under tight overhead (3.7\% success under $\epsilon = 0.50$);
-    \item For $K = 64$, we obtain $R \approx 25.85 < K/2 = 32$, yielding $m = \lfloor 64 / 25.85 \rfloor = 2$. Corrective values evaluate to $\tau(1) \approx 0.404$ and $\tau(2) \approx 2.243$, with $\tau(d) = 0$ for all $d > 2$. Normalizing $\rho(d) + \tau(d)$ produces $\mu(1) \approx 0.115$ and $\mu(2) \approx 0.752$, with mean degree $\bar{d} \approx 2.64$. This distribution avoids collapsing onto degree 1: because three-quarters of the probability mass concentrates on degree-2 droplets, they act as primary catalytic drivers for peeling (reducing to degree 1 once one neighbor is resolved), sustaining peeling progress and achieving 69.2\% success under $\epsilon = 1.00$.
+    \item For $K = 64$, we obtain $R \approx 25.85 < K/2 = 32$, yielding $m = \lfloor 64 / 25.85 \rfloor = 2$. Corrective values evaluate to $\tau(1) \approx 0.404$ and $\tau(2) \approx 2.243$, with $\tau(d) = 0$ for all $d > 2$. Normalizing $\rho(d) + \tau(d)$ produces $\mu(1) \approx 0.115$ and $\mu(2) \approx 0.752$, with mean degree $\bar{d} \approx 2.64$. This distribution avoids collapsing onto degree 1: because three-quarters of the probability mass concentrates on degree-2 droplets, these degree-2 droplets can become degree-1 after one neighboring block is recovered, sustaining peeling progress and achieving a 69.2\% decoding success rate under $\epsilon = 1.00$.
 \end{itemize}
 
-These observations demonstrate that source block count $K$ alters the effective behavior of a given RSD parameterization: parameter choices that compromise recovery in small blocks can become viable as graph dimensions expand and the mode $m = \lfloor K/R \rfloor$ shifts away from unity.
+These observations indicate that source block count $K$ alters the effective behavior of a given RSD parameterization: parameter choices that compromise recovery in small blocks can become viable as graph dimensions expand and the mode $m = \lfloor K/R \rfloor$ shifts away from unity.
 
 \section{Impact of Parameters $c$ and $\delta$}
 \label{sec:results_impact_c_delta}
@@ -249,14 +247,14 @@ The relationship in Figure~\ref{fig:impacto_c_delta} highlights the mechanics of
     \item \textbf{Relationship with XOR Operations}: As mean degree falls, average XOR operations executed during decoding also decrease (from 150.4 to 69.8). However, this computational reduction reflects premature decoder stall due to connection exhaustion rather than algorithmic efficiency.
 \end{enumerate}
 
-Adopting $c = 0.1$ and $\delta = 0.10$ as the reference baseline reflects historical convention from the foundational DNA Fountain literature~\cite{erlich2017}, where lower $c$ values are optimized for asymptotic block regimes. However, empirical evaluation across the 9 finite parameter cells ($K \in \{16, 32, 64\} \times \epsilon \in \{0.25, 0.50, 1.00\}$) reveals that $c = 0.3$ achieves higher recovery rates in 6 cells, statistically ties in 2 cells, and is surpassed by $c = 0.1$ in only a single configuration ($K = 64, \epsilon = 1.00$, where $c = 0.1$ achieves $98.5\%$ vs. $96.6\%$ for $c = 0.3$, $p = 0.0086$, two-tailed Fisher's exact test). Under full overhead ($\epsilon = 1.00$), $c = 0.3$ achieved $93.9\%$ for $K = 32$ compared to $92.0\%$ for $c = 0.1$ ($p = 0.12$, not statistically significant), while for $K = 16$ under $\epsilon = 1.00$, $c = 0.3$ significantly outperformed $c = 0.1$ ($89.3\%$ vs. $84.7\%$, $p = 0.0027$). Under intermediate overhead $\epsilon = 0.50$, $c = 0.3$ achieved higher success rates than $c = 0.1$ for $K = 32$ ($63.3\%$ vs. $49.2\%$, $p < 10^{-9}$) and $K = 16$ ($56.0\%$ vs. $47.3\%$, $p = 0.0001$). Under constrained overhead ($\epsilon = 0.25$) over an ideal channel, $c = 0.3$ likewise statistically outperformed $c = 0.1$ for $K = 16$ ($27.2\%$ vs. $16.9\%$, $p < 10^{-7}$) and for $K = 32$ ($23.9\%$ vs. $11.8\%$, $p < 10^{-10}$). Consequently, no single parameterization dominates the entire finite block regime: $c = 0.1$ functions as an analytical reference baseline rather than an optimal choice across all short-message configurations.
+Adopting $c = 0.1$ and $\delta = 0.10$ as the reference baseline reflects historical convention from the foundational DNA Fountain literature~\cite{erlich2017}, where lower $c$ values are optimized for asymptotic block regimes. However, empirical evaluation across the 9 finite parameter cells ($K \in \{16, 32, 64\} \times \epsilon \in \{0.25, 0.50, 1.00\}$) reveals that $c = 0.3$ achieves higher recovery rates in 6 cells, the difference was not statistically significant in 2 cells ($K=32, \epsilon=1.00$, $p=0.12$; and $K=64, \epsilon=0.50$, $p=0.15$), and was surpassed by $c = 0.1$ in one configuration ($K = 64, \epsilon = 1.00$, where $c = 0.1$ achieves $98.5\%$ vs. $96.6\%$ for $c = 0.3$, unadjusted $p = 0.0086$, two-tailed Fisher's exact test). Because multiple comparisons across the nine cells were conducted without family-wise error rate adjustment (such as a Bonferroni correction, which would set the significance threshold to $\alpha/9 \approx 0.0056$), this difference should not be viewed as definitive. Under full overhead ($\epsilon = 1.00$), $c = 0.3$ achieved $93.9\%$ for $K = 32$ compared to $92.0\%$ for $c = 0.1$ ($p = 0.12$, difference not statistically significant), while for $K = 16$ under $\epsilon = 1.00$, $c = 0.3$ significantly outperformed $c = 0.1$ ($89.3\%$ vs. $84.7\%$, $p = 0.0027$). Under intermediate overhead $\epsilon = 0.50$, $c = 0.3$ achieved higher success rates than $c = 0.1$ for $K = 32$ ($63.3\%$ vs. $49.2\%$, $p < 10^{-9}$) and $K = 16$ ($56.0\%$ vs. $47.3\%$, $p = 0.0001$). Under constrained overhead ($\epsilon = 0.25$) over an ideal channel, $c = 0.3$ likewise statistically outperformed $c = 0.1$ for $K = 16$ ($27.2\%$ vs. $16.9\%$, $p < 10^{-7}$) and for $K = 32$ ($23.9\%$ vs. $11.8\%$, $p < 10^{-10}$). Consequently, no single parameterization dominates the entire finite block regime: $c = 0.1$ functions as an analytical reference baseline rather than an optimal choice across all short-message configurations.
 
-The advantage of $c = 0.3$ under constrained redundancy stems from underlying RSD dynamics. For $K = 16$, under $c = 0.1$, scale $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration provides an immediate reserve of binary equations that collapse to degree-1 as soon as the first block is resolved. For $K = 32$, increasing $c$ to $0.3$ expands $R$ to $9.79$, shifting the corrective peak to mode $m = 3$ with $\mu(3) \approx 0.548$ and $\mu(2) \approx 0.228$; this likewise sustains ripple replenishment while avoiding premature exhaustion under low-to-moderate redundancy budgets.
+The advantage of $c = 0.3$ under constrained redundancy stems from underlying RSD dynamics. For $K = 16$, under $c = 0.1$, scale $R \approx 2.03$ and mode index sits at $m = 7$, yielding $\mu(1) \approx 0.112$ and $\mu(2) \approx 0.333$; switching to $c = 0.3$, $R \approx 6.09$ and the mode index shifts to $m = 2$, slightly increasing $\mu(1)$ to $0.150$ and concentrating $\mu(2) \approx 0.701$ of probability mass on degree-2 droplets (more than double $0.333$). This high degree-2 concentration means that many degree-2 droplets can become degree-1 after one neighboring block is recovered, sustaining ripple propagation. For $K = 32$, increasing $c$ to $0.3$ expands $R$ to $9.79$, shifting the corrective peak to mode $m = 3$ with $\mu(3) \approx 0.548$ and $\mu(2) \approx 0.228$; this likewise sustains ripple replenishment while avoiding premature exhaustion under low-to-moderate redundancy budgets.
 
 \section{System Resilience to Channel Losses}
 \label{sec:results_system_resilience}
 
-The ability to operate over lossy channels without retransmission feedback is a primary motivation for fountain code architectures. To quantify this tolerance, the simulator was evaluated under stochastic erasure probabilities $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, representing erasure rates up to 20\% per transmitted oligonucleotide across 1,000 independent runs.
+To quantify erasure tolerance, the simulator was evaluated under stochastic erasure probabilities $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, representing erasure rates up to 20\% per transmitted oligonucleotide across 1,000 independent runs.
 
 Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations under channel losses for the reference parameterization ($c = 0.1$, $\delta = 0.10$) across overhead levels.
 
@@ -282,6 +280,8 @@ Table~\ref{tab:resiliencia_canal} compares success rates and XOR operations unde
         64 & 1.00 & 98.5\% & 92.3\% & 78.8\% & 522.5 \\
         \bottomrule
     \end{tabular}
+    \par \vspace{3pt}
+    {\footnotesize Note: With $n = 1{,}000$ independent runs, the experimental resolution is $0.1\%$ ($1/1{,}000$); thus, $0.1\%$ represents exactly 1 successful decoding event out of 1,000 runs, while $0.0\%$ denotes zero successes (95\% CI: $[0.0\%, 0.37\%]$).}
     \fonte{Prepared by the author (2026).}
 \end{table}
 
@@ -308,7 +308,7 @@ Computational cost was quantified through two complementary metrics: total decod
 
 Measured execution time covers complete execution of \texttt{decoder.decodificar()}, comprising: (1) nucleotide-to-byte conversion; (2) obfuscated seed parsing; (3) CRC-8 verification; (4) neighbor index regeneration; (5) inverted adjacency index construction; and (6) peeling iterations with XOR propagation.
 
-Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR effort observed across 1,000 repetitions with $c = 0.1$, $\delta = 0.10$, overhead $\epsilon = 1.00$, and ideal channel ($p_{\text{loss}} = 0.0$). Each counted XOR operation represents peeling propagation effort, corresponding to exact calls to \texttt{xor\_blocos} across $L = 4$-byte blocks during edge removal (\texttt{outro["indices"].remove(idx\_bloco)}). Logic operations for CRC-8 verification and descrambling occur during framing parsing and are excluded from this counter. Individual timing and operation records are archived in \texttt{tempos\_brutos\_decodificacao.json}, from which sample mean, sample standard deviation, median, and extreme values were computed.
+Table~\ref{tab:custo_computacional} consolidates total decoding runtime and XOR effort observed across 1,000 repetitions with $c = 0.1$, $\delta = 0.10$, overhead $\epsilon = 1.00$, and ideal channel ($p_{\text{loss}} = 0.0$). Each counted XOR operation records a call to \texttt{xor\_blocos} between two $L = 4$-byte blocks executed when peeling an edge on the bipartite graph to update an incident droplet's payload. Bitwise operations for CRC-8 calculation, descrambling, and internal graph index updates are handled separately and are not included in this counter. Individual timing and operation records are archived in \texttt{tempos\_brutos\_decodificacao.json}, from which sample mean, sample standard deviation, median, and extreme values were computed.
 
 \begin{table}[htbp]
     \centering
@@ -339,11 +339,11 @@ Figure~\ref{fig:custo_computacional} illustrates average decoding runtime (with 
     \fonte{Prepared by the author (2026).}
 \end{figure}
 
-LT code theory establishes asymptotic decoding complexity of order $O(K \ln(K/\delta))$ symbol operations~\cite{luby2002}. Empirical data gathered across the narrow range $K \le 64$ align with this theoretical trend, though a three-point sample does not conclusively substantiate asymptotic scaling:
+LT code theory establishes asymptotic decoding complexity of order $O(K \ln(K/\delta))$ symbol operations~\cite{luby2002}. Across the evaluated instances ($K \in \{16, 32, 64\}$), observed runtimes and XOR counts are compatible with this sub-quadratic growth, though three points in a finite domain do not constitute proof of asymptotic complexity:
 \begin{itemize}
-    \item Mean decoding runtime remained within milliseconds (from 1.21~ms for $K = 16$ to 4.95~ms for $K = 64$), staying well below 10~ms across benchmark runs on the host system (Windows~11, interpreted Python 3.12);
-    \item Average XOR operations per source block grew moderately ($7.04 \to 9.28 \to 11.88$), characterizing computational work under the inverted bipartite graph indexing;
-    \item Low runtime dispersion (standard deviations between 0.25 and 0.65~ms) and close agreement between mean and median indicate stable executions, with variations reflecting OS thread scheduling and interpreter execution behavior.
+    \item Mean decoding runtime ranged from 1.21~ms for $K = 16$ to 4.95~ms for $K = 64$ on the benchmark host (AMD Ryzen 5 5600X, Windows~11, Python 3.12.7);
+    \item Average block-level XOR operations per source block grew moderately ($7.04 \to 9.28 \to 11.88$), characterizing payload update calls under inverted bipartite graph indexing;
+    \item Observed runtime standard deviations ranged between 0.25 and 0.65~ms across 1,000 runs per point, with sample medians close to means and variations reflecting OS thread scheduling and Python interpreter execution overhead.
 \end{itemize}
 
 These results characterize short study instances ($K \le 64$), tailored for controlled, pedagogical experimentation. They cannot be directly extrapolated to large-scale files (scaling $K \times L$ to megabytes or gigabytes), where memory allocation and Python interpreter overhead warrant compiled implementations in C/C++, Rust, or dedicated FPGA hardware acceleration.
