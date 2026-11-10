@@ -18,26 +18,26 @@ Open-source software tools designed for didactic exploration and parameter analy
 
 Four terms are central to the pipeline. A \textbf{droplet} is an encoded packet formed by combining source blocks. \textbf{Biological screening} filters droplets by GC content and homopolymer run limits before synthesis. The \textbf{ripple} is the queue of degree-1 droplets available to drive peeling propagation. A \textbf{stopping set} is a cyclic subgraph in which every remaining droplet has degree $\ge 2$, halting decoding before full recovery.
 
-The central research problem addressed in this work is formulated as follows: \emph{How can a modular simulator of the DNA Fountain pipeline be designed, verified, and experimentally evaluated to accurately represent LT encoding, biological framing constraints, erasure channel losses, and peeling decoding, thereby revealing the quantitative impact of parameters $c$, $\delta$, source block count $K$, erasure rate $p_{\text{loss}}$, and overhead $\epsilon$ on recovery rate and computational cost?}
+The central research question of this study investigates \emph{how a modular simulator of the DNA Fountain pipeline can be designed, verified, and experimentally evaluated to accurately represent LT encoding, biological framing constraints, erasure channel losses, and peeling decoding, thereby revealing the quantitative impact of parameters $c$, $\delta$, source block count $K$, erasure rate $p_{\text{loss}}$, and overhead $\epsilon$ on recovery rates and computational cost.}
 
 \section{Research Hypotheses}
 \label{sec:hypotheses}
 
-To guide the experimental investigation, three research hypotheses are formulated:
+To guide the experimental investigation, three research hypotheses were formulated:
 
 \begin{enumerate}
-    \item \textbf{Hypothesis $H_1$ (Screening Distribution Invariance)}: Biological screening filters (enforcing $40\% \le \text{GC} \le 60\%$ and homopolymer runs $\le 3$ nucleotides) applied to properly framed and scrambled oligonucleotides do not induce statistically significant distortion in the empirical degree distribution; that is, the degree distributions of accepted droplets and rejected candidates are not significantly different.
+    \item \textbf{Hypothesis $H_1$ (Screening Distribution Invariance).} Biological screening filters (enforcing $40\% \le \text{GC} \le 60\%$ and homopolymer runs $\le 3$ nucleotides) applied to properly framed and scrambled oligonucleotides do not induce statistically significant distortion in the empirical degree distribution, meaning that the degree distributions of accepted droplets and rejected candidates do not significantly differ.
     
-    \item \textbf{Hypothesis $H_2$ (Parameter Sensitivity in Finite Block Regimes)}: In finite message regimes ($K \le 64$), asymptotic Robust Soliton Distribution parameter choices ($c \le 0.1$) do not universally dominate recovery performance; instead, moderate parameterizations ($c \approx 0.3$) can provide superior or comparable decoding recovery by supplying a higher concentration of low-degree equations to sustain ripple propagation under constrained overhead budgets.
+    \item \textbf{Hypothesis $H_2$ (Parameter Sensitivity in Finite Block Regimes).} In finite message regimes ($K \le 64$), asymptotic Robust Soliton Distribution parameter choices ($c \le 0.1$) do not universally dominate recovery performance; instead, moderate parameterizations ($c \approx 0.3$) provide superior or comparable decoding recovery by supplying a higher concentration of low-degree equations to sustain ripple propagation under constrained overhead budgets.
     
-    \item \textbf{Hypothesis $H_3$ (Erasure Resilience and Graceful Degradation)}: We hypothesize that increasing erasure probability will reduce recovery success through its effect on received overhead ($N_{\text{rx}} \approx N_{\text{tx}}(1 - p_{\text{loss}})$), and that higher nominal overhead will partially mitigate this reduction, without requiring retransmission feedback.
+    \item \textbf{Hypothesis $H_3$ (Erasure Resilience and Graceful Degradation).} Increasing packet erasure rates will reduce decoding recovery through its direct effect on received overhead ($N_{\text{rx}} \approx N_{\text{tx}}(1 - p_{\text{loss}})$), and higher nominal overhead will partially offset this reduction without requiring physical retransmission feedback.
 \end{enumerate}
 
 \section{Objectives}
 
 The general objective of this work is to develop and evaluate a modular simulator of the DNA Fountain pipeline, representing segmentation, droplet generation, biological screening, erasure channel loss, and peeling decoding, to experimentally analyze the influence of its operational parameters.
 
-The specific objectives are:
+To achieve this goal, the following specific objectives were defined:
 
 \begin{enumerate}
     \item Formalize the fundamentals of LT codes, the robust soliton distribution, and the \emph{peeling decoder} in the context of DNA data storage.
@@ -60,18 +60,18 @@ The specific objectives are:
 \section{Scientific and Technological Contributions}
 \label{sec:contributions}
 
-The primary contributions of this work are:
+The primary contributions of this work include:
 
 \begin{enumerate}
-    \item \textbf{Modular Python Simulator}: A modular Python simulator that separates encoding, screening, channel simulation, decoding, and metric collection.
+    \item \textbf{Modular Python simulator.} An end-to-end software simulator in standard Python that separates encoding, screening, channel erasure, peeling decoding, and automated metrics collection into self-contained components.
     
-    \item \textbf{Verification Suite with Algebraic Cross-Validation}: An 18-test automated validation suite covering canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination.
+    \item \textbf{Verification suite with algebraic cross-validation.} An 18-test automated validation suite covering canonical deterministic fixtures (such as unitary droplets and triangular cascades), negative tests (cyclic stopping sets and CRC corruption), chi-square goodness-of-fit testing across the entire 16-bit seed space ($2^{16} = 65{,}536$ seeds), and cross-validation of peeling decoding against $GF(2)$ Gaussian elimination.
     
-    \item \textbf{Systematic Characterization in Finite Block Regimes}: A factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations). The battery assessed how scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and found that $c = 0.3$ offers superior or comparable performance across 8 of the 9 experimental combinations of $K$ and $\epsilon$ ($K \le 64$) relative to the historical reference baseline ($c = 0.1$).
+    \item \textbf{Characterization of finite-block regimes.} A factorial experimental battery evaluating 216 parameter combinations across 1,000 independent repetitions (216,000 complete simulations). The experiments characterized how the scale parameter $R$ governs mode shifts ($m = \lfloor K/R \rfloor$) and revealed that $c = 0.3$ offers superior or comparable performance across 8 of the 9 experimental combinations of $K$ and $\epsilon$ ($K \le 64$) relative to the historical reference baseline ($c = 0.1$).
     
-    \item \textbf{Framing and Screening Mechanics Elucidation}: Quantitative analysis of how CRC-8 checksum calculation constrains GC content variance across framed candidate oligonucleotides, reducing candidate rejection to 42.6\% compared to the 49.8\% theoretical benchmark for unconstrained uniform sequences. The XOR mask \texttt{0x1B1B} acts as an involution protecting low-index seed prefixes.
+    \item \textbf{Framing and screening mechanics analysis.} Quantitative demonstration of how CRC-8 checksum calculation constrains GC content variance across framed candidate oligonucleotides, reducing candidate rejection to 42.6\% compared to the 49.8\% theoretical benchmark for unconstrained uniform sequences, while XOR seed scrambling protects low-index seeds from homopolymer runs.
     
-    \item \textbf{Failure Cause Audit}: Failure analysis indicated that 98.7\% of peeling decoding failures in small blocks ($K = 16$) were driven by cyclic stopping sets with full matrix rank rather than source block unreachability, as certified by 99.8\% recovery under $GF(2)$ Gaussian elimination.
+    \item \textbf{Peeling failure audit.} Direct failure analysis indicating that 98.7\% of peeling decoding failures in small blocks ($K = 16$) were driven by cyclic stopping sets with full matrix rank rather than source block unreachability, as certified by 99.8\% recovery under $GF(2)$ Gaussian elimination.
 \end{enumerate}
 
 \section{Scope Delimitation}
@@ -79,12 +79,12 @@ The primary contributions of this work are:
 
 This study focuses on the computational modeling of fountain codes for DNA data storage. It does not re-derive the asymptotic theory of LT codes or replicate wet-lab chemical synthesis and sequencing processes.
 
-Specifically, the following boundaries are explicitly declared:
+Specifically, the following boundaries define the project scope:
 
 \begin{itemize}
     \item The DNA storage channel is modeled in a simplified manner as an erasure channel, where molecular losses and discarded reads are treated as pure erasures.
     
-    \item Biochemical stages such as physical read coverage, sequencing consensus calling, or sequence clustering are not modeled: each oligonucleotide delivered to the decoder represents an already resolved individual sequence.
+    \item Biochemical stages such as physical read coverage, sequencing consensus calling, or sequence clustering are omitted from the simulator scope, meaning each oligonucleotide delivered to the decoder represents an already resolved individual sequence.
     
     \item No wet-lab biological validation with real DNA, chemical synthesis, or physical sequencing is conducted.
 \end{itemize}
@@ -96,18 +96,18 @@ The simulator source code, experiment scripts, and result matrices are publicly 
 \section{Work Organization}
 \label{sec:organization}
 
-This thesis is structured into eight chapters, including this introduction. A brief overview of the remaining chapters is presented below.
+This thesis is structured into eight chapters, including this introduction:
 
-\textbf{Chapter~\ref{chap:theoretical_foundation}: Theoretical Foundation} covers the background on DNA data storage, digital encoding into nucleotide sequences, erasure and fountain codes, the Robust Soliton Distribution, peeling decoder mechanics, the DNA Fountain architecture, and the evaluation metrics.
+\textbf{Chapter~\ref{chap:theoretical_foundation} (Theoretical Foundation)} covers the background on DNA data storage, digital encoding into nucleotide sequences, erasure and fountain codes, the Robust Soliton Distribution, peeling decoder mechanics, the DNA Fountain architecture, and the evaluation metrics.
 
-\textbf{Chapter~\ref{chap:related_work}: Related Work} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
+\textbf{Chapter~\ref{chap:related_work} (Related Work)} reviews the state of the art in DNA data storage with an emphasis on DNA Fountain, surveys existing simulators and frameworks in the literature, identifies the gap this work aims to fill, and positions the developed simulator relative to prior initiatives.
 
-\textbf{Chapter~\ref{chap:software_architecture}: Software Architecture and Engineering} details the simulator's requirements, modular codebase, pipeline flow, key implementation choices, and the test suite.
+\textbf{Chapter~\ref{chap:software_architecture} (Software Architecture and Engineering)} details the simulator's requirements, modular codebase, pipeline flow, key implementation choices, and the test suite.
 
-\textbf{Chapter~\ref{chap:experimental_methodology}: Experimental Methodology} defines the experimental protocol: execution environment, independent and dependent variables, controlled parameters, the five experimental scenarios, repetition counts, statistical procedures, and reproducibility measures.
+\textbf{Chapter~\ref{chap:experimental_methodology} (Experimental Methodology)} defines the experimental protocol, including execution environment, independent and dependent variables, controlled parameters, the five experimental scenarios, repetition counts, statistical procedures, and reproducibility measures.
 
-\textbf{Chapter~\ref{chap:results}: Results and Discussion} presents and discusses experimental results, including functional validation, the impact of biological screening on degree distribution, ripple dynamics during decoding, the relationship between overhead and success rate, the impact of parameters $c$ and $\delta$, channel resilience under different erasure rates, computational cost, and result limitations.
+\textbf{Chapter~\ref{chap:results} (Results and Discussion)} presents and discusses experimental results, including functional validation, the impact of biological screening on degree distribution, ripple dynamics during decoding, the relationship between overhead and success rate, the impact of parameters $c$ and $\delta$, channel resilience under different erasure rates, computational cost, and result limitations.
 
-\textbf{Chapter~\ref{chap:conclusion}: Conclusion} revisits the proposed objectives, evaluates them against experimental results, and presents final considerations.
+\textbf{Chapter~\ref{chap:conclusion} (Conclusion)} revisits the proposed objectives, evaluates them against experimental results, and presents final considerations.
 
-Finally, \textbf{Chapter~\ref{chap:future_work}: Future Work} outlines natural directions for project evolution, such as modeling channels with insertions and deletions, integrating additional error-correction mechanisms, and exploring hardware acceleration of the peeling decoder on reconfigurable logic.
+Finally, \textbf{Chapter~\ref{chap:future_work} (Future Work)} outlines natural directions for project evolution, such as modeling channels with insertions and deletions, integrating additional error-correction mechanisms, and exploring hardware acceleration of the peeling decoder on reconfigurable logic.

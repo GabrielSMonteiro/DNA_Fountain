@@ -21,9 +21,9 @@ The core simulator relies on the Python standard library. Running the automated 
 
 Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the communication channel is modeled under the following operational assumptions:
 \begin{enumerate}
-    \item \textbf{Packet Erasure Channel (BEC Abstraction)}: A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$.
-    \item \textbf{Integrity of Surviving Packets}: Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions.
-    \item \textbf{Pre-Transmission Screening Rejection with Deterministic Replacement}: DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
+    \item \textbf{Packet erasure channel (BEC abstraction).} A packet erasure channel with independent Bernoulli events per oligonucleotide, utilized as an abstraction of the molecular channel. Each transmitted oligonucleotide undergoes independent and identically distributed (i.i.d.) loss with fixed probability $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$, such that the number of received droplets follows a binomial distribution $N_{\text{rx}} \sim \text{Binomial}(N_{\text{tx}}, 1 - p_{\text{loss}})$.
+    \item \textbf{Integrity of surviving packets.} Oligonucleotides surviving channel transmission reach the decoder with perfect logical integrity, free from point substitutions, insertions, or deletions.
+    \item \textbf{Pre-transmission screening rejection with deterministic replacement.} DNA sequences violating physicochemical synthesis constraints (GC content window or homopolymer limit) are rejected at the source by the encoder. Rejected candidates are immediately replaced by newly generated candidates using incremental sequential seeds until meeting the quota of $N_{\text{tx}}$ approved, transmitted sequences. This deterministic candidate screening must not be conflated with stochastic transmission channel erasures.
 \end{enumerate}
 
 \section{Independent Variables}
@@ -32,15 +32,15 @@ Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the c
 Independent variables comprise the pipeline parameters systematically varied across the factorial experimental grid to evaluate their impact on system performance and resilience. Crossing these factors produces a factorial grid of $3 \times 4 \times 2 \times 3 \times 3 = 216$ parameter combinations:
 
 \begin{itemize}
-    \item \textbf{Source Block Count ($K$)}: Determines the number of segments into which the message is partitioned. Evaluated levels: $K \in \{16, 32, 64\}$ (3 levels), representing short finite block regimes to assess practical boundaries of the peeling decoder.
+    \item \textbf{Source block count ($K$).} Determines the number of segments into which the message is partitioned. Evaluated levels: $K \in \{16, 32, 64\}$ (3 levels), representing short finite block regimes to assess practical boundaries of the peeling decoder.
 
-    \item \textbf{RSD Parameter $c$}: Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1, 0.3, 0.5, 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
+    \item \textbf{RSD parameter $c$.} Multiplicative scaling constant governing $R$ in the Robust Soliton Distribution. Evaluated levels: $c \in \{0.1, 0.3, 0.5, 0.8\}$ (4 levels). The grid assesses the classical RSD across theoretically valid configurations and the operational extension clamping $m$ to 1 in boundary cases ($m_{\text{raw}} < 1$), as detailed in Section~\ref{sec:robust_soliton_distribution}.
 
-    \item \textbf{RSD Parameter $\delta$}: Asymptotic failure probability bound governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels), capturing tight ($1\%$) and moderate ($10\%$) theoretical failure bounds.
+    \item \textbf{RSD parameter $\delta$.} Asymptotic failure probability bound governing distribution tail behavior. Evaluated levels: $\delta \in \{0.01, 0.10\}$ (2 levels), capturing tight ($1\%$) and moderate ($10\%$) theoretical failure bounds.
 
-    \item \textbf{Relative Overhead ($\epsilon$)}: Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
+    \item \textbf{Relative overhead ($\epsilon$).} Redundancy fraction injected beyond $K$, defined as $\epsilon = (N - K) / K$, where $N$ denotes the count of screened, transmitted oligonucleotides ($N = N_{\text{tx}}$). Evaluated levels: $\epsilon \in \{0.25, 0.50, 1.00\}$ (3 levels), corresponding to $25\%$, $50\%$, and $100\%$ additional packets.
 
-    \item \textbf{Channel Erasure Probability ($p_{\text{loss}}$)}: Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
+    \item \textbf{Channel erasure probability ($p_{\text{loss}}$).} Packet erasure probability in the i.i.d. channel. Evaluated levels: $p_{\text{loss}} \in \{0.0, 0.10, 0.20\}$ (3 levels), spanning lossless transmission up to a 20\% erasure rate per transmitted oligonucleotide.
 \end{itemize}
 
 \section{Dependent Variables}
@@ -49,17 +49,17 @@ Independent variables comprise the pipeline parameters systematically varied acr
 Dependent variables correspond to output metrics collected by the simulator on each execution run. These metrics quantify pipeline performance and computational cost across configurations:
 
 \begin{itemize}
-    \item \textbf{Decoding Success Rate ($P_{\text{succ}}$)}: Proportion of trials in which all $K$ source blocks were successfully recovered by the peeling decoder, expressed as a percentage between $0\%$ and $100\%$. In archival storage, where partial file reconstruction is generally unserviceable without an outer error-correcting layer, complete decoding success is the primary figure of merit.
+    \item \textbf{Decoding success rate ($P_{\text{succ}}$).} Proportion of trials in which all $K$ source blocks were successfully recovered by the peeling decoder, expressed as a percentage between $0\%$ and $100\%$. In archival storage, where partial file reconstruction is generally unserviceable without an outer error-correcting layer, complete decoding success is the primary figure of merit.
 
-    \item \textbf{Screening Rejection Rate ($R_{\text{screen}}$)}: Proportion of candidate droplets rejected by the biological screening module prior to transmission, quantifying the overhead penalty imposed by GC and homopolymer constraints on framed candidates.
+    \item \textbf{Screening rejection rate ($R_{\text{screen}}$).} Proportion of candidate droplets rejected by the biological screening module prior to transmission, quantifying the overhead penalty imposed by GC and homopolymer constraints on framed candidates.
 
-    \item \textbf{Effective Received Overhead ($\epsilon_{\text{rx}}$)}: Relative overhead reaching the decoder after biological screening and channel erasures, $\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$, formalizing the effective redundancy volume available for decoding.
+    \item \textbf{Effective received overhead ($\epsilon_{\text{rx}}$).} Relative overhead reaching the decoder after biological screening and channel erasures, $\epsilon_{\text{rx}} = (N_{\text{rx}} - K)/K$, formalizing the effective redundancy volume available for decoding.
 
-    \item \textbf{Peeling Propagation XOR Operations}: Cumulative count of bitwise exclusive-OR operations executed between blocks during neighbor updates, providing a platform-agnostic metric of decoder algorithmic effort.
+    \item \textbf{Peeling propagation XOR operations.} Cumulative count of bitwise exclusive-OR operations executed between blocks during neighbor updates, providing a platform-agnostic metric of decoder algorithmic effort.
 
-    \item \textbf{Operational Ripple Queue Size}: Monitored length of the processable droplet queue across decoding iterations. The maximum value ($Q_{\max}$) captures the peak number of simultaneous degree-1 droplets, while the minimum value ($Q_{\min}$) reflects the operational guard condition during the active loop (\texttt{while ripple:}), where $Q_{\min} = 1$ by definition.
+    \item \textbf{Operational ripple queue size.} Monitored length of the processable droplet queue across decoding iterations. The maximum value ($Q_{\max}$) captures the peak number of simultaneous degree-1 droplets, while the minimum value ($Q_{\min}$) reflects the operational guard condition during the active loop (\texttt{while ripple:}), where $Q_{\min} = 1$ by definition.
 
-    \item \textbf{Decoding Runtime}: Wall-clock duration in milliseconds measured by \texttt{decoder.\allowbreak decodificar()} via \texttt{time.perf\_counter()} with microsecond resolution.
+    \item \textbf{Decoding runtime.} Wall-clock duration in milliseconds measured by \texttt{decoder.\allowbreak decodificar()} via \texttt{time.perf\_counter()} with microsecond resolution.
 \end{itemize}
 
 \section{Controlled Variables}
@@ -68,21 +68,21 @@ Dependent variables correspond to output metrics collected by the simulator on e
 To maintain internal experimental validity, the following parameters remained fixed across all trials in the 216-combination factorial grid:
 
 \begin{itemize}
-    \item \textbf{Block Length ($L$)}: Fixed at $L = 4$ bytes (32 payload bits, producing 16 payload nucleotides per droplet), maintaining uniform short oligonucleotides across the grid.
+    \item \textbf{Block length ($L$).} Fixed at $L = 4$ bytes (32 payload bits, producing 16 payload nucleotides per droplet), maintaining uniform short oligonucleotides across the grid.
 
-    \item \textbf{Biological Screening}: Active with GC acceptability window $[40\%, 60\%]$ and maximum homopolymer run length $H_{\max} = 3$ consecutive identical bases.
+    \item \textbf{Biological screening.} Active with GC acceptability window $[40\%, 60\%]$ and maximum homopolymer run length $H_{\max} = 3$ consecutive identical bases.
 
-    \item \textbf{Synthetic Payload}: Source blocks generated as pseudorandom byte streams governed by the child seed \texttt{child\_seed\_payload} derived from the experiment master key (see Section~\ref{sec:reproducibility}), ensuring reproducibility without external file dependencies.
+    \item \textbf{Synthetic payload.} Source blocks generated as pseudorandom byte streams governed by the child seed \texttt{child\_seed\_payload} derived from the experiment master key (see Section~\ref{sec:reproducibility}), ensuring reproducibility without external file dependencies.
 
-    \item \textbf{Nucleotide Mapping}: Direct 2-bit-per-base mapping ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), as described in Section~\ref{sec:digital_to_dna_encoding}.
+    \item \textbf{Nucleotide mapping.} Direct 2-bit-per-base mapping ($00 \to A$, $01 \to C$, $10 \to G$, $11 \to T$), as described in Section~\ref{sec:digital_to_dna_encoding}.
 
-    \item \textbf{Seed Header}: Encoded in 16 bits (2 bytes) obfuscated by static XOR mask \texttt{0x1B1B}.
+    \item \textbf{Seed header.} Encoded in 16 bits (2 bytes) obfuscated by static XOR mask \texttt{0x1B1B}.
 
-    \item \textbf{Padding Policy}: Deterministic zero-byte padding (\texttt{0x00}) applied to align the final block to length $L$.
+    \item \textbf{Padding policy.} Deterministic zero-byte padding (\texttt{0x00}) applied to align the final block to length $L$.
 
-    \item \textbf{CRC-8 Checksum}: Active by default with generator polynomial \texttt{0x07} ($x^8 + x^2 + x + 1$) for strand integrity verification.
+    \item \textbf{CRC-8 checksum.} Active by default with generator polynomial \texttt{0x07} ($x^8 + x^2 + x + 1$) for strand integrity verification.
 
-    \item \textbf{Payload Scrambler}: Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A} to break low-entropy patterns.
+    \item \textbf{Payload scrambler.} Active by default as an additive pseudorandom XOR mask initialized with offset \texttt{0x5A5A} to break low-entropy patterns.
 \end{itemize}
 
 Table~\ref{tab:parametros_experimentais} consolidates independent, dependent, and controlled variables within the experimental protocol.
@@ -190,9 +190,9 @@ Each configuration was executed across 1,000 repetitions to estimate recovery fr
 
 For continuous metrics (decoding runtime and XOR operation counts), the following statistics are reported:
 \begin{itemize}
-    \item \textbf{Sample Mean}: $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$.
-    \item \textbf{Sample Standard Deviation}: $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$.
-    \item \textbf{Median and Dispersion}: Quartiles and extreme values to characterize distribution skewness.
+    \item \textbf{Sample mean}, $\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$.
+    \item \textbf{Sample standard deviation}, $s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$.
+    \item \textbf{Median and dispersion}, reporting quartiles and extreme values to characterize distribution skewness.
 \end{itemize}
 
 For decoding success rate (a binary variable associated with $n$ Bernoulli trials), in addition to the observed sample proportion $\hat{p} = k/n$, 95\% exact Clopper--Pearson confidence intervals~\cite{clopper1934} were computed, derived from Beta distribution quantiles:
@@ -210,14 +210,14 @@ To compare success proportions between specific experimental configurations (e.g
 Experimental reproducibility is grounded in five methodological measures:
 
 \begin{enumerate}
-    \item \textbf{Deterministic Master Seed Control and PRNG Decoupling}: Each batch execution calculates a deterministic master seed:
+    \item \textbf{Deterministic master seed control and PRNG decoupling.} Each batch execution calculates a deterministic master seed:
     \begin{equation}
         \label{eq:master_seed}
         \text{seed}_{\text{base}} = \lfloor K \times 10^5 \rfloor + \lfloor c \times 10^4 \rfloor + \lfloor \delta \times 10^3 \rfloor + N_{\text{tx}} + \lfloor 100 \times p_{\text{loss}} \rfloor
     \end{equation}
     This positional arithmetic combines the factorial parameter tuple $(K, c, \delta, N_{\text{tx}}, p_{\text{loss}})$ into a deterministic integer key for the evaluated parameter combinations; it does not constitute a formal proof of injectivity across all possible inputs. The key initializes a master generator (\texttt{rng\_master}), which derives three separate PRNG streams: \texttt{rng\_payload} for synthetic data blocks, \texttt{rng\_seeds} for drawing a fresh starting seed ($s_0 \in [0, 65535]$) at each repetition in sequence, and \texttt{rng\_channel} for stochastic packet erasures. This separation ensures that the 1,000 repetitions sample distinct bipartite graphs across the code ensemble while maintaining exact reproducibility given the same master key and repetition index in the declared environment (CPython~3.12.7).
 
-    \item \textbf{Separation of Aggregated Data and Individual Audit Logs}: The repository provides aggregated factorial matrices alongside raw audit records:
+    \item \textbf{Separation of aggregated data and individual audit logs.} The repository provides aggregated factorial matrices alongside raw audit records:
     \begin{itemize}
         \item \emph{Aggregated Result Matrices}: Factorial sweep results are consolidated in the data file \texttt{resultados\_1000.csv} (and companion \texttt{resultados\_100.csv}), containing 216 rows summarizing means, standard deviations, and rates across 1,000 independent repetitions per point.
         \item \emph{Individual Runtime and Cost Logs}: Measurements in \texttt{tempos\_brutos\_decodificacao.json} record the 1,000 timing and XOR values for each block count $K \in \{16, 32, 64\}$ in performance validation.
@@ -225,7 +225,7 @@ Experimental reproducibility is grounded in five methodological measures:
         \item \emph{Screening Trial Histogram}: The file \texttt{screening\_qui\_quadrado.json} records observed bin counts across the 18 classes of the direct $\chi^2$ homogeneity test for the 100,000 evaluated candidate oligos, along with scrambler stress tests.
     \end{itemize}
 
-    \item \textbf{Automation and Artifact Regeneration}: Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
+    \item \textbf{Automation and artifact regeneration.} Complete experiment orchestration and document artifact generation are driven by dedicated Python scripts:
     \begin{itemize}
         \item Factorial grid execution: \texttt{python} \texttt{run\_experiments.py} (or multi-threaded script \texttt{reexecutar\_grade.py}).
         \item Runtime and cost statistics (Table~\ref{tab:custo_computacional}): \texttt{python} \texttt{salvar\_estatisticas\_custo.py}.
@@ -235,7 +235,7 @@ Experimental reproducibility is grounded in five methodological measures:
         \item Test suite execution: \texttt{python} \texttt{-m pytest tests/}.
     \end{itemize}
 
-    \item \textbf{Simulator Core Library Independence}: The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
+    \item \textbf{Simulator core library independence.} The simulator core depends exclusively on the Python standard library. Running the test suite and regenerating figures require development packages (\texttt{pytest>=8.0.0} and \texttt{matplotlib>=3.8.0}), documented in \texttt{requirements-dev.txt} at repository root.
     
-    \item \textbf{Version-Controlled Release}: All simulator modules, experiment scripts, and dataset matrices are versioned and accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
+    \item \textbf{Version-controlled release.} All simulator modules, experiment scripts, and dataset matrices are versioned and accessible under release tag \texttt{v1.0-defesa} in the project's GitHub repository: \url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}.
 \end{enumerate}

@@ -15,7 +15,7 @@ The work by \citeonline{church2012} is considered one of the initial milestones 
 
 However, the approach of \citeonline{church2012} did not employ any mathematical error-correcting redundancy beyond physical replicas of the oligonucleotides. Redundancy was introduced exclusively by synthesizing multiple copies of each sequence, increasing synthesis costs. In addition, the achieved storage density was only 0.83 bits per nucleotide, well below the theoretical unconstrained limit of $\log_2 4 = 2.0$ bits per nucleotide. This limitation stemmed from the 1-bit-per-base mapping, which discarded half of the informational capacity of DNA's quaternary alphabet.
 
-From a fault-tolerance perspective, the scheme exhibited fragility: the loss of a single oligonucleotide resulted in the irreversible loss of all bits contained within it, with no recovery mechanism. Despite these limitations, the work demonstrated the practical feasibility of the concept and motivated numerous subsequent advances.
+From a fault-tolerance perspective, the scheme exhibited significant fragility, as the loss of a single oligonucleotide resulted in the irreversible loss of all bits contained within it, with no recovery mechanism. Despite these limitations, the work demonstrated the practical feasibility of the concept and motivated numerous subsequent advances.
 
 \subsection{Goldman et al. (2013)}
 
@@ -48,11 +48,11 @@ The influential work of \citeonline{erlich2017}, published in \emph{Science} in 
 DNA Fountain introduced three main contributions relative to the reviewed prior approaches:
 
 \begin{itemize}
-    \item \textbf{Rateless capability}: Unlike fixed-rate codes (Reed--Solomon, overlapping), DNA Fountain generates droplets continuously until the desired number of valid oligonucleotides is gathered. Rateless encoding enables generating additional oligonucleotides digitally and tuning the redundancy budget without requiring real-time feedback retransmission. However, an already synthesized physical pool remains limited to the generated batch.
+    \item \textbf{Rateless capability.} Unlike fixed-rate codes (such as Reed--Solomon or overlapping windows), DNA Fountain generates droplets continuously until the desired number of valid oligonucleotides is gathered. Rateless encoding enables generating additional oligonucleotides digitally and tuning the redundancy budget without requiring real-time feedback retransmission. However, an already synthesized physical pool remains limited to the generated batch.
     
-    \item \textbf{Reported storage density}: At the time of publication, the reported net density of 1.57 bits per nucleotide was among the highest values reported in the DNA storage literature, representing approximately 86\% of the practical Shannon capacity estimated under unordered pooling and indexing constraints ($\approx 1.83$ bits/nt), compared to a theoretical coding capacity of 1.98 bits/nt under GC and homopolymer constraints and the unconstrained limit of $\log_2 4 = 2.0$ bits per nucleotide.
+    \item \textbf{Reported storage density.} At the time of publication, the reported net density of 1.57 bits per nucleotide was among the highest values in the DNA storage literature, representing approximately 86\% of the practical Shannon capacity estimated under unordered pooling and indexing constraints ($\approx 1.83$ bits/nt), compared to a theoretical coding capacity of 1.98 bits/nt under GC and homopolymer constraints and the unconstrained limit of $\log_2 4 = 2.0$ bits per nucleotide.
     
-    \item \textbf{Integrated biological screening}: The process of discarding and re-drawing candidate oligonucleotides that violate biochemical synthesis constraints (such as GC bias or long homopolymers) is naturally absorbed by the rateless nature of fountain codes, without structural penalties to the coding scheme.
+    \item \textbf{Integrated biological screening.} The process of discarding and re-drawing candidate oligonucleotides that violate biochemical synthesis constraints (such as GC bias or long homopolymers) is naturally absorbed by the rateless nature of fountain codes, without structural penalties to the coding scheme.
 \end{itemize}
 
 The authors experimentally validated error-free encoding and decoding of a 2.14-megabyte file (including a full operating system, a computer virus, and a \$50 Amazon gift card) partitioned into $K = 67{,}088$ source segments, packaged into 72,000 oligonucleotides of 200 nucleotides each ($\approx 7.3\%$ overhead).
@@ -101,13 +101,13 @@ A review of the works surveyed above shows that the reviewed approaches emphasiz
 The simulator uses only the Python standard library, records decoding-queue dynamics and XOR operations, and exports results to CSV files for reproducible batch experiments. The simulator is designed around four key priorities:
 
 \begin{enumerate}
-    \item \textbf{Modular and Self-Contained Implementation}: An object-oriented Python~3 implementation relying exclusively on the standard library (eliminating compiled C or Cython dependencies), facilitating execution without compiled dependencies and reproducibility in the declared environment.
+    \item \textbf{Modular and self-contained implementation.} An object-oriented Python~3 implementation relying exclusively on the standard library, eliminating compiled C or Cython dependencies, and facilitating straightforward replication in educational and research environments.
     
-    \item \textbf{Analytical Peeling Instrumentation}: Expose the internal mechanics of the peeling decoder in detail, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph.
+    \item \textbf{Analytical peeling instrumentation.} Direct exposure of the internal mechanics of the peeling decoder, logging step-by-step \emph{ripple} queue trajectories, exact XOR operation counts per source block, and droplet degree transitions on the bipartite graph.
     
-    \item \textbf{Experimental Evaluation in Short Block Regimes ($K \le 64$)}: Empirically characterize the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions.
+    \item \textbf{Experimental evaluation in short-block regimes ($K \le 64$).} Empirical characterization of the combined behavior of the classical RSD under biochemical screening constraints and stochastic erasure channels across a factorial grid of 216 configurations, mapping $\tau(d)$ mode transitions and ripple exhaustion conditions.
     
-    \item \textbf{Batch Experimental Infrastructure}: Provide execution scripts for multidimensional parameter grids with pseudorandom seed control and CSV metrics export.
+    \item \textbf{Batch experimental infrastructure.} Automated execution scripts for multidimensional parameter grids with pseudorandom seed control and direct CSV metrics export.
 \end{enumerate}
 
 Table~\ref{tab:comparacao_especificacao} compares the technical specifications of the original DNA Fountain by \citeonline{erlich2017} and the NOREC4DNA framework by \citeonline{schwarz2021} with the simulator developed in this work.
