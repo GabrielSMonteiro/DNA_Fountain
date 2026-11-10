@@ -15,7 +15,7 @@ The objectives were addressed within the declared scope:
     
     \item \textbf{Modular Software Architecture}: The simulator was constructed in object-oriented Python 3.12, organized into specialized modules relying exclusively on the Python standard library;
     
-    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates without detecting a statistically significant difference in the degree distribution ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$), while scrambling effectively prevents homopolymer runs in low-entropy payloads;
+    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates without detecting a statistically significant difference in the degree distribution ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$), while scrambling reduced the formation of long homopolymer runs in the tested low-entropy payload;
     
     \item \textbf{Stochastic Channel Simulation}: The erasure channel with loss probability $p_{\text{loss}}$ enabled the simulation of oligonucleotide loss resulting from synthesis inefficiencies, molecular decay, and sequencing subsampling;
     

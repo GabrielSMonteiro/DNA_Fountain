@@ -107,7 +107,7 @@ The simulator separates distribution sampling, encoding, screening, channel simu
 \begin{enumerate}
     \item \textbf{Functional Decomposition}: Each logical phase of the pipeline is implemented in a dedicated module. The encoder (\texttt{DNAFountainEncoder}) operates independently from the decoder's reconstruction algorithm (\texttt{DNAFountainDecoder}), and the channel (\texttt{ErasureChannel}) processes packet arrivals without altering droplet connectivity or payload content.
 
-    \item \textbf{Parameter Encapsulation}: All system hyperparameters are centralized within the \texttt{DNAFountainConfig} class, implemented as a \texttt{@dataclass}. This eliminates magic numbers and allows arbitrary experimental scenarios to be instantiated cleanly.
+    \item \textbf{Parameter Encapsulation}: All system hyperparameters are centralized within the \texttt{DNAFountainConfig} class, implemented as a \texttt{@dataclass}. This reduces hard-coded parameter values and allows arbitrary experimental scenarios to be instantiated cleanly.
 \end{enumerate}
 
 \section{Modular Organization}
