@@ -2,7 +2,7 @@
 \chapter{Experimental Methodology}
 \label{chap:experimental_methodology}
 
-This chapter defines the experimental protocol employed to evaluate the simulator. It specifies the execution environment, independent variables swept across the factorial matrix, measured dependent variables, and controlled parameters held fixed. It also describes the five planned experimental scenarios, statistical procedures, and reproducibility measures ensuring full traceability of results.
+This chapter defines the experimental protocol used to evaluate the simulator. It details the execution environment, independent and dependent variables, controlled parameters, the five test scenarios, statistical validation methods, and reproducibility measures.
 
 \section{Experimental Environment and Channel Assumptions}
 \label{sec:experimental_environment}
@@ -29,7 +29,7 @@ Consistent with the scope delimitation in Chapter~\ref{chap:introduction}, the c
 \section{Independent Variables}
 \label{sec:independent_variables}
 
-Independent variables comprise the pipeline parameters systematically varied across the factorial experimental grid to evaluate their impact on system performance and resilience. Combining the levels of these variables defines a search space of $3 \times 4 \times 2 \times 3 \times 3 = 216$ parametric points:
+Independent variables comprise the pipeline parameters systematically varied across the factorial experimental grid to evaluate their impact on system performance and resilience. Crossing these factors produces a factorial grid of $3 \times 4 \times 2 \times 3 \times 3 = 216$ parameter combinations:
 
 \begin{itemize}
     \item \textbf{Source Block Count ($K$)}: Determines the number of segments into which the message is partitioned. Evaluated levels: $K \in \{16, 32, 64\}$ (3 levels), representing short finite block regimes to assess practical boundaries of the peeling decoder.
@@ -154,7 +154,7 @@ This experiment captures the tradeoff between robustness and overhead: moderate 
 
 \subsection{Experiment 4: Impact of Biological Screening}
 
-The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 100,000 droplets was executed for $K=32$ under recommended parameterization ($c=0.1$, $\delta=0.10$), measuring the empirical rejection rate ($R_{\text{screen}}$) computed over the total number of candidate droplets generated to fill the quota of $N_{\text{tx}}$ approved sequences. The sampled degree distributions of accepted and rejected droplets were compared against one another via a $\chi^2$ test of homogeneity, using a two-way contingency table (accepted vs.\ rejected $\times$ degree bins) with degrees of freedom equal to the number of aggregated degree bins minus one. In addition, low-entropy stress testing was performed to evaluate the role of the scrambler. In the main 216-grid matrix, screening remained active to realistically model synthesis constraints.
+The fourth scenario isolates the impact of physicochemical screening constraints on droplet sampling. A dedicated sampling trial of 100,000 candidate droplets was executed for $K=32$ under reference parameters ($c=0.1$, $\delta=0.10$), measuring the empirical rejection rate ($R_{\text{screen}}$) computed over all candidate droplets generated to reach the transmission quota. To test whether filtering introduces bias, the degree distributions of accepted and rejected droplets were compared using a Pearson $\chi^2$ test of homogeneity over a two-way contingency table (accepted vs.\ rejected $\times$ degree bins), with degrees of freedom equal to the number of degree bins minus one. A low-entropy payload was also tested to evaluate how effectively the scrambler suppresses homopolymer formation. Across the main 216-grid matrix, biological screening remained active to model physical synthesis constraints realistically.
 
 \subsection{Experiment 5: Impact of the Erasure Channel}
 
@@ -202,7 +202,7 @@ For decoding success rate (a binary variable associated with $n$ Bernoulli trial
 \end{equation}
 with $\alpha = 0.05$ and $Q_{\text{Beta}}(p; a, b)$ denoting the order-$p$ quantile of the Beta distribution with shape parameters $a$ and $b$. For boundary cases, $L = 0$ when $k = 0$ (zero successes) and $U = 1$ when $k = n$ (full success). For $n = 1{,}000$ trials, $k = 920$ successes ($92.0\%$) yields the interval $[90.1\%, 93.6\%]$, and $k = 985$ ($98.5\%$) yields $[97.5\%, 99.2\%]$, providing high statistical precision.
 
-To compare success proportions between specific experimental configurations (e.g., between $c=0.1$ and $c=0.3$), two-tailed Fisher's exact tests~\cite{fisher1922} were applied. In the updated architecture, PRNG streams are decoupled: each repetition draws an independent initial seed from the batch master generator, and base seeds incorporate $p_{\text{loss}}$ explicitly, ensuring that channel erasure levels and distinct factorial configurations represent truly independent stochastic realizations across the ensemble.
+To compare success proportions between specific experimental configurations (e.g., between $c=0.1$ and $c=0.3$), two-tailed Fisher's exact tests~\cite{fisher1922} were applied. In the simulator architecture, PRNG streams are decoupled: each repetition draws a fresh initial seed sequentially from the batch master generator, and base seeds incorporate $p_{\text{loss}}$ explicitly. This design ensures that channel erasure levels and distinct factorial configurations sample different realizations across the code ensemble without cross-stream PRNG interference.
 
 \section{Experimental Reproducibility and Traceability}
 \label{sec:reproducibility}

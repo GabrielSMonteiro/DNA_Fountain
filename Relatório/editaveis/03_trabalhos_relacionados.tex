@@ -2,12 +2,12 @@
 \chapter{Related Work}
 \label{chap:related_work}
 
-This chapter presents the state of the art in DNA data storage, emphasizing the encoding architectures that preceded and followed DNA Fountain, the theoretical foundations that establish DNA channel bounds, the existing software frameworks and tools in the literature, and finally, the identified gap that this work aims to address.
+Digital DNA storage has progressed through several coding architectures since the first large-scale demonstrations in 2012. This chapter traces that evolution, reviews the theoretical capacity bounds that frame the field, surveys the existing software tools, and positions the simulator developed here relative to prior work.
 
 \section{Coding Schemes for DNA Data Storage}
 \label{sec:related_dna_encoding}
 
-DNA data storage has evolved rapidly since the first experimental demonstrations in the early 2010s. The following sections chronologically present the primary coding schemes proposed in the literature, highlighting architectural design decisions, practical constraints, and achieved storage densities.
+The following sections chronologically present the primary coding schemes proposed in the literature, highlighting design decisions, practical constraints, and achieved storage densities.
 
 \subsection{Church, Gao, and Kosuri (2012)}
 
@@ -39,13 +39,13 @@ Two works published in 2016 advanced in complementary directions. \citeonline{bo
 
 In parallel, \citeonline{blawat2016} systematically investigated Forward Error Correction (FEC) codes tailored to the DNA channel, employing adapted Reed--Solomon codes. The authors evaluated tradeoffs between code rate and correction capability, demonstrating that carefully tuning error-correction parameters was decisive for overall storage efficiency.
 
-Both works, however, retained fixed-rate characteristics: redundancy was set statically at design time and could not dynamically adapt to fluctuating channel conditions.
+Both works, however, used fixed-rate coding whose redundancy could not adapt to varying channel conditions.
 
 \subsection{Erlich and Zielinski --- DNA Fountain (2017)}
 
 The seminal work of \citeonline{erlich2017}, published in \emph{Science} in 2017, pioneered the application of \emph{fountain codes} to DNA data storage. The DNA Fountain architecture combines a two-tier hierarchical coding structure: an outer rateless Luby Transform (LT) code operating across blocks to reconstruct the file in the presence of full oligonucleotide erasures via the Robust Soliton Distribution (RSD), and an inner Reed--Solomon code (2 parity bytes per oligonucleotide) designed to detect and discard localized substitution and indel errors caused by synthesis and sequencing. The rateless property of the outer code enables generating encoded droplets on demand until the receiver collects a sufficient quantity ($K(1 + \epsilon)$) to reconstruct the original data via the iterative \emph{peeling decoder}.
 
-The principal contributions of DNA Fountain relative to prior works can be summarized in three aspects:
+DNA Fountain distinguished itself from prior work in three key ways:
 
 \begin{itemize}
     \item \textbf{Rateless capability}: Unlike fixed-rate codes (Reed--Solomon, overlapping), DNA Fountain generates droplets continuously until the desired number of valid oligonucleotides is gathered. Rateless encoding enables generating additional oligonucleotides digitally and tuning the redundancy budget without requiring real-time feedback retransmission. However, an already synthesized physical pool remains limited to the generated batch.
@@ -77,7 +77,7 @@ These theoretical erasure channel models provide reference bounds for evaluating
 \section{Software Tools and Simulators}
 \label{sec:related_simulators}
 
-Although DNA data storage has garnered growing interest within the scientific community, the availability of open, modular, and didactic software tools geared toward academic experimentation remains limited. The tools identified in the literature reviewed here are summarized below.
+Despite growing interest in DNA data storage, open and modular software tools designed for academic experimentation remain scarce. The tools identified in the reviewed literature are summarized below.
 
 In rateless coding literature, degree distribution optimization for short message regimes was investigated by \citeonline{hyytia2007}. The authors analyzed LT codes for small block counts in telecommunication erasure channels, analytically and heuristically demonstrating that Luby's standard RSD suffers efficiency degradation in finite regimes, and proposed alternative distributions via absorbing Markov chains and recursive combinatorial optimization. That study focused on classical network channels, without addressing biochemical sequence constraints or DNA screening dynamics.
 

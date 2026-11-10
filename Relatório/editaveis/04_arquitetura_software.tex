@@ -2,7 +2,7 @@
 \chapter{Software Architecture and Engineering}
 \label{chap:software_architecture}
 
-This chapter details the central Software Engineering contribution of this work: the design, architecture, and implementation of the modular DNA Fountain pipeline simulator. It formalizes functional and non-functional requirements, the architectural decisions motivating the transition from procedural scripts to an object-oriented structure, the modular organization of the \texttt{dna\_fountain} package, data models representing pipeline entities, the complete ten-stage execution flow, implementation decisions aligned with the codebase, and the test suite ensuring internal correctness.
+This chapter presents the software engineering design and implementation of the modular DNA Fountain simulator. It formalizes functional and non-functional requirements, architectural decisions, module responsibilities within the \texttt{dna\_fountain} package, the ten-stage execution pipeline, framing and integrity choices, and the automated test suite.
 
 \section{System Requirements}
 \label{sec:system_requirements}
@@ -92,7 +92,7 @@ The non-functional requirements define software quality and architectural constr
 
     \item \textbf{NFR03 --- Extensibility}: All system hyperparameters must be unified within a typed configuration structure, simplifying parameter variation without modifying core logic.
 
-    \item \textbf{NFR04 --- Computational Performance}: Peeling decoding must employ hash-table inverted indexing with $O(1)$ expected time per individual neighbor lookup, eliminating redundant linear scans; the overall decoding cost depends on the total number of edges visited in the bipartite graph.
+    \item \textbf{NFR04 --- Computational Performance}: Peeling decoding must employ hash-table inverted indexing to achieve $O(1)$ expected time per neighbor lookup. This avoids redundant linear scans, while overall decoding cost depends on the total number of edges visited in the bipartite graph.
 
     \item \textbf{NFR05 --- Code Readability}: Source code must adhere to PEP~8 guidelines, utilize static type hints, and include detailed docstrings, fulfilling the educational objective of the project.
 
@@ -230,7 +230,7 @@ The simulator operates across ten sequential stages, described below:
 \section{Implementation Decisions}
 \label{sec:implementation_decisions}
 
-Five architectural decisions guided the simulator's implementation:
+The following implementation decisions shaped the simulator's design:
 
 \subsection{Null-Byte Padding (Zero-Padding)}
 
@@ -262,7 +262,14 @@ The order of operations in the encoder proceeds as follows:
     totaling $L + 3$ bytes, subsequently converted to DNA at 2 bits per base.
 \end{enumerate}
 
-In the decoder, the symmetric inverse is performed: the DNA string is converted back to bytes; CRC-8 is verified over the first $L + 2$ bytes and compared to the final checksum byte (discarding on mismatch); the original seed is recovered by unmasking ($\text{header} \oplus \texttt{0x1B1B}$); raw payload $y$ is reconstituted via scrambling self-inversion ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$); and the recovered seed regenerates degree and neighbor indices deterministically.
+The decoder performs the inverse operations:
+\begin{enumerate}
+    \item Convert the DNA string back to raw bytes;
+    \item Verify the CRC-8 checksum over the first $L + 2$ bytes, discarding the droplet on mismatch;
+    \item Recover the original seed by unmasking ($\text{header} \oplus \texttt{0x1B1B}$);
+    \item Reconstitute raw payload $y$ through scrambling self-inversion ($y_{\text{scrambled}} \oplus \mathbf{s}(\text{seed})$);
+    \item Regenerate degree $d$ and neighbor indices deterministically from the recovered seed.
+\end{enumerate}
 
 However, CRC-8 does not serve as a packet recovery mechanism for the pure erasure channel modeled herein, since packet dropouts are resolved by the outer LT code. Rather, it serves as complementary integrity validation, useful in two scenarios:
 \begin{itemize}
@@ -403,4 +410,4 @@ To verify the algorithmic correctness of the decoding engines and decouple imple
     \fonte{Prepared by the author (2026).}
 \end{table}
 
-With these 18 unit, functional, and integration tests validated, no failures occurred across the test suite. Executing the complete suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in under one second in the reported environment (CPython~3.12, Windows~11).
+Executing the full 18-test suite via \texttt{python -m pytest tests/} yields a 100\% pass rate in under one second in the reported environment (CPython~3.12, Windows~11), confirming that all unit and integration checks pass without errors.

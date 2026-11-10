@@ -4,7 +4,7 @@
 
 This work presented the design, implementation, and experimental evaluation of a modular Python simulator of the DNA Fountain pipeline, aimed at studying digital data storage in synthetic DNA molecules. The study combined principles of Software Engineering, information theory, and bioinformatics to build a controlled, extensible, and deterministically reproducible computational environment within the declared setup.
 
-The general objective formulated in Chapter~\ref{chap:introduction} was addressed within the delimited scope (erasure channel, $K \le 64$). The developed simulator implements the stages of the pipeline at the logical level, from binary payload ingestion and source block segmentation to LT encoding, nucleotide mapping, biochemical screening filtration, stochastic erasure channel transmission, and original data reconstruction via the iterative peeling algorithm.
+The general objective formulated in Chapter~\ref{chap:introduction} was addressed within the delimited scope (erasure channel, $K \le 64$). The simulator models the logical pipeline from file segmentation and LT encoding through biological screening, erasure channel simulation, and iterative peeling decoding.
 
 The objectives were addressed within the declared scope:
 
@@ -23,12 +23,12 @@ The objectives were addressed within the declared scope:
     
     \item \textbf{Experimental Evaluation}: A total of 216,000 simulations across 216 parameter configurations (1,000 repetitions each) characterized peeling recovery in finite block regimes ($K \le 64$). Key findings include: (a) high $c$ ($c \ge 0.5$) shifts the RSD mode to $m=1$ when $R > K/2$, concentrating excessive mass on degree 1 and impairing recovery for $K = 32$, whereas for $K = 64$ the mode remained at $m=2$, sustaining a $69.2\%$ decoding success rate; (b) the moderate parameterization $c = 0.3$ outperformed or matched the reference baseline ($c = 0.1$) across 8 of 9 finite-length parameter cells under constrained overhead; and (c) for $K = 16$, $98.7\%$ of peeling failures were caused by cyclic stopping sets with full rank rather than lack of coverage, confirming that no single parameterization dominates the entire finite-length regime;
     
-    \item \textbf{Experimental Reproducibility}: The decoupling of three separate pseudorandom streams derived from a deterministic master seed (synthetic payload generator, randomized initial droplet seed generator per trial, and channel erasure generator) prevented cross-component PRNG consumption from affecting other streams alongside maintaining deterministic repeatability. In addition, 18 automated tests validated software primitives and cross-validated peeling against $GF(2)$ Gaussian elimination.
+    \item \textbf{Experimental Reproducibility}: Decoupling three separate PRNG streams (payload generation, per-trial initial seeds, and channel erasures) from a deterministic master key prevented cross-component random number consumption from affecting other streams, while maintaining repeatability. In addition, 18 automated tests validated software primitives and cross-validated peeling against $GF(2)$ Gaussian elimination.
 \end{enumerate}
 
 \section{Synthesis of Findings and Research Hypotheses}
 
-In addressing the central research question---how to design, verify, and evaluate a modular simulator of the DNA Fountain pipeline under finite block regimes---this work showed that peeling decoding dynamics in small messages ($K \le 64$) diverge markedly from asymptotic expectations:
+In addressing the central research question---how to design, verify, and evaluate a modular simulator of the DNA Fountain pipeline under finite block regimes---this work showed that peeling decoding dynamics in small messages ($K \le 64$) diverge from asymptotic predictions:
 
 \begin{itemize}
     \item \textbf{Screening and Degree Invariance ($H_1$)}: Biological screening filters did not induce statistically significant distortion in the empirical degree distribution of accepted droplets compared to rejected candidates, supporting hypothesis $H_1$;

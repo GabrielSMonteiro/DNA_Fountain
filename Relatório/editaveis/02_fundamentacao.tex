@@ -2,14 +2,14 @@
 \chapter{Theoretical Foundation}
 \label{chap:theoretical_foundation}
 
-This chapter presents the theoretical foundations necessary to understand this work. It covers the principles of DNA data storage, digital encoding into nucleotide sequences, the types of channel errors and biological constraints involved, erasure codes and fountain codes, the mathematical formalization of LT codes and the Robust Soliton Distribution (RSD), the operational mechanics of the peeling decoder and ripple dynamics, the DNA Fountain architecture, and the evaluation metrics used across the experiments.
+Understanding the simulator developed in this work requires background in several areas: DNA as a digital storage medium, how binary data maps to nucleotide sequences, the errors and biological constraints that arise in this channel, rateless fountain codes and the Robust Soliton Distribution, the peeling decoder, and the DNA Fountain architecture. This chapter covers each topic in turn and closes with the evaluation metrics used across the experiments.
 
 \section{DNA Data Storage}
 \label{sec:dna_data_storage}
 
 The deoxyribonucleic acid (DNA) molecule is a biopolymer composed of a linear sequence of nucleotides, each consisting of a phosphate group, a 2-deoxyribose sugar, and one of four nitrogenous bases: adenine (A), cytosine (C), guanine (G), and thymine (T). From a computational perspective, this linear sequence of bases can carry arbitrary digital information~\cite{compeau2018}.
 
-From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This property endows DNA with a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
+From an information-theoretic standpoint, each nucleotide can represent up to two bits of digital data, as there are four distinct possible bases ($\log_2 4 = 2$). This gives DNA a theoretical information density of up to approximately 455 exabytes per gram~\cite{church2012}, orders of magnitude greater than conventional magnetic or optical storage media.
 
 Beyond its high physical density, DNA can exhibit high physicochemical stability under specific preservation conditions. When encapsulated at low temperature and in a dehydrated state (or shielded within synthetic silica microcapsules), molecular strands have been shown to remain retrievable over timescales of millennia~\cite{grass2015}. Unlike traditional magnetic media, whose typical operational lifespan requires periodic data migration cycles every 5 to 10 years, DNA archiving can preserve data passively without continuous energy consumption to sustain magnetic fields or electronic circuits~\cite{ceze2019}.
 
@@ -70,7 +70,7 @@ Channel errors arise during physical synthesis and sequencing operations, catego
     \item \textbf{Erasures}: An entire oligonucleotide is lost during the process, resulting from physical decay, molecular dropout, synthesis failure, or insufficient sequencing coverage. In this case, the sequence simply fails to reach the receiver, resulting in an unreceived packet.
 \end{itemize}
 
-In this work, the DNA storage channel is modeled in a simplified manner as a \textbf{packet erasure channel}, where complete oligonucleotides are lost with an independent erasure probability $p_{\text{loss}}$, while received sequences are treated as error-free. This simplification aligns with the scope declared in Chapter~\ref{chap:introduction} and isolates the pure effect of packet losses on rateless decoding without the confounding complexity of insertions, deletions, and substitutions.
+In this work, the DNA storage channel is modeled in a simplified manner as a \textbf{packet erasure channel}, where complete oligonucleotides are lost with an independent erasure probability $p_{\text{loss}}$, while received sequences are treated as error-free. This model is consistent with the scope declared in Chapter~\ref{chap:introduction} and isolates the pure effect of packet losses on rateless decoding without the confounding complexity of insertions, deletions, and substitutions.
 
 \subsection{Biological Acceptability Constraints}
 
@@ -221,7 +221,7 @@ In the simulator implementation, degree sampling is executed via the Cumulative 
 
 The \textbf{peeling decoder} is the iterative algorithm employed in LT codes to reconstruct original source blocks from received droplets. It is a belief propagation algorithm over the bipartite graph; payload updates use XOR over the Galois field $GF(2)$, while the algorithm also maintains index structures and a processing queue to track residual degrees.
 
-The operational principle of the peeling decoder can be intuitively described as follows: if a received droplet has degree 1—meaning it represents the XOR combination of a single source block—its payload is identically equal to that source block. Once a block's value is uncovered, it can be ``peeled off'' (via XOR) from all other received droplets containing it, decrementing their residual degrees by one. If any of those droplets reach degree 1 after peeling, another source block is revealed, and the process iterates.
+The operational principle of the peeling decoder can be intuitively described as follows: if a received droplet has degree 1—meaning it represents the XOR combination of a single source block—its payload is identically equal to that source block. Once a block's value is uncovered, it can be peeled off (via XOR) from all other received droplets containing it, decrementing their residual degrees by one. If any of those droplets reach degree 1 after peeling, another source block is revealed, and the process iterates.
 
 The algorithm is formalized in three phases:
 
