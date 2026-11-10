@@ -4,21 +4,52 @@
 
 This work presented the design, implementation, and experimental evaluation of a modular Python simulator of the DNA Fountain pipeline, aimed at studying digital data storage in synthetic DNA molecules. The study combined principles of Software Engineering, information theory, and bioinformatics to build a controlled, extensible, and deterministically reproducible computational environment within the declared setup.
 
-The general objective formulated in Chapter~\ref{chap:introduction} was addressed within the delimited scope (erasure channel, $K \le 64$). The developed simulator implements the stages of the pipeline at the logical level, from binary payload ingestion and source block segmentation to LT encoding, nucleotide mapping, biochemical screening filtration, stochastic erasure channel transmission, and original data reconstruction via the iterative \emph{peeling} algorithm.
+The general objective formulated in Chapter~\ref{chap:introduction} was addressed within the delimited scope (erasure channel, $K \le 64$). The developed simulator implements the stages of the pipeline at the logical level, from binary payload ingestion and source block segmentation to LT encoding, nucleotide mapping, biochemical screening filtration, stochastic erasure channel transmission, and original data reconstruction via the iterative peeling algorithm.
 
-Regarding the specific objectives, each defined goal was implemented and evaluated within the declared scope:
+The objectives were addressed within the declared scope:
 
 \begin{enumerate}
-    \item \textbf{Theoretical Foundation}: The concepts of rateless \emph{fountain codes}, the robust soliton distribution, and iterative peeling decoding were mathematically formalized in Chapter~\ref{chap:theoretical_foundation}, providing the theoretical groundwork for software implementation;
-    \item \textbf{Computational Modeling}: Core data entities (\texttt{Segment}, \texttt{Droplet}, \texttt{DNAFountainConfig}, and \texttt{ExperimentResult}) were structured cohesively, with deterministic rules for seed generation, nucleotide conversion, and zero-padding;
-    \item \textbf{Modular Software Architecture}: The simulator was constructed in object-oriented Python 3.12, organized into specialized modules (\texttt{config}, \texttt{soliton}, \texttt{lt\_codec}, \texttt{screening}, \texttt{channel}, \texttt{experiments}), relying exclusively on the Python standard library;
-    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates ($49.8\%$ analytical benchmark for unconstrained uniform 28-mers). This difference is driven by the linear CRC-8 checksum constraining GC variance across the strand (reducing GC violations from $34.7\%$ to $24.8\%$ with homopolymer violations constant at $26.5\%$), while the XOR mask \texttt{0x1B1B} is an involution preserving uniformity over all $2^{16}$ seeds and protecting low-seed prefixes against immediate homopolymers ($39.2\%$ rejection in seeds 0--2000), leaving $\approx 37{,}600$ usable seeds. No statistically significant difference was detected between degree distributions of accepted and rejected droplets ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$). Low-entropy stress testing indicated the role of the additive scrambler in breaking periodic homopolymer runs;
+    \item \textbf{Theoretical Foundation}: The concepts of rateless fountain codes, the Robust Soliton Distribution, and iterative peeling decoding were mathematically formalized in Chapter~\ref{chap:theoretical_foundation};
+    
+    \item \textbf{Computational Modeling}: Core data entities (\texttt{Segment}, \texttt{Droplet}, \texttt{DNAFountainConfig}, and \texttt{ExperimentResult}) were structured with deterministic rules for seed generation, nucleotide conversion, and zero-padding;
+    
+    \item \textbf{Modular Software Architecture}: The simulator was constructed in object-oriented Python 3.12, organized into specialized modules relying exclusively on the Python standard library;
+    
+    \item \textbf{Biological Screening}: Physicochemical constraints for GC content ($40\%$ to $60\%$) and homopolymer run length limits ($\le 3$ bases) were implemented. Direct evaluations across 100,000 candidate droplets showed that the filter rejects $42.6\%$ of framed candidates without detecting a statistically significant difference in the degree distribution ($\chi^2 = 23.66$, $\text{df} = 17$, $p = 0.1289$), while scrambling effectively prevents homopolymer runs in low-entropy payloads;
+    
     \item \textbf{Stochastic Channel Simulation}: The erasure channel with loss probability $p_{\text{loss}}$ enabled the simulation of oligonucleotide loss resulting from synthesis inefficiencies, molecular decay, and sequencing subsampling;
-    \item \textbf{Metrics and Instrumentation}: The experimental suite collected metrics on decoding success rate, mean degrees, \emph{ripple} queue dynamics, XOR operation counts, and execution runtimes;
-    \item \textbf{Experimental Evaluation}: A total of 216,000 simulations covering 216 parameter configurations across 1,000 independent repetitions with randomized seeds were conducted. Results revealed that, in a finite block regime ($K \le 64$), over an ideal channel with $\delta = 0.10$ and overhead $\epsilon = 1.00$, the configuration $c = 0.5$ compromised decoding for $K = 32$ (38.5\% ensemble success, collapsing to 3.7\% under $\epsilon = 0.50$) by concentrating corrective mass on degree 1 ($m = \lfloor K/R \rfloor = 1$ when $R > K/2$). In contrast, for $K = 64$ ($R < K/2$), the mode shift to $m=2$ ($\mu(2) \approx 0.752$) sustained $69.2\%$ complete recovery executions. The reference baseline parameterization ($c = 0.1$, $\delta = 0.10$) reached 92.0\% success for $K = 32$ (95\% CI: $[90.1\%, 93.6\%]$) and 98.5\% for $K = 64$ (95\% CI: $[97.5\%, 99.2\%]$) under full overhead $\epsilon = 1.00$ over ideal channels. Across the 9 finite parameter cells ($K \in \{16, 32, 64\} \times \epsilon \in \{0.25, 0.50, 1.00\}$), $c = 0.3$ achieved higher or comparable recovery in 8 cells, being surpassed by $c = 0.1$ only at $K = 64, \epsilon = 1.00$ ($98.5\%$ vs. $96.6\%$, $p = 0.0086$). For $K=16$, recovery under $c = 0.3$ significantly outperformed $c=0.1$ ($89.3\%$ vs. $84.7\%$, $p = 0.0027$), with 98.7\% of peeling failures caused by cyclic stopping sets with full rank (as certified by $GF(2)$ Gaussian elimination, which attained 99.8\% success). Under constrained overhead ($\epsilon = 0.25$), $c = 0.3$ likewise achieved higher success with statistical significance for both $K=16$ ($27.2\%$ vs. $16.9\%$, $p < 10^{-7}$) and $K=32$ ($23.9\%$ vs. $11.8\%$, $p < 10^{-10}$), indicating that no single parameterization dominates the entire finite-length regime;
-    \item \textbf{Experimental Reproducibility}: The decoupling of three independent pseudorandom streams derived from a deterministic master seed (synthetic payload generator, randomized initial droplet seed generator per trial, and channel erasure generator parametrized by loss probability) ensured statistical independence across repetitions and channel columns alongside deterministic repeatability. In addition, the test suite was expanded to 18 canonical unit and integration tests (including seed space $\chi^2$ goodness-of-fit across all 65,536 seeds, stopping set certification, triangular cascades, and cross-validation against $GF(2)$ Gaussian elimination). All software artifacts, instrumentation routines, and experimental datasets are openly available and documented under release tag \texttt{v1.0-defesa} in the project's GitHub repository (\url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}).
+    
+    \item \textbf{Metrics and Instrumentation}: The experimental suite collected metrics on decoding success rate, mean degrees, ripple queue dynamics, XOR operation counts, and execution runtimes;
+    
+    \item \textbf{Experimental Evaluation}: A total of 216,000 simulations across 216 parameter configurations (1,000 repetitions each) characterized peeling recovery in finite block regimes ($K \le 64$). Key findings include: (a) high $c$ ($c \ge 0.5$) shifts the RSD mode to $m=1$ when $R > K/2$, concentrating excessive mass on degree 1 and impairing recovery for $K = 32$, whereas for $K = 64$ the mode remained at $m=2$, sustaining a $69.2\%$ decoding success rate; (b) the moderate parameterization $c = 0.3$ outperformed or matched the reference baseline ($c = 0.1$) across 8 of 9 finite-length parameter cells under constrained overhead; and (c) for $K = 16$, $98.7\%$ of peeling failures were caused by cyclic stopping sets with full rank rather than lack of coverage, confirming that no single parameterization dominates the entire finite-length regime;
+    
+    \item \textbf{Experimental Reproducibility}: The decoupling of three separate pseudorandom streams derived from a deterministic master seed (synthetic payload generator, randomized initial droplet seed generator per trial, and channel erasure generator) prevented cross-component PRNG consumption from affecting other streams alongside maintaining deterministic repeatability. In addition, 18 automated tests validated software primitives and cross-validated peeling against $GF(2)$ Gaussian elimination.
 \end{enumerate}
 
-In response to the formulated research problem, the simulator was structured into modular components, verified through deterministic unit tests, and evaluated across a factorial parameter grid. The experimental results indicate that, in short-block regimes, decoding success depends strongly on the interaction among degree distribution, source block count, redundancy margin, and channel loss rates, rather than on any single parameter in isolation.
+\section{Synthesis of Findings and Research Hypotheses}
 
-In conclusion, this work provides an open, modular, and didactic software baseline for the Software Engineering and Bioinformatics communities. By dissecting the internal mechanics of DNA Fountain and experimentally characterizing parameter choices in finite block regimes, it establishes a verifiable computational platform for research in biological data encoding and recovery.
+In addressing the central research question---how to design, verify, and evaluate a modular simulator of the DNA Fountain pipeline under finite block regimes---this work showed that peeling decoding dynamics in small messages ($K \le 64$) diverge markedly from asymptotic expectations:
+
+\begin{itemize}
+    \item \textbf{Screening and Degree Invariance ($H_1$)}: Biological screening filters did not induce statistically significant distortion in the empirical degree distribution of accepted droplets compared to rejected candidates, supporting hypothesis $H_1$;
+    
+    \item \textbf{Parameter Sensitivity ($H_2$)}: The asymptotic choice $c = 0.1$ does not universally optimize recovery in finite regimes. Moderate values ($c \approx 0.3$) proved superior under constrained overhead budgets by supplying sufficient low-degree equations to sustain ripple propagation, supporting hypothesis $H_2$;
+    
+    \item \textbf{Erasure Resilience ($H_3$)}: Channel loss reduced recovery in accordance with the decrease in effective received overhead, with higher nominal overhead partially mitigating these losses, consistent with hypothesis $H_3$.
+\end{itemize}
+
+\section{Scope Limitations}
+
+The conclusions of this study remain delimited by the following constraints:
+
+\begin{itemize}
+    \item The channel is modeled as a memoryless packet erasure channel (BEC), without accounting for intra-strand substitutions, insertions, or deletions;
+    
+    \item Addressing capacity is bounded by the 16-bit seed header, limiting exploration to small block counts ($K \le 64$);
+    
+    \item Execution times measured in Python reflect CPython runtime overhead rather than the bounds of compiled or hardware-accelerated implementations;
+    
+    \item While seed randomization per trial provides an estimate across randomized seed trajectories, it does not substitute for asymptotic ensemble proofs.
+\end{itemize}
+
+The repository provides the implementation, experiment scripts, and datasets for the evaluated finite-block configurations under release tag \texttt{v1.0-defesa} (\url{https://github.com/GabrielSMonteiro/DNA_Fountain/releases/tag/v1.0-defesa}).
